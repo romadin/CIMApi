@@ -21,7 +21,7 @@ class Authenticate extends Controller
 
     public function login(Request $request)
     {
-        if($_SESSION['api_token']) {
+        if(!empty($_SESSION['api_token'])) {
             return; //rederict to home. Already logged in.
         }
 
