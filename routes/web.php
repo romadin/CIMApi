@@ -17,7 +17,12 @@ $router->group(['middleware' => 'auth'], function () use ($router) {
     $router->get('/', function () use ($router) {
         return $router->app->version();
     });
-    $router->post('projects', 'Projects\Projects@getProjects');
+    $router->get('projects', 'Projects\Projects@getProjects');
+
+    $router->group(['middleware' => 'admin'], function() use ($router) {
+        $router->post('projects', 'Projects\Projects@createProject');
+
+    });
 
 });
 

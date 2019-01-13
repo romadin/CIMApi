@@ -8,37 +8,58 @@
 
 namespace App\Http\Controllers\Authenticate;
 
-use App\Models\User;
-use Illuminate\Http\Request;
+use Illuminate\Contracts\Auth\Factory as Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
 use Laravel\Lumen\Routing\Controller;
+use App\Models\User;
 
 class Authenticate extends Controller
 {
     const USERS_TABLE = 'users';
     const USER_API_TOKEN_TABLE = 'user_api_token';
 
+    /**
+     * The authentication guard factory instance.
+     *
+     * @var Auth
+     */
+    protected $auth;
+
+
+    /**
+     * Create a new middleware instance.
+     *
+     * @param Auth $auth
+     */
+    public function __construct(Auth $auth)
+    {
+        $this->auth = $auth;
+    }
+
 
     public function login(Request $request)
     {
         session_start();
-        if(!empty($_SESSION['api_token'])) {
-            echo json_encode(['token' => $_SESSION['api_token']['token'], 'user_id' => $_SESSION['api_token']['user_id']]);
-            return; //rederict to home. Already logged in.
-        }
-
+        /** @var User $user */
+        $user = $this->auth->guard(null)->user();
         $email = $request->input('email');
         $password = $request->input('password');
+
+        if(!empty($_SESSION['api_token']) && isset($user) && $user->getEmail() === $email) {
+            echo json_encode(['token' => $_SESSION['api_token']['token'], 'user_id' => $_SESSION['api_token']['user_id']]);
+            return true;
+        }
 
         try {
             $result = DB::table(self::USERS_TABLE)
                 ->where('email', '=', $email)
                 ->first();
             if ( $result === null) {
-                throw new \Exception('The email doesn\'t exist');
+                return response('Wrong credentials.', 403);
             }
         } catch (\Exception $e) {
-            throw new \Exception($e);
+            return response('Wrong credentials.', 403);
         }
 
         $user = new User(
@@ -51,6 +72,9 @@ class Authenticate extends Controller
             $result->role_id
         );
 
+        // clear old sessions
+        unset($_SESSION['api_token']);
+
         if (password_verify($password, $user->getPassword())) {
             $token = bin2hex(random_bytes(64));
 
@@ -62,7 +86,7 @@ class Authenticate extends Controller
             $_SESSION['api_token']['token'] = $token;
             $_SESSION['api_token']['user_id'] = $user->getId();
             echo json_encode(['token' => $token, 'user_id' => $user->getId()]);
-            return;
+            return true;
         } else {
             return response('Wrong credentials.', 403);
         }

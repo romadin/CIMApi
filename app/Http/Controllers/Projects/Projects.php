@@ -17,4 +17,9 @@ class Projects extends Controller
     {
         echo json_encode(['projects' => 'foobar']);
     }
+
+    public function createProject()
+    {
+        echo json_encode('project created');
+    }
 }
