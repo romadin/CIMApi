@@ -20,7 +20,8 @@ $router->group(['middleware' => 'auth'], function () use ($router) {
     $router->get('projects', 'Projects\Projects@getProjects');
 
     $router->group(['middleware' => 'admin'], function() use ($router) {
-        $router->post('projects', 'Projects\Projects@createProject');
+        $router->post('projects[/{id}]', 'Projects\Projects@createOrUpdateProject');
+        $router->delete('projects/{id}', 'Projects\Projects@deleteProject');
 
     });
 

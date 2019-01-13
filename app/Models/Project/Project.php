@@ -82,9 +82,9 @@ class Project implements JsonSerializable
     }
 
     /**
-     * @param int $agendaId
+     * @param int | null $agendaId
      */
-    public function setAgendaId(int $agendaId): void
+    public function setAgendaId($agendaId): void
     {
         $this->agendaId = $agendaId;
     }
@@ -98,9 +98,9 @@ class Project implements JsonSerializable
     }
 
     /**
-     * @param int $actionListId
+     * @param int | null $actionListId
      */
-    public function setActionListId(int $actionListId): void
+    public function setActionListId($actionListId): void
     {
         $this->actionListId = $actionListId;
     }

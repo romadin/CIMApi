@@ -41,7 +41,7 @@ class Roles extends ApiController
             $result->name
         );
 
-        return $this->getReturnValueObject($request, $role);
+        return $this->getReturnValueObject($request, $role, false);
     }
 
 }
