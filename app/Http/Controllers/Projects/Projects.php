@@ -19,7 +19,7 @@ class Projects extends ApiController
     const PROJECT_TABLE = 'projects';
 
     /**
-     * Get all of the projects
+     * Get all of the projects.
      * @param Request $request
      * @return array
      */
@@ -34,6 +34,24 @@ class Projects extends ApiController
         }
 
         return $this->getReturnValueArray($request, $projects);
+    }
+
+    /**
+     * Get an single project.
+     * @param Request $request
+     * @param $id
+     * @return \Illuminate\Http\Response|\JsonSerializable|\Laravel\Lumen\Http\ResponseFactory|object|string
+     */
+    public function getProject(Request $request, $id)
+    {
+        $result = DB::table(self::PROJECT_TABLE)
+            ->where('id', '=', $id)
+            ->first();
+        if ( $result === null ) {
+            return response('Item does not exist', 404);
+        }
+
+        return $this->getReturnValueObject($request, $this->makeProject($result));
     }
 
     /**
