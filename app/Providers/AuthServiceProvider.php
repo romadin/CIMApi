@@ -2,10 +2,8 @@
 
 namespace App\Providers;
 
-use App\User;
 use App\Models\User as newUser;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
 class AuthServiceProvider extends ServiceProvider
@@ -54,8 +52,6 @@ class AuthServiceProvider extends ServiceProvider
                     $user->password,
                     $user->role_id
                 );
-
-                // return User::where('api_token', $request->input('api_token'))->first();
             }
             return null;
         });

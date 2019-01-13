@@ -21,7 +21,9 @@ class Authenticate extends Controller
 
     public function login(Request $request)
     {
+        session_start();
         if(!empty($_SESSION['api_token'])) {
+            echo json_encode(['token' => $_SESSION['api_token']['token'], 'user_id' => $_SESSION['api_token']['user_id']]);
             return; //rederict to home. Already logged in.
         }
 
@@ -57,9 +59,12 @@ class Authenticate extends Controller
                     'token' => $token,
                     'user_id' => $user->getId(),
                 ]);
-            $_SESSION['api_token'] = $token;
+            $_SESSION['api_token']['token'] = $token;
+            $_SESSION['api_token']['user_id'] = $user->getId();
+            echo json_encode(['token' => $token, 'user_id' => $user->getId()]);
+            return;
         } else {
-            throw new \Exception('Wrong password.', 401);
+            return response('Wrong credentials.', 403);
         }
 
     }

@@ -19,7 +19,6 @@ $router->group(['middleware' => 'auth'], function () use ($router) {
     });
     $router->post('projects', 'Projects\Projects@getProjects');
 
-
 });
 
 

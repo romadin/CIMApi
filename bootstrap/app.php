@@ -2,9 +2,6 @@
 
 require_once __DIR__.'/../vendor/autoload.php';
 
-//@todo need to find a good place for this!
-header('Access-Control-Allow-Origin: *');
-
 try {
     (new Dotenv\Dotenv(dirname(__DIR__)))->load();
 } catch (Dotenv\Exception\InvalidPathException $e) {
@@ -62,9 +59,9 @@ $app->singleton(
 |
 */
 
-// $app->middleware([
-//     App\Http\Middleware\ExampleMiddleware::class
-// ]);
+ $app->middleware([
+     App\Http\Middleware\CorsMiddleware::class,
+ ]);
 
  $app->routeMiddleware([
      'auth' => App\Http\Middleware\Authenticate::class,

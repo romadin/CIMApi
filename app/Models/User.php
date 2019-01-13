@@ -9,7 +9,9 @@
 namespace App\Models;
 
 
-class User
+use JsonSerializable;
+
+class User implements JsonSerializable
 {
     /**
      * @var int
@@ -174,6 +176,18 @@ class User
     public function setRoleId(int $role_id): void
     {
         $this->role_id = $role_id;
+    }
+
+    public function jsonSerialize()
+    {
+        return [
+            'id' => $this->getId(),
+            'firstName' => $this->getFirstName(),
+            'insertion' => $this->getInsertion(),
+            'lastName' => $this->getLastName(),
+            'email' => $this->getEmail(),
+            'role_id' => $this->getRoleId(),
+        ];
     }
 
 }
