@@ -9,13 +9,29 @@
 namespace App\Http\Controllers\Projects;
 
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\ApiController;
+use App\Models\Project\Project;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
-class Projects extends Controller
+class Projects extends ApiController
 {
-    public function getProjects()
+    const PROJECT_TABLE = 'projects';
+
+    public function getProjects(Request $request)
     {
-        echo json_encode(['projects' => 'foobar']);
+        $results = DB::table(self::PROJECT_TABLE)->get();
+
+        $projects = [];
+
+        foreach ($results as $result) {
+            array_push($projects, new Project(
+                $result->id,
+                $result->name
+            ));
+        }
+
+        return $this->getReturnValueArray($request, $projects);
     }
 
     public function createProject()

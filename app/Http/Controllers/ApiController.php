@@ -21,13 +21,33 @@ class ApiController extends Controller
      * @param Request $request
      * @return JsonSerializable|string | object
      */
-    public function getReturnValue(Request $request, JsonSerializable $object)
+    public function getReturnValueObject(Request $request, JsonSerializable $object)
     {
         if ($request->input('format') === 'json') {
             return json_encode($object->jsonSerialize());
         }
 
         return $object;
+    }
+
+    /**
+     * Get the right return value from the given array, specified with the format given.
+     * @param Request $request
+     * @param []JsonSerializable $arrayItems
+     * @return bool | array
+     */
+    public function getReturnValueArray(Request $request, $arrayItems)
+    {
+        if ($request->input('format') === 'json') {
+            $array = [];
+            /** @var JsonSerializable $item */
+            foreach ($arrayItems as $item) {
+                array_push($array, $item->jsonSerialize());
+            }
+            return json_encode($array);
+        }
+
+        return $arrayItems;
     }
 
 }

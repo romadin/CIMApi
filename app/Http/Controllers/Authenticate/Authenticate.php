@@ -47,8 +47,7 @@ class Authenticate extends Controller
         $password = $request->input('password');
 
         if(!empty($_SESSION['api_token']) && isset($user) && $user->getEmail() === $email) {
-            echo json_encode(['token' => $_SESSION['api_token']['token'], 'user_id' => $_SESSION['api_token']['user_id']]);
-            return true;
+            return json_encode(['token' => $_SESSION['api_token']['token'], 'user_id' => $_SESSION['api_token']['user_id']]);
         }
 
         try {
@@ -85,8 +84,7 @@ class Authenticate extends Controller
                 ]);
             $_SESSION['api_token']['token'] = $token;
             $_SESSION['api_token']['user_id'] = $user->getId();
-            echo json_encode(['token' => $token, 'user_id' => $user->getId()]);
-            return true;
+            return json_encode(['token' => $token, 'user_id' => $user->getId()]);
         } else {
             return response('Wrong credentials.', 403);
         }

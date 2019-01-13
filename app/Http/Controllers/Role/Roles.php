@@ -17,6 +17,11 @@ class Roles extends ApiController
 {
     const ROLES_TABLE = 'roles';
 
+    /**
+     * @param Request $request
+     * @param $id
+     * @return \Illuminate\Http\Response|\JsonSerializable|\Laravel\Lumen\Http\ResponseFactory|object|string
+     */
     public function getRole(Request $request, $id)
     {
         try {
@@ -36,7 +41,7 @@ class Roles extends ApiController
             $result->name
         );
 
-        return $this->getReturnValue($request, $role);
+        return $this->getReturnValueObject($request, $role);
     }
 
 }
