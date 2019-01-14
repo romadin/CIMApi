@@ -55,10 +55,10 @@ class Authenticate extends Controller
                 ->where('email', '=', $email)
                 ->first();
             if ( $result === null) {
-                return response('Wrong credentials.', 403);
+                return response('Wrong credentials.', 502);
             }
         } catch (\Exception $e) {
-            return response('Wrong credentials.', 403);
+            return response('There is something wrong with the connection', 403);
         }
 
         $user = new User(
