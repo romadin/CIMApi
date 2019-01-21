@@ -63,10 +63,10 @@ class ProjectsController extends ApiController
     public function createOrUpdateProject(Request $request, $id = null)
     {
         if ( $id ) {
-            return $this->updateProject($id);
+            return $this->updateProject($request, $id);
         }
 
-        $newId = DB::table(self::PROJECT_TABLE)->insertGetId([$_POST]);
+        $newId = DB::table(self::PROJECT_TABLE)->insertGetId($request->post());
 
         if ( $newId ) {
             $result = DB::table(self::PROJECT_TABLE)->where('id', $newId)->first();
@@ -97,14 +97,15 @@ class ProjectsController extends ApiController
 
     /**
      * Update a existing project.
+     * @param Request $request
      * @param $id
      * @return Project
      */
-    private function updateProject($id)
+    private function updateProject(Request $request, $id)
     {
         DB::table(self::PROJECT_TABLE)
             ->where('id','=', $id)
-            ->update($_POST);
+            ->update($request->post());
 
         $result = DB::table(self::PROJECT_TABLE)->where('id', $id)->first();
 
