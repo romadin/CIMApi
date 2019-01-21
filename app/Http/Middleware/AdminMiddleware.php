@@ -12,7 +12,7 @@ use App\Models\Role;
 use Illuminate\Contracts\Auth\Factory as Auth;
 use Illuminate\Http\Request;
 use Closure;
-use App\Http\Controllers\Role\Roles;
+use App\Http\Controllers\Roles\RolesController;
 use App\Models\User;
 
 class AdminMiddleware
@@ -25,7 +25,7 @@ class AdminMiddleware
     protected $auth;
 
     /**
-     * @var Roles
+     * @var RolesController
      */
     protected $rolesController;
 
@@ -33,9 +33,9 @@ class AdminMiddleware
      * Create a new middleware instance.
      *
      * @param Auth $auth
-     * @param Roles $rolesController
+     * @param RolesController $rolesController
      */
-    public function __construct(Auth $auth, Roles $rolesController)
+    public function __construct(Auth $auth, RolesController $rolesController)
     {
         $this->auth = $auth;
         $this->rolesController = $rolesController;
@@ -51,7 +51,7 @@ class AdminMiddleware
         }
 
         /** @var Role $role */
-        $role = $this->rolesController->getRole($request, $user->getRoleId());
+        $role = $this->rolesController->getRole($request, $user->getRoleId(), false);
 
         if ( $role->getName() !== 'admin' )
         {

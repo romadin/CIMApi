@@ -6,23 +6,24 @@
  * Time: 15:35
  */
 
-namespace App\Http\Controllers\Role;
+namespace App\Http\Controllers\Roles;
 
 use App\Http\Controllers\ApiController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\Role;
 
-class Roles extends ApiController
+class RolesController extends ApiController
 {
     const ROLES_TABLE = 'roles';
 
     /**
      * @param Request $request
-     * @param $id
+     * @param int $id
+     * @param bool $objectFormat
      * @return \Illuminate\Http\Response|\JsonSerializable|\Laravel\Lumen\Http\ResponseFactory|object|string
      */
-    public function getRole(Request $request, $id)
+    public function getRole(Request $request, $id, $objectFormat = true)
     {
         try {
             $result = DB::table(self::ROLES_TABLE)
@@ -41,7 +42,7 @@ class Roles extends ApiController
             $result->name
         );
 
-        return $this->getReturnValueObject($request, $role, false);
+        return $this->getReturnValueObject($request, $role, $objectFormat);
     }
 
 }

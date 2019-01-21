@@ -99,9 +99,9 @@ class User implements JsonSerializable
     }
 
     /**
-     * @return string
+     * @return string | null
      */
-    public function getInsertion(): string
+    public function getInsertion()
     {
         return $this->insertion;
     }
@@ -160,6 +160,14 @@ class User implements JsonSerializable
     public function setPassword(string $password): void
     {
         $this->password = $password;
+    }
+
+    /**
+     * remove password property for front end.
+     */
+    public function removePassword(): void
+    {
+        unset($this->password);
     }
 
     /**

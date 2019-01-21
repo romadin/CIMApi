@@ -17,12 +17,13 @@ $router->group(['middleware' => 'auth'], function () use ($router) {
     $router->get('/', function () use ($router) {
         return $router->app->version();
     });
-    $router->get('projects', 'Projects\Projects@getProjects');
+    $router->get('projects', 'Projects\ProjectsController@getProjects');
+    $router->get('users/{id}', 'Users\UsersController@getUser');
+    $router->get('roles/{id}', 'Roles\RolesController@getRole');
 
     $router->group(['middleware' => 'admin'], function() use ($router) {
-        $router->post('projects[/{id}]', 'Projects\Projects@createOrUpdateProject');
-        $router->delete('projects/{id}', 'Projects\Projects@deleteProject');
-
+        $router->post('projects[/{id}]', 'Projects\ProjectsController@createOrUpdateProject');
+        $router->delete('projects/{id}', 'Projects\ProjectsController@deleteProject');
     });
 
 });

@@ -14,7 +14,7 @@ use App\Models\Project\Project;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-class Projects extends ApiController
+class ProjectsController extends ApiController
 {
     const PROJECT_TABLE = 'projects';
 
