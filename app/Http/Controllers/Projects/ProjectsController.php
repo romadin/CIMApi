@@ -10,6 +10,7 @@ namespace App\Http\Controllers\Projects;
 
 
 use App\Http\Controllers\ApiController;
+use App\Http\Controllers\Folders\FoldersController;
 use App\Models\Project\Project;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -17,6 +18,12 @@ use Illuminate\Support\Facades\DB;
 class ProjectsController extends ApiController
 {
     const PROJECT_TABLE = 'projects';
+    private $foldersController;
+
+    public function __construct(FoldersController $foldersController)
+    {
+        $this->foldersController = $foldersController;
+    }
 
     /**
      * Get all of the projects.
@@ -69,6 +76,10 @@ class ProjectsController extends ApiController
         $newId = DB::table(self::PROJECT_TABLE)->insertGetId($request->post());
 
         if ( $newId ) {
+
+            if ( $request->input('template')) {
+                $this->foldersController->createFoldersTemplate($newId, $request->get('template'));
+            }
             $result = DB::table(self::PROJECT_TABLE)->where('id', $newId)->first();
 
             return $this->getReturnValueObject($request, $this->makeProject($result));
