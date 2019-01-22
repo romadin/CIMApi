@@ -24,6 +24,8 @@ $router->group(['middleware' => 'auth'], function () use ($router) {
     $router->group(['middleware' => 'admin'], function() use ($router) {
         $router->post('projects[/{id}]', 'Projects\ProjectsController@createOrUpdateProject');
         $router->delete('projects/{id}', 'Projects\ProjectsController@deleteProject');
+
+        $router->post('users', 'Users\UsersController@postUser');
     });
 
 });

@@ -19,9 +19,10 @@ class CreateUsersTable extends Migration
             $table->string('insertion')->nullable($value = true);
             $table->string('lastName');
             $table->string('email', 250)->unique();
+            $table->string('function');
             $table->string('password');
 
-            $table->unsignedInteger('role_id');
+            $table->unsignedInteger('role_id')->default(2);
 
             $table->timestamps();
         });

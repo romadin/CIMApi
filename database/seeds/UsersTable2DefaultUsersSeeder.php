@@ -16,6 +16,7 @@ class UsersTable2DefaultUsersSeeder extends Seeder
             'firstName' => 'admin',
             'lastName' => 'admin',
             'email' => 'admin@hotmail.com',
+            'function' => 'manager',
             'password' => password_hash('admin', PASSWORD_DEFAULT),
             'role_id' => 1,
         ]);
@@ -25,6 +26,7 @@ class UsersTable2DefaultUsersSeeder extends Seeder
             'insertion' => 'is',
             'lastName' => 'good',
             'email' => 'normal@hotmail.com',
+            'function' => 'werknemer',
             'password' => password_hash('welkom01', PASSWORD_DEFAULT),
             'role_id' => 2,
         ]);
