@@ -64,7 +64,7 @@ class UsersHandler
             $result = DB::table(self::USERS_TABLE)
                 ->select($this->defaultSelect)
                 ->join(self::ROLES_TABLE, self::USERS_TABLE.'.role_id', '=', self::ROLES_TABLE.'.id')
-                ->where('email', '=', $email)
+                ->where(self::USERS_TABLE.'.email', '=', $email)
                 ->first();
             if ( $result === null) {
                 return response('Wrong credentials.', 502);
