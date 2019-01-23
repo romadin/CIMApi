@@ -50,10 +50,7 @@ class AdminMiddleware
             return response('Forbidden.', 403);
         }
 
-        /** @var Role $role */
-        $role = $this->rolesController->getRole($request, $user->getRoleId(), false);
-
-        if ( $role->getName() !== 'admin' )
+        if ( $user->getRole()->getName() !== 'admin' )
         {
             return response('Forbidden.', 403);
         }

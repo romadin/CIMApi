@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Http\Handlers\UsersHandler;
+use App\Models\Role;
 use App\Models\User as newUser;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
@@ -37,11 +39,30 @@ class AuthServiceProvider extends ServiceProvider
                    return null;
                 }
 
-                $user = DB::table('users')->where('id', $result->user_id)->first();
+                $user = DB::table('users')
+                    ->select([
+                        'users.id',
+                        'users.firstName',
+                        'users.insertion',
+                        'users.lastName',
+                        'users.email',
+                        'users.function',
+                        'users.password',
+                        'users.role_id',
+                        'roles.name as roleName'
+                    ])
+                    ->join('roles', 'users.role_id', '=', 'roles.id')
+                    ->where('users.id', $result->user_id)
+                    ->first();
 
                 if ($user === null) {
                    throw new \Exception('wrong api token', 401);
                 }
+
+                $role = new Role(
+                    $user->role_id,
+                    $user->roleName
+                );
 
                 return new newUser(
                     $user->id,
@@ -49,8 +70,9 @@ class AuthServiceProvider extends ServiceProvider
                     $user->insertion,
                     $user->lastName,
                     $user->email,
+                    $user->function,
                     $user->password,
-                    $user->role_id
+                    $role
                 );
             }
             return null;

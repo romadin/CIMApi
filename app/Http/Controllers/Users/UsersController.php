@@ -8,6 +8,7 @@
 
 namespace App\Http\Controllers\Users;
 
+use App\Http\Handlers\UsersHandler;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\ApiController;
@@ -18,16 +19,23 @@ class UsersController extends ApiController
     const TABLE_USER = 'users';
     const TABLE_USER_HAS_PROJECTS = 'users_has_projects';
 
+    /**
+     * @var UsersHandler
+     */
+    private $usersHandler;
+
+    public function __construct(UsersHandler $usersHandler)
+    {
+        $this->usersHandler = $usersHandler;
+    }
+
+    public function getUsers(Request $request) {
+        return $this->getReturnValueArray($request, $this->usersHandler->getUsers());
+    }
+
     public function getUser(Request $request, $id) {
 
-        $result = DB::table(self::TABLE_USER)
-            ->where('id', '=', $id)
-            ->first();
-        if ( $result === null ) {
-            return response('Item does not exist', 404);
-        }
-
-        $user = $this->makeUser($result);
+        $user = $this->usersHandler->getUserById($id);
         $user->removePassword();
         return $this->getReturnValueObject($request, $user);
     }
@@ -43,34 +51,19 @@ class UsersController extends ApiController
         ]);
 
         if ( $id ) {
-            foreach ($request->input('projects') as $projectId) {
+            // insert the link for the user to the projects.
+            foreach ($request->input('projectsId') as $projectId) {
                 DB::table(self::TABLE_USER_HAS_PROJECTS)->insert([
                     'userId' => $id, 'projectId' => $projectId
                 ]);
             }
 
-            $user = DB::table(self::TABLE_USER)->where('id', $id)->first();
-
-            return $this->getReturnValueObject($request, $this->makeUser($user));
-
+            return $this->getReturnValueObject($request, $this->usersHandler->getUserById($id));
         }
 
         return response('something went wrong', 400);
-
     }
 
-    private function makeUser($data): User {
-        $user = new User(
-            $data->id,
-            $data->firstName,
-            $data->insertion ?: null,
-            $data->lastName,
-            $data->email,
-            $data->password,
-            $data->role_id
-        );
 
-        return $user;
-    }
 
 }

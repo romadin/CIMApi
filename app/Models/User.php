@@ -41,12 +41,17 @@ class User implements JsonSerializable
     /**
      * @var string
      */
+    private $function;
+
+    /**
+     * @var string
+     */
     private $password;
 
     /**
-     * @var int
+     * @var Role
      */
-    private $role_id;
+    private $role;
 
     public function __construct(
         int $id,
@@ -54,8 +59,9 @@ class User implements JsonSerializable
         string $insertion = null,
         string $lastName,
         string $email,
+        string $function,
         string $password,
-        int $role_id)
+        Role $role)
     {
         $this->id = $id;
         $this->firstName = $firstName;
@@ -63,7 +69,8 @@ class User implements JsonSerializable
         $this->lastName = $lastName;
         $this->password = $password;
         $this->email = $email;
-        $this->role_id = $role_id;
+        $this->function = $function;
+        $this->role = $role;
     }
 
     /**
@@ -149,6 +156,22 @@ class User implements JsonSerializable
     /**
      * @return string
      */
+    public function getFunction(): string
+    {
+        return $this->function;
+    }
+
+    /**
+     * @param string $function
+     */
+    public function setFunction(string $function): void
+    {
+        $this->function = $function;
+    }
+
+    /**
+     * @return string
+     */
     public function getPassword(): string
     {
         return $this->password;
@@ -171,19 +194,19 @@ class User implements JsonSerializable
     }
 
     /**
-     * @return int
+     * @return Role
      */
-    public function getRoleId(): int
+    public function getRole(): Role
     {
-        return $this->role_id;
+        return $this->role;
     }
 
     /**
-     * @param int $role_id
+     * @param Role $role
      */
-    public function setRoleId(int $role_id): void
+    public function setRole(Role $role): void
     {
-        $this->role_id = $role_id;
+        $this->role = $role;
     }
 
     public function jsonSerialize()
@@ -194,7 +217,8 @@ class User implements JsonSerializable
             'insertion' => $this->getInsertion(),
             'lastName' => $this->getLastName(),
             'email' => $this->getEmail(),
-            'role_id' => $this->getRoleId(),
+            'function' => $this->getFunction(),
+            'role' => $this->getRole(),
         ];
     }
 

@@ -8,6 +8,7 @@
 
 namespace App\Http\Controllers\Authenticate;
 
+use App\Http\Handlers\UsersHandler;
 use Illuminate\Contracts\Auth\Factory as Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
@@ -16,7 +17,6 @@ use App\Models\User;
 
 class Authenticate extends Controller
 {
-    const USERS_TABLE = 'users';
     const USER_API_TOKEN_TABLE = 'user_api_token';
 
     /**
@@ -26,15 +26,22 @@ class Authenticate extends Controller
      */
     protected $auth;
 
+    /**
+     * @var UsersHandler
+     */
+    protected $usersHandler;
+
 
     /**
      * Create a new middleware instance.
      *
      * @param Auth $auth
+     * @param UsersHandler $usersHandler
      */
-    public function __construct(Auth $auth)
+    public function __construct(Auth $auth, UsersHandler $usersHandler)
     {
         $this->auth = $auth;
+        $this->usersHandler = $usersHandler;
     }
 
 
@@ -50,26 +57,7 @@ class Authenticate extends Controller
             return json_encode(['token' => $_SESSION['api_token']['token'], 'user_id' => $_SESSION['api_token']['user_id']]);
         }
 
-        try {
-            $result = DB::table(self::USERS_TABLE)
-                ->where('email', '=', $email)
-                ->first();
-            if ( $result === null) {
-                return response('Wrong credentials.', 502);
-            }
-        } catch (\Exception $e) {
-            return response('There is something wrong with the connection', 403);
-        }
-
-        $user = new User(
-            $result->id,
-            $result->firstName,
-            $result->insertion,
-            $result->lastName,
-            $result->email,
-            $result->password,
-            $result->role_id
-        );
+        $user = $this->usersHandler->getUserByEmail($email);
 
         // clear old sessions
         unset($_SESSION['api_token']);
