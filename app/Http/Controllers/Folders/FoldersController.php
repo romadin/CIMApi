@@ -9,17 +9,38 @@
 namespace App\Http\Controllers\Folders;
 
 
-use App\Http\Controllers\ApiController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\ApiController;
+use App\Http\Handlers\FoldersHandler;
 
 class FoldersController extends ApiController
 {
-    const FOLDERS_TABLE = 'folders';
-
     //@todo need a better way for templating
     const defaultTemplate = ['BIM-Team', 'BIM-Modelleur', 'BIM-Coördinator', 'BIM Regisseur', 'BIM Manager'];
+    const FOLDERS_TABLE = 'folders';
 
-    public function createFoldersTemplate(int $projectId, $template): void {
+    /**
+     * @var FoldersHandler
+     */
+    private $foldersHandler;
+
+    public function __construct(FoldersHandler $foldersHandler)
+    {
+        $this->foldersHandler = $foldersHandler;
+    }
+
+    public function getFolders(Request $request)
+    {
+        if ( $request->input('projectId') === null ) {
+            return response('The project id is missing', 404);
+        }
+
+        return $this->getReturnValueArray($request, $this->foldersHandler->getFoldersByProjectId($request->input('projectId')));
+    }
+
+    public function createFoldersTemplate(int $projectId, $template): void
+    {
         if ($template === 'default') {
             $insertData = [];
             foreach (self::defaultTemplate as $folderName) {

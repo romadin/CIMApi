@@ -41,7 +41,7 @@ class UsersHandler
                 ->join(self::ROLES_TABLE, self::USERS_TABLE.'.role_id', '=', self::ROLES_TABLE.'.id')
                 ->get();
             if ( $result === null) {
-                return response('Users are does not exist', 400);
+                return response('Users does not exist', 400);
             }
         } catch (\Exception $e) {
             return response('There is something wrong with the connection', 403);
@@ -76,7 +76,8 @@ class UsersHandler
         return $this->makeUser($result);
     }
 
-    public function getUserById(int $id): User {
+    public function getUserById(int $id): User
+    {
         try {
             $user = DB::table(self::USERS_TABLE)
                 ->select($this->defaultSelect)
@@ -94,7 +95,8 @@ class UsersHandler
         return $this->makeUser($user);
     }
 
-    private function makeUser($data): User {
+    private function makeUser($data): User
+    {
         $role = new Role(
             $data->role_id,
             $data->roleName

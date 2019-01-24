@@ -29,18 +29,21 @@ class UsersController extends ApiController
         $this->usersHandler = $usersHandler;
     }
 
-    public function getUsers(Request $request) {
+    public function getUsers(Request $request)
+    {
         return $this->getReturnValueArray($request, $this->usersHandler->getUsers());
     }
 
-    public function getUser(Request $request, $id) {
+    public function getUser(Request $request, $id)
+    {
 
         $user = $this->usersHandler->getUserById($id);
         $user->removePassword();
         return $this->getReturnValueObject($request, $user);
     }
 
-    public function postUser(Request $request) {
+    public function postUser(Request $request)
+    {
         $id = DB::table(self::TABLE_USER)->insertGetId([
             'firstName' => $request->input('firstName'),
             'insertion' => $request->input('insertion'),
@@ -63,7 +66,4 @@ class UsersController extends ApiController
 
         return response('something went wrong', 400);
     }
-
-
-
 }
