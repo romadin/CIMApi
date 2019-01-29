@@ -54,5 +54,4 @@ class FoldersController extends ApiController
             DB::table(self::FOLDERS_TABLE)->insert($insertData);
         }
     }
-
 }

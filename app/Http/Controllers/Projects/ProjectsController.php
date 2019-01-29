@@ -11,6 +11,7 @@ namespace App\Http\Controllers\Projects;
 
 use App\Http\Controllers\ApiController;
 use App\Http\Controllers\Folders\FoldersController;
+use App\Http\Handlers\FoldersHandler;
 use App\Models\Project\Project;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -19,10 +20,12 @@ class ProjectsController extends ApiController
 {
     const PROJECT_TABLE = 'projects';
     private $foldersController;
+    private $foldersHandler;
 
-    public function __construct(FoldersController $foldersController)
+    public function __construct(FoldersController $foldersController, FoldersHandler $foldersHandler)
     {
         $this->foldersController = $foldersController;
+        $this->foldersHandler = $foldersHandler;
     }
 
     /**
@@ -97,13 +100,18 @@ class ProjectsController extends ApiController
      */
     public function deleteProject(Request $request, $id)
     {
-        $deletedId = DB::table(self::PROJECT_TABLE)->delete($id);
+        $foldersDeleted = $this->foldersHandler->deleteFolderByProjectId($id);
 
-        if( $deletedId ) {
-            return $this->getProjects($request);
+        if( $foldersDeleted ) {
+            $deletedId = DB::table(self::PROJECT_TABLE)->delete($id);
+
+            if( $deletedId ) {
+                return $this->getProjects($request);
+            }
+            return response('Delete item went wrong', 400);
         }
 
-        return response('Delete item went wrong', 400);
+        return response('Delete folders went wrong', 400);
     }
 
     /**

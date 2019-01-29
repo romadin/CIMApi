@@ -43,6 +43,19 @@ class FoldersHandler
         return $folders;
     }
 
+    public function deleteFolderByProjectId(Int $projectId)
+    {
+        try {
+            DB::table(self::FOLDERS_TABLE)
+                ->where('projectId', $projectId)
+                ->delete();
+        } catch (\Exception $e) {
+            return response('There is something wrong with the database connection', 403);
+        }
+
+        return true;
+    }
+
     private function makeFolder($data): Folder
     {
         $folder = new Folder(
