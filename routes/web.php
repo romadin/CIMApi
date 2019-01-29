@@ -30,6 +30,7 @@ $router->group(['middleware' => 'auth'], function () use ($router)
         $router->delete('projects/{id}', 'Projects\ProjectsController@deleteProject');
 
         $router->post('users', 'Users\UsersController@postUser');
+        $router->post('folders/{id}', 'Folders\FoldersController@postFolders');
     });
 
 });

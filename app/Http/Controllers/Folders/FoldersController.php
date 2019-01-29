@@ -39,6 +39,11 @@ class FoldersController extends ApiController
         return $this->getReturnValueArray($request, $this->foldersHandler->getFoldersByProjectId($request->input('projectId')));
     }
 
+    public function postFolders(Request $request, $id)
+    {
+        return $this->getReturnValueObject($request, $this->foldersHandler->editFolder($request->post(),$id));
+    }
+
     public function createFoldersTemplate(int $projectId, $template): void
     {
         if ($template === 'default') {

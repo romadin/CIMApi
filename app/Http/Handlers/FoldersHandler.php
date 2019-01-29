@@ -31,7 +31,7 @@ class FoldersHandler
                 return response('The project does not have folders', 400);
             }
         } catch (\Exception $e) {
-            return response('There is something wrong with the database connection', 403);
+            return response('FoldersHandler: There is something wrong with the database connection', 403);
         }
 
         $folders = [];
@@ -43,6 +43,32 @@ class FoldersHandler
         return $folders;
     }
 
+    public function getFolderById(int $id)
+    {
+        try {
+            $folder = DB::table(self::FOLDERS_TABLE)
+                ->where('id', $id)
+                ->first();
+        } catch (\Exception $e) {
+            return response('FoldersHandler: There is something wrong with the database connection', 403);
+        }
+
+        return $this->makeFolder($folder);
+    }
+
+    public function editFolder($data, int $id): Folder
+    {
+        try {
+            DB::table(self::FOLDERS_TABLE)
+                ->where('id', $id)
+                ->update(['on' => $data['turnOn']]);
+        } catch (\Exception $e) {
+            return response('FoldersHandler: There is something wrong with the database connection', 403);
+        }
+
+        return $this->getFolderById($id);
+    }
+
     public function deleteFolderByProjectId(Int $projectId)
     {
         try {
@@ -50,7 +76,7 @@ class FoldersHandler
                 ->where('projectId', $projectId)
                 ->delete();
         } catch (\Exception $e) {
-            return response('There is something wrong with the database connection', 403);
+            return response('FoldersHandler: There is something wrong with the database connection', 403);
         }
 
         return true;
