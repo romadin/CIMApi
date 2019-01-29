@@ -17,6 +17,7 @@ class UsersHandler
 {
     const USERS_TABLE = 'users';
     const ROLES_TABLE = 'roles';
+    const PROJECT_LINK_TABLE = 'users_has_projects';
 
     private $defaultSelect = [
         self::USERS_TABLE.'.id',
@@ -93,6 +94,23 @@ class UsersHandler
         }
 
         return $this->makeUser($user);
+    }
+
+    /**
+     * Delete the link between users and projects.
+     * @param int $projectId
+     * @return bool | \Illuminate\Http\Response|\Laravel\Lumen\Http\ResponseFactory
+     */
+    public function deleteProjectLink(int $projectId)
+    {
+        try {
+            DB::table(self::PROJECT_LINK_TABLE)
+                ->where('projectId', $projectId)
+                ->delete();
+        } catch (\Exception $e) {
+            return response('There is something wrong with the connection', 403);
+        }
+        return true;
     }
 
     private function makeUser($data): User

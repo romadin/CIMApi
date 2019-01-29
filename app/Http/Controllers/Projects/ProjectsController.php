@@ -12,6 +12,7 @@ namespace App\Http\Controllers\Projects;
 use App\Http\Controllers\ApiController;
 use App\Http\Controllers\Folders\FoldersController;
 use App\Http\Handlers\FoldersHandler;
+use App\Http\Handlers\UsersHandler;
 use App\Models\Project\Project;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -21,11 +22,13 @@ class ProjectsController extends ApiController
     const PROJECT_TABLE = 'projects';
     private $foldersController;
     private $foldersHandler;
+    private $usersHandlers;
 
-    public function __construct(FoldersController $foldersController, FoldersHandler $foldersHandler)
+    public function __construct(FoldersController $foldersController, FoldersHandler $foldersHandler, UsersHandler $usersHandler)
     {
         $this->foldersController = $foldersController;
         $this->foldersHandler = $foldersHandler;
+        $this->usersHandlers = $usersHandler;
     }
 
     /**
@@ -101,8 +104,9 @@ class ProjectsController extends ApiController
     public function deleteProject(Request $request, $id)
     {
         $foldersDeleted = $this->foldersHandler->deleteFolderByProjectId($id);
+        $linkedUsers = $this->usersHandlers->deleteProjectLink($id);
 
-        if( $foldersDeleted ) {
+        if( $foldersDeleted && $linkedUsers ) {
             $deletedId = DB::table(self::PROJECT_TABLE)->delete($id);
 
             if( $deletedId ) {
@@ -111,7 +115,7 @@ class ProjectsController extends ApiController
             return response('Delete item went wrong', 400);
         }
 
-        return response('Delete folders went wrong', 400);
+        return response('Delete folders or linked users went wrong', 400);
     }
 
     /**
