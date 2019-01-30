@@ -20,13 +20,13 @@ use Illuminate\Support\Facades\DB;
 class ProjectsController extends ApiController
 {
     const PROJECT_TABLE = 'projects';
-    private $foldersController;
+    const defaultFoldersTemplate = ['BIM-Team', 'BIM-Modelleur', 'BIM-Coördinator', 'BIM Regisseur', 'BIM Manager'];
+
     private $foldersHandler;
     private $usersHandlers;
 
-    public function __construct(FoldersController $foldersController, FoldersHandler $foldersHandler, UsersHandler $usersHandler)
+    public function __construct(FoldersHandler $foldersHandler, UsersHandler $usersHandler)
     {
-        $this->foldersController = $foldersController;
         $this->foldersHandler = $foldersHandler;
         $this->usersHandlers = $usersHandler;
     }
@@ -84,7 +84,8 @@ class ProjectsController extends ApiController
         if ( $newId ) {
 
             if ( $request->input('template')) {
-                $this->foldersController->createFoldersTemplate($newId, $request->get('template'));
+                $template = $request->get('template') === 'default' ? self::defaultFoldersTemplate : $request->get('template');
+                $this->foldersHandler->createFoldersTemplate($newId, $template);
             }
             $result = DB::table(self::PROJECT_TABLE)->where('id', $newId)->first();
 

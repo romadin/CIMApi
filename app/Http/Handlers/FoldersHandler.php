@@ -17,8 +17,17 @@ class FoldersHandler
     const FOLDERS_TABLE = 'folders';
     const PROJECT_TABLE = 'projects';
 
-    public function __construct()
+    //@todo need a better way for templating
+    const defaultSubFolderTemplate = ['Model afspraak', 'Analyse', 'Planning', 'Informatiebehoefte', 'Over BIM'];
+
+    /**
+     * @var DocumentsHandler
+     */
+    private $documentsHandler;
+
+    public function __construct(DocumentsHandler $documentsHandler)
     {
+        $this->documentsHandler = $documentsHandler;
     }
 
     public function getFoldersByProjectId($projectId)
@@ -56,6 +65,26 @@ class FoldersHandler
         return $this->makeFolder($folder);
     }
 
+    public function createFoldersTemplate(int $projectId, array $template, $parentFolderId = null): void
+    {
+        $insertData = [];
+        foreach ($template as $folderName) {
+            $row = [
+                'name' => $folderName,
+                'projectId' => $projectId,
+                'mainFolder' => $folderName === 'BIM-Team' ? true : false,
+                'parentFolder' => $parentFolderId
+            ];
+            array_push($insertData, $row);
+        }
+        DB::table(self::FOLDERS_TABLE)->insert($insertData);
+        // If there is a parent folder id we dont want to set sub folders.
+        if ( $parentFolderId === null ) {
+            // @todo make a more variable sub folder template, now its hardcoded.
+            $this->setSubFolder($projectId, self::defaultSubFolderTemplate);
+        }
+    }
+
     public function editFolder($data, int $id): Folder
     {
         try {
@@ -72,13 +101,41 @@ class FoldersHandler
     public function deleteFolderByProjectId(Int $projectId)
     {
         try {
-            DB::table(self::FOLDERS_TABLE)
+            $foldersId = DB::table(self::FOLDERS_TABLE)
+                ->select(['id'])
                 ->where('projectId', $projectId)
-                ->delete();
+                ->get();
+
+            foreach ($foldersId as $id) {
+                if( $this->documentsHandler->deleteDocumentsByFolderId($id->id) )  {
+                    DB::table(self::FOLDERS_TABLE)->delete($id->id);
+                }
+            }
         } catch (\Exception $e) {
             return response('FoldersHandler: There is something wrong with the database connection', 403);
         }
 
+        return true;
+    }
+
+    /**
+     * Set Sub Folders by the given template.
+     * @param int $projectId
+     * @param array $template
+     * @return bool | \Illuminate\Http\Response|\Laravel\Lumen\Http\ResponseFactory
+     */
+    public function setSubFolder(int $projectId, array $template)
+    {
+        try {
+            $result = DB::table(self::FOLDERS_TABLE)
+                ->where('projectId', $projectId)
+                ->where('mainFolder', true)
+                ->first();
+        } catch (\Exception $e)
+        {
+            return response('FoldersHandler: There is something wrong with the database connection', 403);
+        }
+            $this->createFoldersTemplate($projectId, $template, $result->id);
         return true;
     }
 

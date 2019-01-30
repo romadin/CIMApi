@@ -20,6 +20,7 @@ class CreateFoldersTable extends Migration
             $table->foreign('projectId')->references('id')->on('projects');
             $table->boolean('on')->default(1);
             $table->boolean('mainFolder');
+            $table->unsignedInteger('parentFolder')->nullable(true);
             $table->timestamps();
         });
     }

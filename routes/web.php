@@ -19,10 +19,12 @@ $router->group(['middleware' => 'auth'], function () use ($router)
         return $router->app->version();
     });
     $router->get('projects', 'Projects\ProjectsController@getProjects');
-    $router->get('users/{id}', 'Users\UsersController@getUser');
-    $router->get('roles/{id}', 'Roles\RolesController@getRole');
-    $router->get('users', 'Users\UsersController@getUsers');
     $router->get('folders', 'Folders\FoldersController@getFolders');
+    $router->get('documents', 'Documents\DocumentsController@getDocuments');
+    $router->get('roles/{id}', 'Roles\RolesController@getRole');
+
+    $router->get('users', 'Users\UsersController@getUsers');
+    $router->get('users/{id}', 'Users\UsersController@getUser');
 
     $router->group(['middleware' => 'admin'], function() use ($router)
     {
@@ -31,6 +33,7 @@ $router->group(['middleware' => 'auth'], function () use ($router)
 
         $router->post('users', 'Users\UsersController@postUser');
         $router->post('folders/{id}', 'Folders\FoldersController@postFolders');
+        $router->post('documents', 'Documents\DocumentsController@postDocuments');
     });
 
 });

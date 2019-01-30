@@ -16,8 +16,6 @@ use App\Http\Handlers\FoldersHandler;
 
 class FoldersController extends ApiController
 {
-    //@todo need a better way for templating
-    const defaultTemplate = ['BIM-Team', 'BIM-Modelleur', 'BIM-Coördinator', 'BIM Regisseur', 'BIM Manager'];
     const FOLDERS_TABLE = 'folders';
 
     /**
@@ -42,21 +40,5 @@ class FoldersController extends ApiController
     public function postFolders(Request $request, $id)
     {
         return $this->getReturnValueObject($request, $this->foldersHandler->editFolder($request->post(),$id));
-    }
-
-    public function createFoldersTemplate(int $projectId, $template): void
-    {
-        if ($template === 'default') {
-            $insertData = [];
-            foreach (self::defaultTemplate as $folderName) {
-                $row = [
-                    'name' => $folderName,
-                    'projectId' => $projectId,
-                    'mainFolder' => $folderName =='BIM-Team' ? true : false
-                ];
-                array_push($insertData, $row);
-            }
-            DB::table(self::FOLDERS_TABLE)->insert($insertData);
-        }
     }
 }
