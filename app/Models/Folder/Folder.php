@@ -33,18 +33,25 @@ class Folder implements JsonSerializable
     private $on;
 
     /**
+     * @var int | null
+     */
+    private $parentFolderId;
+
+    /**
      * Folder constructor.
      * @param int $id
      * @param string $name
      * @param int $projectId
      * @param bool $on
+     * @param int | null $parentFolderId
      */
-    public function __construct(int $id, string $name, int $projectId, bool $on)
+    public function __construct(int $id, string $name, int $projectId, bool $on, $parentFolderId = null)
     {
         $this->id = $id;
         $this->name = $name;
         $this->projectId = $projectId;
         $this->on = $on;
+        $this->parentFolderId = $parentFolderId;
     }
 
     /**
@@ -111,6 +118,22 @@ class Folder implements JsonSerializable
         $this->on = $on;
     }
 
+    /**
+     * @return int | null
+     */
+    public function getParentFolderId(): ?int
+    {
+        return $this->parentFolderId;
+    }
+
+    /**
+     * @param int | null $parentFolderId
+     */
+    public function setParentFolderId(?int $parentFolderId): void
+    {
+        $this->parentFolderId = $parentFolderId;
+    }
+
     public function jsonSerialize()
     {
         return [
@@ -118,6 +141,7 @@ class Folder implements JsonSerializable
             'name' => $this->getName(),
             'projectId' => $this->getProjectId(),
             'on' => $this->isOn(),
+            'parentFolderId' => $this->getParentFolderId(),
         ];
     }
 

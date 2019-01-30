@@ -72,16 +72,17 @@ class FoldersHandler
             $row = [
                 'name' => $folderName,
                 'projectId' => $projectId,
-                'mainFolder' => $folderName === 'BIM-Team' ? true : false,
+                'mainFolder' => $folderName === 'BIM-Uitvoeringsplan' ? true : false,
                 'parentFolder' => $parentFolderId
             ];
             array_push($insertData, $row);
         }
         DB::table(self::FOLDERS_TABLE)->insert($insertData);
+
         // If there is a parent folder id we dont want to set sub folders.
         if ( $parentFolderId === null ) {
             // @todo make a more variable sub folder template, now its hardcoded.
-            $this->setSubFolder($projectId, self::defaultSubFolderTemplate);
+            $this->setSubFolderFromProjectId($projectId, self::defaultSubFolderTemplate);
         }
     }
 
@@ -119,12 +120,12 @@ class FoldersHandler
     }
 
     /**
-     * Set Sub Folders by the given template.
+     * Set Sub Folders at the main folder by the given template.
      * @param int $projectId
      * @param array $template
      * @return bool | \Illuminate\Http\Response|\Laravel\Lumen\Http\ResponseFactory
      */
-    public function setSubFolder(int $projectId, array $template)
+    public function setSubFolderFromProjectId(int $projectId, array $template)
     {
         try {
             $result = DB::table(self::FOLDERS_TABLE)
@@ -135,7 +136,9 @@ class FoldersHandler
         {
             return response('FoldersHandler: There is something wrong with the database connection', 403);
         }
-            $this->createFoldersTemplate($projectId, $template, $result->id);
+
+        $this->createFoldersTemplate($projectId, $template, $result->id);
+        $this->documentsHandler->createDocumentsWithTemplate($result->id, 'default' );
         return true;
     }
 
@@ -145,7 +148,8 @@ class FoldersHandler
             $data->id,
             $data->name,
             $data->projectId,
-            $data->on
+            $data->on,
+            $data->parentFolder
         );
 
         return $folder;

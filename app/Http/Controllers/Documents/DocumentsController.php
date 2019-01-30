@@ -15,8 +15,6 @@ use Illuminate\Http\Request;
 
 class DocumentsController extends ApiController
 {
-    //@todo need a better way for templating
-    const defaultDocumentTemplate = ['Projectgegevens', 'Doelstelling', 'Proces', 'Normen', 'Voorwaarden', 'BIM toepassing', 'Modeloverzicht'];
 
     /**
      * @var DocumentsHandler
@@ -41,7 +39,7 @@ class DocumentsController extends ApiController
         if( $request->input('template') && $request->input('folderId') ) {
             $newDocuments = $this->documentsHandler->createDocumentsWithTemplate(
                 $request->input('folderId'),
-                $request->input('template') === 'default' ? self::defaultDocumentTemplate : $request->input('template'));
+                $request->input('template'));
             return $this->getReturnValueArray($request, $newDocuments);
         }
         return response('Not implemented', 501);

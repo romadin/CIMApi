@@ -19,9 +19,11 @@ $router->group(['middleware' => 'auth'], function () use ($router)
         return $router->app->version();
     });
     $router->get('projects', 'Projects\ProjectsController@getProjects');
-    $router->get('folders', 'Folders\FoldersController@getFolders');
     $router->get('documents', 'Documents\DocumentsController@getDocuments');
     $router->get('roles/{id}', 'Roles\RolesController@getRole');
+
+    $router->get('folders', 'Folders\FoldersController@getFolders');
+    $router->get('folders/{id}', 'Folders\FoldersController@getFolder');
 
     $router->get('users', 'Users\UsersController@getUsers');
     $router->get('users/{id}', 'Users\UsersController@getUser');

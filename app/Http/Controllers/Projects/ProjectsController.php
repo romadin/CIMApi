@@ -10,7 +10,6 @@ namespace App\Http\Controllers\Projects;
 
 
 use App\Http\Controllers\ApiController;
-use App\Http\Controllers\Folders\FoldersController;
 use App\Http\Handlers\FoldersHandler;
 use App\Http\Handlers\UsersHandler;
 use App\Models\Project\Project;
@@ -20,7 +19,7 @@ use Illuminate\Support\Facades\DB;
 class ProjectsController extends ApiController
 {
     const PROJECT_TABLE = 'projects';
-    const defaultFoldersTemplate = ['BIM-Team', 'BIM-Modelleur', 'BIM-Coördinator', 'BIM Regisseur', 'BIM Manager'];
+    const defaultFoldersTemplate = ['BIM-Uitvoeringsplan', 'BIM-Modelleur', 'BIM-Coördinator', 'BIM Regisseur', 'BIM Manager'];
 
     private $foldersHandler;
     private $usersHandlers;

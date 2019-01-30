@@ -16,6 +16,9 @@ class DocumentsHandler
     const DOCUMENT_TABLE = 'documents';
     const DOCUMENT_LINK_FOLDER_TABLE = 'folders_has_documents';
 
+    //@todo need a better way for templating
+    const defaultDocumentTemplate = ['Projectgegevens', 'Doelstelling', 'Proces', 'Normen', 'Voorwaarden', 'BIM toepassing', 'Modeloverzicht'];
+
     /**
      * @param int $folderId
      * @return Document[]
@@ -52,11 +55,12 @@ class DocumentsHandler
     /**
      * Create document from an given template.
      * @param int $folderId
-     * @param array $template
+     * @param array | string $template
      * @return Document[]
      */
-    public function createDocumentsWithTemplate(int $folderId, array $template)
+    public function createDocumentsWithTemplate(int $folderId, $template)
     {
+        $template = $template !== 'default' ?: self::defaultDocumentTemplate;
         $newDocumentsId = [];
         foreach ($template as $documentName) {
             $row = [
