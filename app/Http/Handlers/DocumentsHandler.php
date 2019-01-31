@@ -26,7 +26,7 @@ class DocumentsHandler
     public function getDocumentsFromFolder(int $folderId)
     {
         $documentsResult = DB::table(self::DOCUMENT_LINK_FOLDER_TABLE)
-            ->select([self::DOCUMENT_TABLE.'.id', self::DOCUMENT_TABLE.'.name', self::DOCUMENT_TABLE.'.content', self::DOCUMENT_LINK_FOLDER_TABLE.'.folderId' ])
+            ->select([self::DOCUMENT_TABLE.'.id', self::DOCUMENT_TABLE.'.originalName',self::DOCUMENT_TABLE.'.name', self::DOCUMENT_TABLE.'.content', self::DOCUMENT_LINK_FOLDER_TABLE.'.folderId' ])
             ->where(self::DOCUMENT_LINK_FOLDER_TABLE.'.folderId', '=', $folderId)
             ->join(self::DOCUMENT_TABLE, self::DOCUMENT_LINK_FOLDER_TABLE. '.documentId', '=', self::DOCUMENT_TABLE. '.id'  )
             ->get();
@@ -34,18 +34,7 @@ class DocumentsHandler
         $documents = [];
 
         forEach ( $documentsResult as $document ) {
-            $foldersId = DB::table(self::DOCUMENT_LINK_FOLDER_TABLE)
-                ->select('folderId' )
-                ->where('documentId', '=', $document->id)
-                ->where('folderId', '!=', $folderId)
-                ->get();
-            if( $foldersId->isNotEmpty() ) {
-                $idContainer = [$folderId];
-                foreach ($foldersId as $item) {
-                    array_push($idContainer, $item->folderId);
-                }
-                $document->folderId = $idContainer;
-            }
+            $document = $this->setFoldersId($document);
             array_push($documents, $this->makeDocument($document));
         }
 
@@ -64,7 +53,8 @@ class DocumentsHandler
         $newDocumentsId = [];
         foreach ($template as $documentName) {
             $row = [
-                'name' => $documentName,
+                'originalName' => $documentName,
+                'name' => null,
                 'content' => null
             ];
             array_push($newDocumentsId, DB::table(self::DOCUMENT_TABLE)->insertGetId($row));
@@ -78,6 +68,22 @@ class DocumentsHandler
         }
 
         return $this->getDocumentsFromFolder($folderId);
+    }
+
+    public function editDocument(array $postData, int $id)
+    {
+        try {
+            DB::table(self::DOCUMENT_TABLE)
+                ->where('id', $id)
+                ->update($postData);
+
+            $updatedDocument = DB::table(self::DOCUMENT_TABLE)->where('id', $id)->first();
+        } catch (\Exception $e) {
+            var_dump($e);
+            return response('DocumentHandler: There is something wrong with the database connection', 500);
+        }
+        $updatedDocument = $this->setFoldersId($updatedDocument);
+        return $this->makeDocument($updatedDocument);
     }
 
     public function deleteDocumentsByFolderId(int $folderId)
@@ -97,7 +103,7 @@ class DocumentsHandler
                 }
             }
         } catch (\Exception $e) {
-            return response('DocumentHandler: There is something wrong with the database connection', 403);
+            return response('DocumentHandler: There is something wrong with the database connection', 500);
         }
 
         return true;
@@ -108,12 +114,35 @@ class DocumentsHandler
         $foldersId = is_array($data->folderId) ? $data->folderId : [$data->folderId];
         $document = new Document(
             $data->id,
+            $data->originalName,
             $data->name,
             $data->content,
             $foldersId
         );
 
         return $document;
+    }
+
+    /**
+     * Set the linked folders id to the document result. So that we can put it in the document model.
+     * @param $documentResult
+     * @return \Illuminate\Database\Eloquent\Model | object
+     */
+    private function setFoldersId($documentResult)
+    {
+        $foldersId = DB::table(self::DOCUMENT_LINK_FOLDER_TABLE)
+            ->select('folderId')
+            ->where('documentId', '=', $documentResult->id)
+            ->get();
+
+        if( $foldersId->isNotEmpty() ) {
+            $idContainer = [];
+            foreach ($foldersId as $item) {
+                array_push($idContainer, $item->folderId);
+            }
+            $documentResult->folderId = $idContainer;
+        }
+        return $documentResult;
     }
 
 }

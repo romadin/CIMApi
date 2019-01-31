@@ -10,7 +10,6 @@ namespace App\Http\Controllers\Folders;
 
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\ApiController;
 use App\Http\Handlers\FoldersHandler;
 

@@ -9,6 +9,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use JsonSerializable;
 use Laravel\Lumen\Routing\Controller;
 
@@ -17,13 +18,16 @@ class ApiController extends Controller
 {
     /**
      * Get the right return value from the given object, specified with the format given.
-     * @param JsonSerializable $object
+     * @param JsonSerializable | Response $object
      * @param Request $request
      * @param bool $format
      * @return JsonSerializable|string | object
      */
-    public function getReturnValueObject(Request $request, JsonSerializable $object, $format = true)
+    public function getReturnValueObject(Request $request, $object, $format = true)
     {
+        if ($object instanceof Response) {
+            return response($object);
+        }
         if ($request->input('format') === 'json' && $format) {
             return json_encode($object->jsonSerialize());
         }

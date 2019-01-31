@@ -34,8 +34,12 @@ class DocumentsController extends ApiController
         return response('Not implemented', 501);
     }
 
-    public function postDocuments(Request $request)
+    public function postDocuments(Request $request, $id = null)
     {
+        if ( $id !== null ) {
+            return $this->editDocument($request, $id);
+        }
+
         if( $request->input('template') && $request->input('folderId') ) {
             $newDocuments = $this->documentsHandler->createDocumentsWithTemplate(
                 $request->input('folderId'),
@@ -43,6 +47,11 @@ class DocumentsController extends ApiController
             return $this->getReturnValueArray($request, $newDocuments);
         }
         return response('Not implemented', 501);
+    }
+
+    private function editDocument(Request $request, $id)
+    {
+        return $this->getReturnValueObject($request, $this->documentsHandler->editDocument($request->post(), $id));
     }
 
 }

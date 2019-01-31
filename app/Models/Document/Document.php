@@ -20,6 +20,11 @@ class Document implements JsonSerializable
     /**
      * @var string
      */
+    private $originalName;
+
+    /**
+     * @var string
+     */
     private $name;
 
     /**
@@ -35,13 +40,15 @@ class Document implements JsonSerializable
     /**
      * Document constructor.
      * @param int $id
-     * @param string $name
+     * @param string $originalName
+     * @param string | null $name
      * @param string | null $content
      * @param int[] $parentFolderIds
      */
-    public function __construct(int $id, string $name, $content, $parentFolderIds)
+    public function __construct(int $id, string $originalName, $name, $content, $parentFolderIds)
     {
         $this->id = $id;
+        $this->originalName = $originalName;
         $this->name = $name;
         $this->content = $content;
         $this->parentFolderIds = $parentFolderIds;
@@ -66,15 +73,31 @@ class Document implements JsonSerializable
     /**
      * @return string
      */
-    public function getName(): string
+    public function getOriginalName(): string
+    {
+        return $this->originalName;
+    }
+
+    /**
+     * @param string $originalName
+     */
+    public function setOriginalName(string $originalName): void
+    {
+        $this->originalName = $originalName;
+    }
+
+    /**
+     * @return string | null
+     */
+    public function getName()
     {
         return $this->name;
     }
 
     /**
-     * @param string $name
+     * @param string | null $name
      */
-    public function setName(string $name): void
+    public function setName($name): void
     {
         $this->name = $name;
     }
@@ -115,6 +138,7 @@ class Document implements JsonSerializable
     {
         return [
             'id' => $this->getId(),
+            'originalName' => $this->getOriginalName(),
             'name' => $this->getName(),
             'content' => $this->getContent(),
             'foldersId' => $this->getParentFolderIds()
