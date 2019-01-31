@@ -15,8 +15,6 @@ use App\Http\Handlers\FoldersHandler;
 
 class FoldersController extends ApiController
 {
-    const FOLDERS_TABLE = 'folders';
-
     /**
      * @var FoldersHandler
      */
