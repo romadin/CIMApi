@@ -149,7 +149,8 @@ class FoldersHandler
             $data->name,
             $data->projectId,
             $data->on,
-            $data->parentFolder
+            $data->parentFolder,
+            $data->mainFolder
         );
 
         return $folder;
