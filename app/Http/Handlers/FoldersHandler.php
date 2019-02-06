@@ -16,6 +16,7 @@ class FoldersHandler
 {
     const FOLDERS_TABLE = 'folders';
     const PROJECT_TABLE = 'projects';
+    const FOLDERS_LINK_TABLE = 'folders_has_folders';
 
     //@todo need a better way for templating
     const defaultSubFolderTemplate = ['Model afspraak', 'Analyse', 'Planning', 'Informatiebehoefte', 'Over BIM'];
@@ -65,19 +66,20 @@ class FoldersHandler
         return $this->makeFolder($folder);
     }
 
-    public function createFoldersTemplate(int $projectId, array $template, $parentFolderId = null): void
+    public function createFoldersTemplate(array $template, $projectId = null, $parentFolderId = null): void
     {
-        $insertData = [];
         foreach ($template as $folderName) {
             $row = [
                 'name' => $folderName,
                 'projectId' => $projectId,
                 'mainFolder' => $folderName === 'BIM-Uitvoeringsplan' ? true : false,
-                'parentFolder' => $parentFolderId
             ];
-            array_push($insertData, $row);
+            $newFolderId = DB::table(self::FOLDERS_TABLE)->insertGetId($row);
+            if ($projectId === null) {
+                // if project id is null then its a link between folders, so folder gets a sub folder.
+                $this->setLinkFolderHasSubFolder($parentFolderId, $newFolderId );
+            }
         }
-        DB::table(self::FOLDERS_TABLE)->insert($insertData);
 
         // If there is a parent folder id we dont want to set sub folders.
         if ( $parentFolderId === null ) {
@@ -137,20 +139,50 @@ class FoldersHandler
             return response('FoldersHandler: There is something wrong with the database connection', 403);
         }
 
-        $this->createFoldersTemplate($projectId, $template, $result->id);
+        $this->createFoldersTemplate($template, null, $result->id);
         $this->documentsHandler->createDocumentsWithTemplate($result->id, 'default' );
         return true;
     }
 
+    private function setLinkFolderHasSubFolder(int $folderId, int $subFolderId)
+    {
+        if ($folderId === $subFolderId) {
+            return response('FoldersHandler: cant give the same id', 400);
+        }
+        try {
+            DB::table(self::FOLDERS_LINK_TABLE)
+                ->insert([
+                    'folderId' => $folderId,
+                    'folderSubId' => $subFolderId
+                ]);
+        } catch (\Exception $e)
+        {
+            return response('FoldersHandler: There is something wrong with the database connection', 403);
+        }
+    }
+
     private function makeFolder($data): Folder
     {
+        $subFolders = [];
+        $subFoldersResult = DB::table(self::FOLDERS_LINK_TABLE)
+            ->select([self::FOLDERS_TABLE.'.id', self::FOLDERS_TABLE.'.name', self::FOLDERS_TABLE.'.projectId',self::FOLDERS_TABLE.'.on', self::FOLDERS_TABLE.'.mainFolder', ])
+            ->join(self::FOLDERS_TABLE, self::FOLDERS_LINK_TABLE . '.folderSubId', '=', self::FOLDERS_TABLE . '.id')
+            ->where(self::FOLDERS_LINK_TABLE. '.folderId', '=', $data->id )
+            ->get();
+
+        if (! empty($subFoldersResult)) {
+            foreach ($subFoldersResult as $result) {
+                array_push($subFolders, $this->makeFolder($result));
+            }
+        }
+
         $folder = new Folder(
             $data->id,
             $data->name,
-            $data->projectId,
             $data->on,
-            $data->parentFolder,
-            $data->mainFolder
+            $data->mainFolder,
+            $data->projectId,
+            empty($subFolders) ? null : $subFolders
         );
 
         return $folder;

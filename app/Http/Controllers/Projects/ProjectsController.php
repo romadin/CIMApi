@@ -84,7 +84,7 @@ class ProjectsController extends ApiController
 
             if ( $request->input('template')) {
                 $template = $request->get('template') === 'default' ? self::defaultFoldersTemplate : $request->get('template');
-                $this->foldersHandler->createFoldersTemplate($newId, $template);
+                $this->foldersHandler->createFoldersTemplate($template, $newId);
             }
             $result = DB::table(self::PROJECT_TABLE)->where('id', $newId)->first();
 

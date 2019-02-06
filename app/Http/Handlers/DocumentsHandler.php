@@ -79,7 +79,6 @@ class DocumentsHandler
 
             $updatedDocument = DB::table(self::DOCUMENT_TABLE)->where('id', $id)->first();
         } catch (\Exception $e) {
-            var_dump($e);
             return response('DocumentHandler: There is something wrong with the database connection', 500);
         }
         $updatedDocument = $this->setFoldersId($updatedDocument);

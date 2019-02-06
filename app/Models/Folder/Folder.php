@@ -23,7 +23,7 @@ class Folder implements JsonSerializable
     private $name;
 
     /**
-     * @var int
+     * @var int | null
      */
     private $projectId;
 
@@ -33,9 +33,9 @@ class Folder implements JsonSerializable
     private $on;
 
     /**
-     * @var int | null
+     * @var Folder[] | null
      */
-    private $parentFolderId;
+    private $subFolders;
 
     /**
      * @var boolean
@@ -46,19 +46,19 @@ class Folder implements JsonSerializable
      * Folder constructor.
      * @param int $id
      * @param string $name
-     * @param int $projectId
      * @param bool $on
-     * @param int | null $parentFolderId
      * @param bool $isMainFolder
+     * @param int | null $projectId
+     * @param Folder[] | null $subFolders
      */
-    public function __construct(int $id, string $name, int $projectId, bool $on, $parentFolderId = null, $isMainFolder)
+    public function __construct(int $id, string $name, bool $on, $isMainFolder, $projectId = null, $subFolders = null)
     {
         $this->id = $id;
         $this->name = $name;
         $this->projectId = $projectId;
         $this->on = $on;
-        $this->parentFolderId = $parentFolderId;
         $this->isMainFolder = $isMainFolder;
+        $this->subFolders = $subFolders;
     }
 
     /**
@@ -94,17 +94,17 @@ class Folder implements JsonSerializable
     }
 
     /**
-     * @return int
+     * @return int | null
      */
-    public function getProjectId(): int
+    public function getProjectId():? int
     {
         return $this->projectId;
     }
 
     /**
-     * @param int $projectId
+     * @param int | null $projectId
      */
-    public function setProjectId(int $projectId): void
+    public function setProjectId(?int $projectId): void
     {
         $this->projectId = $projectId;
     }
@@ -126,19 +126,19 @@ class Folder implements JsonSerializable
     }
 
     /**
-     * @return int | null
+     * @return Folder[] | null
      */
-    public function getParentFolderId(): ?int
+    public function getSubFolders()
     {
-        return $this->parentFolderId;
+        return $this->subFolders;
     }
 
     /**
-     * @param int | null $parentFolderId
+     * @param Folder[] | null $subFolders
      */
-    public function setParentFolderId(?int $parentFolderId): void
+    public function setSubFolders($subFolders): void
     {
-        $this->parentFolderId = $parentFolderId;
+        $this->subFolders = $subFolders;
     }
 
     /**
@@ -164,7 +164,7 @@ class Folder implements JsonSerializable
             'name' => $this->getName(),
             'projectId' => $this->getProjectId(),
             'on' => $this->isOn(),
-            'parentFolderId' => $this->getParentFolderId(),
+            'subFolders' => $this->getSubFolders(),
             'isMain' => $this->isMainFolder(),
         ];
     }
