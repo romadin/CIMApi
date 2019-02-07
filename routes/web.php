@@ -28,7 +28,7 @@ $router->group(['middleware' => 'auth'], function () use ($router)
     $router->get('users', 'Users\UsersController@getUsers');
     $router->get('users/{id}', 'Users\UsersController@getUser');
 
-    $router->get('actions')
+    $router->get('actions', 'Actions\ActionsController@getActions');
 
     $router->group(['middleware' => 'admin'], function() use ($router)
     {
