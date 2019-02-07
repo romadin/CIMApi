@@ -17,7 +17,15 @@ class DocumentsHandler
     const DOCUMENT_LINK_FOLDER_TABLE = 'folders_has_documents';
 
     //@todo need a better way for templating
-    const defaultDocumentTemplate = ['Projectgegevens', 'Doelstelling', 'Proces', 'Normen', 'Voorwaarden', 'BIM toepassing', 'Modeloverzicht'];
+    const defaultDocumentTemplate = [
+        ['name' => 'Projectgegevens', 'order' => 1],
+        ['name' => 'Doelstelling', 'order' => 2],
+        ['name' => 'Proces', 'order' => 3],
+        ['name' => 'Normen', 'order' => 4],
+        ['name' => 'Voorwaarden', 'order' => 5],
+        ['name' => 'BIM toepassing', 'order' => 7],
+        ['name' => 'Modeloverzicht', 'order' => 12],
+    ];
 
     /**
      * @param int $folderId
@@ -26,7 +34,12 @@ class DocumentsHandler
     public function getDocumentsFromFolder(int $folderId)
     {
         $documentsResult = DB::table(self::DOCUMENT_LINK_FOLDER_TABLE)
-            ->select([self::DOCUMENT_TABLE.'.id', self::DOCUMENT_TABLE.'.originalName',self::DOCUMENT_TABLE.'.name', self::DOCUMENT_TABLE.'.content', self::DOCUMENT_LINK_FOLDER_TABLE.'.folderId' ])
+            ->select([
+                self::DOCUMENT_TABLE.'.id', self::DOCUMENT_TABLE.'.originalName',
+                self::DOCUMENT_TABLE.'.name', self::DOCUMENT_TABLE.'.content',
+                self::DOCUMENT_LINK_FOLDER_TABLE.'.folderId',
+                self::DOCUMENT_LINK_FOLDER_TABLE. '.order',
+            ])
             ->where(self::DOCUMENT_LINK_FOLDER_TABLE.'.folderId', '=', $folderId)
             ->join(self::DOCUMENT_TABLE, self::DOCUMENT_LINK_FOLDER_TABLE. '.documentId', '=', self::DOCUMENT_TABLE. '.id'  )
             ->get();
@@ -50,23 +63,22 @@ class DocumentsHandler
     public function createDocumentsWithTemplate(int $folderId, $template)
     {
         $template = $template !== 'default' ?: self::defaultDocumentTemplate;
-        $newDocumentsId = [];
-        foreach ($template as $documentName) {
+        foreach ($template as $documentTemplate) {
             $row = [
-                'originalName' => $documentName,
+                'originalName' => $documentTemplate['name'],
                 'name' => null,
                 'content' => null
             ];
-            array_push($newDocumentsId, DB::table(self::DOCUMENT_TABLE)->insertGetId($row));
-        }
-        foreach ($newDocumentsId as $id) {
+            $newDocumentID = DB::table(self::DOCUMENT_TABLE)->insertGetId($row);
+
+            // insert the link folder has document en set order.
             DB::table(self::DOCUMENT_LINK_FOLDER_TABLE)
                 ->insert([
                     'folderId' => $folderId,
-                    'documentId' => $id
+                    'documentId' => $newDocumentID,
+                    'order' => $documentTemplate['order'],
                 ]);
         }
-
         return $this->getDocumentsFromFolder($folderId);
     }
 
@@ -111,12 +123,14 @@ class DocumentsHandler
     private function makeDocument($data): Document
     {
         $foldersId = is_array($data->folderId) ? $data->folderId : [$data->folderId];
+
         $document = new Document(
             $data->id,
             $data->originalName,
             $data->name,
             $data->content,
-            $foldersId
+            $foldersId,
+            $data->order
         );
 
         return $document;

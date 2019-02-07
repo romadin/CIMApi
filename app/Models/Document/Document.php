@@ -38,20 +38,27 @@ class Document implements JsonSerializable
     private $parentFolderIds;
 
     /**
+     * @var int
+     */
+    private $order;
+
+    /**
      * Document constructor.
      * @param int $id
      * @param string $originalName
      * @param string | null $name
      * @param string | null $content
      * @param int[] $parentFolderIds
+     * @param int $order
      */
-    public function __construct(int $id, string $originalName, $name, $content, $parentFolderIds)
+    public function __construct(int $id, string $originalName, $name, $content, $parentFolderIds, int $order)
     {
         $this->id = $id;
         $this->originalName = $originalName;
         $this->name = $name;
         $this->content = $content;
         $this->parentFolderIds = $parentFolderIds;
+        $this->order = $order;
     }
 
     /**
@@ -134,6 +141,22 @@ class Document implements JsonSerializable
         $this->parentFolderIds = $parentFolderIds;
     }
 
+    /**
+     * @return int
+     */
+    public function getOrder(): int
+    {
+        return $this->order;
+    }
+
+    /**
+     * @param int $order
+     */
+    public function setOrder(int $order): void
+    {
+        $this->order = $order;
+    }
+
     public function jsonSerialize()
     {
         return [
@@ -141,6 +164,7 @@ class Document implements JsonSerializable
             'originalName' => $this->getOriginalName(),
             'name' => $this->getName(),
             'content' => $this->getContent(),
+            'order' => $this->getOrder(),
             'foldersId' => $this->getParentFolderIds()
         ];
     }

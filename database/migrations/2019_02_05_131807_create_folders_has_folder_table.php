@@ -14,8 +14,11 @@ class CreateFoldersHasFolderTable extends Migration
     public function up()
     {
         Schema::create('folders_has_folders', function (Blueprint $table) {
-            $table->unsignedInteger('folderId')->references('id')->on('folders');
-            $table->unsignedInteger('folderSubId')->references('id')->on('folders');
+            $table->unsignedInteger('folderId');
+            $table->foreign('folderId')->references('id')->on('folders');
+            $table->unsignedInteger('folderSubId');
+            $table->foreign('folderSubId')->references('id')->on('folders');
+            $table->unsignedInteger('order')->default(0);
         });
     }
 

@@ -19,7 +19,13 @@ use Illuminate\Support\Facades\DB;
 class ProjectsController extends ApiController
 {
     const PROJECT_TABLE = 'projects';
-    const defaultFoldersTemplate = ['BIM-Uitvoeringsplan', 'BIM-Modelleur', 'BIM-Coördinator', 'BIM Regisseur', 'BIM Manager'];
+    const defaultFoldersTemplate = [
+        ['name' => 'BIM-Uitvoeringsplan', 'order' => 0],
+        ['name' => 'BIM-Modelleur', 'order' => 0],
+        ['name' => 'BIM-Coördinator', 'order' => 0],
+        ['name' => 'BIM Regisseur', 'order' => 0],
+        ['name' => 'BIM Manager', 'order' => 0],
+    ];
 
     private $foldersHandler;
     private $usersHandlers;

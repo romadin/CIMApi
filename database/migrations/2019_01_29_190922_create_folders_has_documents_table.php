@@ -18,6 +18,7 @@ class CreateFoldersHasDocumentsTable extends Migration
             $table->foreign('folderId')->references('id')->on('folders');
             $table->unsignedInteger('documentId');
             $table->foreign('documentId')->references('id')->on('documents');
+            $table->unsignedInteger('order')->default(0);
         });
     }
 

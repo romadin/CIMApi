@@ -19,7 +19,13 @@ class FoldersHandler
     const FOLDERS_LINK_TABLE = 'folders_has_folders';
 
     //@todo need a better way for templating
-    const defaultSubFolderTemplate = ['Model afspraak', 'Analyse', 'Planning', 'Informatiebehoefte', 'Over BIM'];
+    const defaultSubFolderTemplate = [
+        ['name' => 'Model afspraak', 'order' => 7],
+        ['name' => 'Analyse', 'order' =>  9],
+        ['name' => 'Planning', 'order' => 10],
+        ['name' => 'Informatiebehoefte', 'order' => 11],
+        ['name' => 'Over BIM', 'order' => 13],
+    ];
 
     /**
      * @var DocumentsHandler
@@ -68,16 +74,16 @@ class FoldersHandler
 
     public function createFoldersTemplate(array $template, $projectId = null, $parentFolderId = null): void
     {
-        foreach ($template as $folderName) {
+        foreach ($template as $folderTemplate) {
             $row = [
-                'name' => $folderName,
+                'name' => $folderTemplate['name'],
                 'projectId' => $projectId,
-                'mainFolder' => $folderName === 'BIM-Uitvoeringsplan' ? true : false,
+                'mainFolder' => $folderTemplate['name']=== 'BIM-Uitvoeringsplan' ? true : false,
             ];
             $newFolderId = DB::table(self::FOLDERS_TABLE)->insertGetId($row);
             if ($projectId === null) {
                 // if project id is null then its a link between folders, so folder gets a sub folder.
-                $this->setLinkFolderHasSubFolder($parentFolderId, $newFolderId );
+                $this->setLinkFolderHasSubFolder( $parentFolderId, $newFolderId, $folderTemplate['order']);
             }
         }
 
@@ -144,7 +150,7 @@ class FoldersHandler
         return true;
     }
 
-    private function setLinkFolderHasSubFolder(int $folderId, int $subFolderId)
+    private function setLinkFolderHasSubFolder(int $folderId, int $subFolderId, int $order)
     {
         if ($folderId === $subFolderId) {
             return response('FoldersHandler: cant give the same id', 400);
@@ -153,7 +159,8 @@ class FoldersHandler
             DB::table(self::FOLDERS_LINK_TABLE)
                 ->insert([
                     'folderId' => $folderId,
-                    'folderSubId' => $subFolderId
+                    'folderSubId' => $subFolderId,
+                    'order' => $order,
                 ]);
         } catch (\Exception $e)
         {
@@ -165,7 +172,13 @@ class FoldersHandler
     {
         $subFolders = [];
         $subFoldersResult = DB::table(self::FOLDERS_LINK_TABLE)
-            ->select([self::FOLDERS_TABLE.'.id', self::FOLDERS_TABLE.'.name', self::FOLDERS_TABLE.'.projectId',self::FOLDERS_TABLE.'.on', self::FOLDERS_TABLE.'.mainFolder', ])
+            ->select([
+                self::FOLDERS_TABLE. '.id',
+                self::FOLDERS_TABLE. '.name',
+                self::FOLDERS_TABLE. '.projectId',
+                self::FOLDERS_TABLE. '.on',
+                self::FOLDERS_TABLE. '.mainFolder',
+                self::FOLDERS_LINK_TABLE. '.order'])
             ->join(self::FOLDERS_TABLE, self::FOLDERS_LINK_TABLE . '.folderSubId', '=', self::FOLDERS_TABLE . '.id')
             ->where(self::FOLDERS_LINK_TABLE. '.folderId', '=', $data->id )
             ->get();
@@ -181,6 +194,7 @@ class FoldersHandler
             $data->name,
             $data->on,
             $data->mainFolder,
+            isset($data->order) ? $data->order : 0,
             $data->projectId,
             empty($subFolders) ? null : $subFolders
         );

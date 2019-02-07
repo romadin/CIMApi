@@ -43,21 +43,28 @@ class Folder implements JsonSerializable
     private $isMainFolder;
 
     /**
+     * @var int
+     */
+    private $order;
+
+    /**
      * Folder constructor.
      * @param int $id
      * @param string $name
      * @param bool $on
      * @param bool $isMainFolder
+     * @param int $order
      * @param int | null $projectId
      * @param Folder[] | null $subFolders
      */
-    public function __construct(int $id, string $name, bool $on, $isMainFolder, $projectId = null, $subFolders = null)
+    public function __construct(int $id, string $name, bool $on, $isMainFolder, $order, $projectId = null, $subFolders = null)
     {
         $this->id = $id;
         $this->name = $name;
-        $this->projectId = $projectId;
         $this->on = $on;
         $this->isMainFolder = $isMainFolder;
+        $this->order = $order;
+        $this->projectId = $projectId;
         $this->subFolders = $subFolders;
     }
 
@@ -126,6 +133,22 @@ class Folder implements JsonSerializable
     }
 
     /**
+     * @return int
+     */
+    public function getOrder(): int
+    {
+        return $this->order;
+    }
+
+    /**
+     * @param int $order
+     */
+    public function setOrder(int $order): void
+    {
+        $this->order = $order;
+    }
+
+    /**
      * @return Folder[] | null
      */
     public function getSubFolders()
@@ -165,6 +188,7 @@ class Folder implements JsonSerializable
             'projectId' => $this->getProjectId(),
             'on' => $this->isOn(),
             'subFolders' => $this->getSubFolders(),
+            'order' => $this->getOrder(),
             'isMain' => $this->isMainFolder(),
         ];
     }
