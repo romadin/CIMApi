@@ -28,7 +28,7 @@ class UsersHandler
         self::USERS_TABLE.'.function',
         self::USERS_TABLE.'.password',
         self::USERS_TABLE.'.role_id',
-        self::ROLES_TABLE.'.name as roleName'
+        self::ROLES_TABLE.'.name as roleName',
     ];
 
     /**
@@ -59,7 +59,33 @@ class UsersHandler
         return $users;
     }
 
-    public function getUserByEmail(string $email): User
+    public function getUsersByProjectId(int $projectId) {
+        try {
+            $result = DB::table(self::USERS_TABLE)
+                ->select($this->defaultSelect)
+                ->join(self::ROLES_TABLE, self::USERS_TABLE.'.role_id', '=', self::ROLES_TABLE.'.id')
+                ->join(self::PROJECT_LINK_TABLE, self::USERS_TABLE. '.id', '=', self::PROJECT_LINK_TABLE. '.userId')
+                ->where(self::PROJECT_LINK_TABLE.'.projectId', '=', $projectId)
+                ->get();
+            if ( $result === null) {
+                return response('Users does not exist', 400);
+            }
+        } catch (\Exception $e) {
+            return response('There is something wrong with the connection', 403);
+        }
+
+        $users = [];
+
+        foreach ($result as $user) {
+            $userModel = $this->makeUser($user);
+            $userModel->removePassword();
+            array_push($users, $userModel);
+        }
+
+        return $users;
+    }
+
+    public function getUserByEmail(string $email)
     {
         try {
             $result = DB::table(self::USERS_TABLE)
@@ -77,7 +103,7 @@ class UsersHandler
         return $this->makeUser($result);
     }
 
-    public function getUserById(int $id): User
+    public function getUserById(int $id)
     {
         try {
             $user = DB::table(self::USERS_TABLE)
@@ -113,6 +139,21 @@ class UsersHandler
         return true;
     }
 
+    private function getProjectsIdFromUser(User $user)
+    {
+        $projectsId = [];
+
+        $result = DB::table(self::PROJECT_LINK_TABLE)
+            ->select('projectId')
+            ->where('userId', $user->getId())
+            ->get();
+
+        foreach ($result as $id) {
+            array_push($projectsId, $id->projectId);
+        }
+        return $projectsId;
+    }
+
     private function makeUser($data): User
     {
         $role = new Role(
@@ -130,6 +171,8 @@ class UsersHandler
             $data->password,
             $role
         );
+
+        $user->setProjectsId($this->getProjectsIdFromUser($user));
 
         return $user;
     }

@@ -53,6 +53,11 @@ class User implements JsonSerializable
      */
     private $role;
 
+    /**
+     * @var int[]
+     */
+    private $projectsId = [];
+
     public function __construct(
         int $id,
         string $firstName,
@@ -209,6 +214,22 @@ class User implements JsonSerializable
         $this->role = $role;
     }
 
+    /**
+     * @return int[]
+     */
+    public function getProjectsId(): array
+    {
+        return $this->projectsId;
+    }
+
+    /**
+     * @param int[] $projectsId
+     */
+    public function setProjectsId(array $projectsId): void
+    {
+        $this->projectsId = $projectsId;
+    }
+
     public function jsonSerialize()
     {
         return [
@@ -219,6 +240,7 @@ class User implements JsonSerializable
             'email' => $this->getEmail(),
             'function' => $this->getFunction(),
             'role' => $this->getRole(),
+            'projectsId' => $this->getProjectsId()
         ];
     }
 

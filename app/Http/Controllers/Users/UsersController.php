@@ -31,6 +31,9 @@ class UsersController extends ApiController
 
     public function getUsers(Request $request)
     {
+        if($request->input('projectId')) {
+            return $this->getReturnValueArray($request, $this->usersHandler->getUsersByProjectId($request->input('projectId')));
+        }
         return $this->getReturnValueArray($request, $this->usersHandler->getUsers());
     }
 
