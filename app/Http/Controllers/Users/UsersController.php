@@ -32,7 +32,7 @@ class UsersController extends ApiController
     public function getUsers(Request $request)
     {
         if($request->input('projectId')) {
-            return $this->getReturnValueArray($request, $this->usersHandler->getUsersByProjectId($request->input('projectId')));
+            return $this->getReturnValueArray($request, $this->usersHandler->getUsersByProjectId((int)$request->input('projectId')));
         }
         return $this->getReturnValueArray($request, $this->usersHandler->getUsers());
     }
@@ -45,9 +45,13 @@ class UsersController extends ApiController
         return $this->getReturnValueObject($request, $user);
     }
 
-    public function postUser(Request $request)
+    public function postUser(Request $request, $id = null)
     {
-        $id = DB::table(self::TABLE_USER)->insertGetId([
+        if ($id) {
+            return $this->getReturnValueObject($request, $this->usersHandler->editUser($request->post(), $id));
+        }
+
+        $newId = DB::table(self::TABLE_USER)->insertGetId([
             'firstName' => $request->input('firstName'),
             'insertion' => $request->input('insertion'),
             'lastName' => $request->input('lastName'),
@@ -56,15 +60,15 @@ class UsersController extends ApiController
             'password' => password_hash($request->input('password'), PASSWORD_DEFAULT),
         ]);
 
-        if ( $id ) {
+        if ( $newId ) {
             // insert the link for the user to the projects.
             foreach ($request->input('projectsId') as $projectId) {
                 DB::table(self::TABLE_USER_HAS_PROJECTS)->insert([
-                    'userId' => $id, 'projectId' => $projectId
+                    'userId' => $newId, 'projectId' => $projectId
                 ]);
             }
 
-            return $this->getReturnValueObject($request, $this->usersHandler->getUserById($id));
+            return $this->getReturnValueObject($request, $this->usersHandler->getUserById($newId));
         }
 
         return response('something went wrong', 400);

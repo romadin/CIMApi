@@ -122,6 +122,19 @@ class UsersHandler
         return $this->makeUser($user);
     }
 
+    public function editUser($postData, $id)
+    {
+        try {
+            DB::table(self::USERS_TABLE)
+                ->where('id', $id)
+                ->update($postData);
+        } catch (\Exception $e) {
+            return response('UsersHandler: There is something wrong with the database connection', 403);
+        }
+
+        return $this->getUserById($id);
+    }
+
     /**
      * Delete the link between users and projects.
      * @param int $projectId

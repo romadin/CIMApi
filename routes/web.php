@@ -33,7 +33,7 @@ $router->group(['middleware' => 'auth'], function () use ($router)
         $router->post('projects[/{id}]', 'Projects\ProjectsController@createOrUpdateProject');
         $router->delete('projects/{id}', 'Projects\ProjectsController@deleteProject');
 
-        $router->post('users', 'Users\UsersController@postUser');
+        $router->post('users[/{id}]', 'Users\UsersController@postUser');
         $router->post('documents[/{id}]', 'Documents\DocumentsController@postDocuments');
         $router->post('folders/{id}', 'Folders\FoldersController@postFolders');
 
