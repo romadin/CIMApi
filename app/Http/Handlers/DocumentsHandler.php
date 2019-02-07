@@ -62,7 +62,7 @@ class DocumentsHandler
      */
     public function createDocumentsWithTemplate(int $folderId, $template)
     {
-        $template = $template !== 'default' ?: self::defaultDocumentTemplate;
+        $template = $template !== 'default' ? $template : self::defaultDocumentTemplate;
         foreach ($template as $documentTemplate) {
             $row = [
                 'originalName' => $documentTemplate['name'],

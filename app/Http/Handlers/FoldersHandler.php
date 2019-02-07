@@ -27,6 +27,46 @@ class FoldersHandler
         ['name' => 'Over BIM', 'order' => 13],
     ];
 
+    const defaultSubFolderDocumentTemplate = [
+        'Model afspraak' => [
+            ['name' => 'Bestandformaten', 'order' => 1],
+            ['name' => 'IFC export instelling', 'order' => 2],
+            ['name' => 'Bestandnamen', 'order' => 3],
+            ['name' => 'NUL-punt', 'order' => 4],
+            ['name' => 'Object- en materiaalbeschrijving', 'order' => 5],
+            ['name' => 'Parameters', 'order' => 6],
+            ['name' => 'Ruimte objecten', 'order' => 7],
+            ['name' => 'Ruimte afwerking', 'order' => 8],
+            ['name' => 'Zones', 'order' => 9],
+        ],
+        'Analyse' => [
+            ['name' => 'Constructie analyse', 'order' => 1],
+            ['name' => 'Brandveiligheid', 'order' => 2],
+            ['name' => 'Akoestiek', 'order' => 3],
+            ['name' => 'Energieverbruik', 'order' => 4],
+            ['name' => 'Kosten calculatie', 'order' => 5],
+            ['name' => 'Planning', 'order' => 6],
+        ],
+        'Planning' => [
+            ['name' => 'LEAN', 'order' => 1],
+            ['name' => 'Projectplanning', 'order' => 2],
+        ],
+        'Informatiebehoefte' => [
+            ['name' => 'Specifieke gevraagde informatie Bedr. A', 'order' => 1],
+            ['name' => 'Specifieke gevraagde informatie Bedr. B', 'order' => 2],
+        ],
+        'Over BIM' => [
+            ['name' => 'Wat is BIM', 'order' => 1],
+            ['name' => 'Little BIM en big BIM', 'order' => 3],
+            ['name' => 'IFC', 'order' => 4],
+            ['name' => 'BIR kenniskaarten', 'order' => 5],
+            ['name' => 'BIR kenniskaarten', 'order' => 6],
+            ['name' => 'CB-NL', 'order' => 7],
+            ['name' => 'Algemene voordelen', 'order' => 8],
+        ],
+
+    ];
+
     /**
      * @var DocumentsHandler
      */
@@ -84,6 +124,8 @@ class FoldersHandler
             if ($projectId === null) {
                 // if project id is null then its a link between folders, so folder gets a sub folder.
                 $this->setLinkFolderHasSubFolder( $parentFolderId, $newFolderId, $folderTemplate['order']);
+                // on the subFolder we need to attach documents with the given template
+                $this->documentsHandler->createDocumentsWithTemplate($newFolderId, self::defaultSubFolderDocumentTemplate[$folderTemplate['name']]);
             }
         }
 
