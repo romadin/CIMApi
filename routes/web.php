@@ -28,6 +28,8 @@ $router->group(['middleware' => 'auth'], function () use ($router)
     $router->get('users', 'Users\UsersController@getUsers');
     $router->get('users/{id}', 'Users\UsersController@getUser');
 
+    $router->get('actions')
+
     $router->group(['middleware' => 'admin'], function() use ($router)
     {
         $router->post('projects[/{id}]', 'Projects\ProjectsController@createOrUpdateProject');
