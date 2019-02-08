@@ -10,6 +10,7 @@ namespace App\Http\Controllers\Projects;
 
 
 use App\Http\Controllers\ApiController;
+use App\Http\Handlers\ActionsHandler;
 use App\Http\Handlers\FoldersHandler;
 use App\Http\Handlers\UsersHandler;
 use App\Models\Project\Project;
@@ -27,14 +28,34 @@ class ProjectsController extends ApiController
         ['name' => 'BIM Manager', 'order' => 0],
     ];
 
+    /**
+     * @var FoldersHandler
+     */
     private $foldersHandler;
+
+    /**
+     * @var UsersHandler
+     */
     private $usersHandlers;
 
-    public function __construct(FoldersHandler $foldersHandler, UsersHandler $usersHandler)
+    /**
+     * @var ActionsHandler
+     */
+    private $actionHandlers;
+
+    /**
+     * ProjectsController constructor.
+     * @param FoldersHandler $foldersHandler
+     * @param UsersHandler $usersHandlers
+     * @param ActionsHandler $actionHandlers
+     */
+    public function __construct(FoldersHandler $foldersHandler, UsersHandler $usersHandlers, ActionsHandler $actionHandlers)
     {
         $this->foldersHandler = $foldersHandler;
-        $this->usersHandlers = $usersHandler;
+        $this->usersHandlers = $usersHandlers;
+        $this->actionHandlers = $actionHandlers;
     }
+
 
     /**
      * Get all of the projects.
@@ -111,8 +132,9 @@ class ProjectsController extends ApiController
     {
         $foldersDeleted = $this->foldersHandler->deleteFolderByProjectId($id);
         $linkedUsers = $this->usersHandlers->deleteProjectLink($id);
+        $linkedActionsDeleted = $this->actionHandlers->deleteActionByProjectId($id);
 
-        if( $foldersDeleted && $linkedUsers ) {
+        if( $foldersDeleted && $linkedUsers && $linkedActionsDeleted ) {
             $deletedId = DB::table(self::PROJECT_TABLE)->delete($id);
 
             if( $deletedId ) {

@@ -16,38 +16,83 @@ class ActionsHandler
 {
     const ACTION_TABLE = 'actions';
     const ACTION_LINK_PROJECTS = 'projects_has_actions';
-    const SELECT_ACTION_TABLE = [
-        self::ACTION_TABLE.'.id',
-        self::ACTION_TABLE.'.code',
-        self::ACTION_TABLE.'.description',
-        self::ACTION_TABLE.'.holder',
-        self::ACTION_TABLE.'.week',
-        self::ACTION_TABLE.'.status',
-        self::ACTION_TABLE.'.comments',
-        self::ACTION_TABLE.'.isDone',
-    ];
 
     public function getActionsForProject($projectId)
     {
+        $actions = [];
         try {
             $result = DB::table(self::ACTION_TABLE)
-                ->select(self::SELECT_ACTION_TABLE)
-                ->join(self::ACTION_LINK_PROJECTS, self::ACTION_TABLE . '.id', '=', self::ACTION_LINK_PROJECTS . '.actionId')
-                ->where(self::ACTION_LINK_PROJECTS . '.projectId', $projectId)
+                ->where('projectId', $projectId)
                 ->get();
-            if($result === null) {
-                return response('There are no actions at for the project', 400);
-            }
         } catch (\Exception $e) {
             return response('ActionsHandler: There is something wrong with the database connection', 403);
         }
-        $actions = [];
 
         foreach ($result as $item) {
             array_push($actions, $this->makeAction($item));
         }
 
         return $actions;
+    }
+
+    public function getActionById(int $id)
+    {
+        try {
+            $result = DB::table(self::ACTION_TABLE)
+                ->where('id', $id)
+                ->first();
+        } catch (\Exception $e) {
+            return response('ActionsHandler: There is something wrong with the database connection', 403);
+        }
+        return $this->makeAction($result);
+    }
+
+    public function createAction($postData)
+    {
+        try {
+            $newActionId = DB::table(self::ACTION_TABLE)->insertGetId($postData);
+        } catch (\Exception $e) {
+            return response('ActionsHandler: There is something wrong with the database connection', 403);
+        }
+        return $this->getActionById($newActionId);
+    }
+
+    public function updateAction($updateData, int $id)
+    {
+        try {
+            DB::table(self::ACTION_TABLE)
+                ->where('id', $id)
+                ->update($updateData);
+        } catch (\Exception $e) {
+            return response('ActionsHandler: There is something wrong with the database connection', 403);
+        }
+        return $this->getActionById($id);
+    }
+
+    public function deleteAction(int $id)
+    {
+        try {
+            DB::table(self::ACTION_TABLE)
+                ->where('id', $id)
+                ->delete();
+        } catch (\Exception $e) {
+            return response('There is something wrong with the connection', 403);
+        }
+
+        return true;
+    }
+
+    public function deleteActionByProjectId(int $projectId)
+    {
+        try {
+            DB::table(self::ACTION_TABLE)
+                ->where('projectId', $projectId)
+                ->delete();
+        } catch (\Exception $e) {
+            return response('There is something wrong with the connection', 403);
+        }
+
+        return true;
     }
     
     private function makeAction($data): Action
@@ -58,9 +103,9 @@ class ActionsHandler
             $data->description,
             $data->holder,
             $data->week,
-            $data->status,
             $data->comments,
-            $data->isDone
+            $data->isDone,
+            $data->projectId
         );
 
         return $action;

@@ -34,14 +34,9 @@ class Action implements JsonSerializable
     private $actionHolder;
 
     /**
-     * @var string
+     * @var int
      */
     private $week;
-
-    /**
-     * @var string
-     */
-    private $status;
 
     /**
      * @var string
@@ -54,26 +49,31 @@ class Action implements JsonSerializable
     private $isDone;
 
     /**
+     * @var int
+     */
+    private $projectId;
+
+    /**
      * Action constructor.
      * @param int $id
      * @param string $code
      * @param string $description
      * @param string $actionHolder
-     * @param string $week
-     * @param string $status
+     * @param int $week
      * @param string $comments
      * @param bool $isDone
+     * @param int $projectId
      */
-    public function __construct(int $id, string $code, string $description, string $actionHolder, string $week, string $status, string $comments, bool $isDone)
+    public function __construct(int $id, string $code, string $description, string $actionHolder, int $week, string $comments, bool $isDone, int $projectId)
     {
         $this->id = $id;
         $this->code = $code;
         $this->description = $description;
         $this->actionHolder = $actionHolder;
         $this->week = $week;
-        $this->status = $status;
         $this->comments = $comments;
         $this->isDone = $isDone;
+        $this->projectId = $projectId;
     }
 
     /**
@@ -141,35 +141,19 @@ class Action implements JsonSerializable
     }
 
     /**
-     * @return string
+     * @return int
      */
-    public function getWeek(): string
+    public function getWeek(): int
     {
         return $this->week;
     }
 
     /**
-     * @param string $week
+     * @param int $week
      */
-    public function setWeek(string $week): void
+    public function setWeek(int $week): void
     {
         $this->week = $week;
-    }
-
-    /**
-     * @return string
-     */
-    public function getStatus(): string
-    {
-        return $this->status;
-    }
-
-    /**
-     * @param string $status
-     */
-    public function setStatus(string $status): void
-    {
-        $this->status = $status;
     }
 
     /**
@@ -205,6 +189,22 @@ class Action implements JsonSerializable
     }
 
     /**
+     * @return int
+     */
+    public function getProjectId(): int
+    {
+        return $this->projectId;
+    }
+
+    /**
+     * @param int $projectId
+     */
+    public function setProjectId(int $projectId): void
+    {
+        $this->projectId = $projectId;
+    }
+
+    /**
      * @return mixed
      */
     public function jsonSerialize()
@@ -215,9 +215,9 @@ class Action implements JsonSerializable
             'description' => $this->getDescription(),
             'actionHolder' => $this->getActionHolder(),
             'week' => $this->getWeek(),
-            'status' => $this->getStatus(),
-            'comments' => $this->isMcomments(),
+            'comments' => $this->getComments(),
             'isDone' => $this->isDone(),
+            'projectId' => $this->getProjectId(),
         ];
     }
 }

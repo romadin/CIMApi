@@ -149,20 +149,38 @@ class FoldersHandler
         return $this->getFolderById($id);
     }
 
+    public function deleteFolder(Folder $folder)
+    {
+        try {
+            $this->documentsHandler->deleteDocumentsByFolderId($folder->getId());
+
+            DB::table(self::FOLDERS_TABLE)->delete($folder->getId());
+            DB::table(self::FOLDERS_LINK_TABLE)
+                ->where('folderId', '=', $folder->getId())
+                ->delete();
+        }catch (\Exception $e) {
+            var_dump('delete exception');
+            return response('FoldersHandler: There is something wrong with the database connection', 403);
+        }
+        return true;
+    }
+
     public function deleteFolderByProjectId(Int $projectId)
     {
         try {
-            $foldersId = DB::table(self::FOLDERS_TABLE)
-                ->select(['id'])
-                ->where('projectId', $projectId)
-                ->get();
-
-            foreach ($foldersId as $id) {
-                if( $this->documentsHandler->deleteDocumentsByFolderId($id->id) )  {
-                    DB::table(self::FOLDERS_TABLE)->delete($id->id);
+            $folders = $this->getFoldersByProjectId($projectId);
+            foreach ($folders as $folder) {
+                if( $folder->getSubFolders() !== null ) {
+                    // Delete the subFolders and the linked documents
+                    foreach ($folder->getSubFolders() as $subFolder) {
+                        $this->deleteFolder($subFolder);
+                    }
                 }
+
+                $this->deleteFolder($folder);
             }
         } catch (\Exception $e) {
+            var_dump($e->getMessage());
             return response('FoldersHandler: There is something wrong with the database connection', 403);
         }
 

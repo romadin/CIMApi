@@ -19,9 +19,11 @@ class CreateActionTable extends Migration
             $table->string('general');
             $table->string('description');
             $table->string('holder');
-            $table->string('week');
+            $table->unsignedInteger('week');
             $table->string('comments');
             $table->boolean('isDone')->default(false);
+            $table->unsignedInteger('projectId');
+            $table->foreign('projectId')->references('id')->on('projects');
 
             $table->timestamps();
         });
@@ -34,6 +36,6 @@ class CreateActionTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('action');
+        Schema::dropIfExists('actions');
     }
 }

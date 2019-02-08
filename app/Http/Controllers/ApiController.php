@@ -48,6 +48,9 @@ class ApiController extends Controller
             $array = [];
             /** @var JsonSerializable $item */
             foreach ($arrayItems as $item) {
+                if ($item instanceof Response) {
+                    return response($item);
+                }
                 array_push($array, $item->jsonSerialize());
             }
             return json_encode($array);

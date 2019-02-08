@@ -29,6 +29,7 @@ $router->group(['middleware' => 'auth'], function () use ($router)
     $router->get('users/{id}', 'Users\UsersController@getUser');
 
     $router->get('actions', 'Actions\ActionsController@getActions');
+    $router->post('actions[/{id}]', 'Actions\ActionsController@createOrUpdateAction');
 
     $router->group(['middleware' => 'admin'], function() use ($router)
     {
@@ -41,6 +42,9 @@ $router->group(['middleware' => 'auth'], function () use ($router)
 
         $router->post('folders/{folderId}/documents', 'FoldersLinkDocumentsController@postFoldersLinkDocuments');
         $router->delete('folders/{folderId}/documents/{documentId}', 'FoldersLinkDocumentsController@deleteFoldersLinkDocuments');
+
+        $router->delete('actions[/{id}]', 'Actions\ActionsController@deleteAction');
+
     });
 });
 
