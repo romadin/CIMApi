@@ -54,9 +54,16 @@ class Action implements JsonSerializable
     private $projectId;
 
     /**
+     * @var string
+     */
+    private $general;
+
+
+    /**
      * Action constructor.
      * @param int $id
      * @param string $code
+     * @param string $general
      * @param string $description
      * @param string $actionHolder
      * @param int $week
@@ -64,10 +71,11 @@ class Action implements JsonSerializable
      * @param bool $isDone
      * @param int $projectId
      */
-    public function __construct(int $id, string $code, string $description, string $actionHolder, int $week, string $comments, bool $isDone, int $projectId)
+    public function __construct(int $id, string $code, string $general, string $description, string $actionHolder, int $week, string $comments, bool $isDone, int $projectId)
     {
         $this->id = $id;
         $this->code = $code;
+        $this->general = $general;
         $this->description = $description;
         $this->actionHolder = $actionHolder;
         $this->week = $week;
@@ -106,6 +114,22 @@ class Action implements JsonSerializable
     public function setCode(string $code): void
     {
         $this->code = $code;
+    }
+
+    /**
+     * @return string
+     */
+    public function getGeneral(): string
+    {
+        return $this->general;
+    }
+
+    /**
+     * @param string $general
+     */
+    public function setGeneral(string $general): void
+    {
+        $this->general = $general;
     }
 
     /**
@@ -212,6 +236,7 @@ class Action implements JsonSerializable
         return [
             'id' => $this->getId(),
             'code' => $this->getCode(),
+            'general' => $this->getGeneral(),
             'description' => $this->getDescription(),
             'actionHolder' => $this->getActionHolder(),
             'week' => $this->getWeek(),

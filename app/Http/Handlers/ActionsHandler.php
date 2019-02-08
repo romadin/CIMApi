@@ -100,6 +100,7 @@ class ActionsHandler
         $action = new Action(
             $data->id,
             $data->code,
+            $data->general,
             $data->description,
             $data->holder,
             $data->week,
