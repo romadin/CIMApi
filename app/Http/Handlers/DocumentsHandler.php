@@ -54,6 +54,23 @@ class DocumentsHandler
         return $documents;
     }
 
+    public function getDocumentById(int $id)
+    {
+        $documentResult = DB::table(self::DOCUMENT_LINK_FOLDER_TABLE)
+            ->select([
+                self::DOCUMENT_TABLE.'.id', self::DOCUMENT_TABLE.'.originalName',
+                self::DOCUMENT_TABLE.'.name', self::DOCUMENT_TABLE.'.content',
+                self::DOCUMENT_LINK_FOLDER_TABLE.'.folderId',
+                self::DOCUMENT_LINK_FOLDER_TABLE. '.order',
+            ])
+            ->where(self::DOCUMENT_TABLE.'.id', '=', $id)
+            ->join(self::DOCUMENT_TABLE, self::DOCUMENT_LINK_FOLDER_TABLE. '.documentId', '=', self::DOCUMENT_TABLE. '.id'  )
+            ->first();
+
+        $this->setFoldersId($documentResult);
+        return $this->makeDocument($documentResult);
+    }
+
     /**
      * Create document from an given template.
      * @param int $folderId
@@ -89,12 +106,11 @@ class DocumentsHandler
                 ->where('id', $id)
                 ->update($postData);
 
-            $updatedDocument = DB::table(self::DOCUMENT_TABLE)->where('id', $id)->first();
+            $document = $this->getDocumentById($id);
         } catch (\Exception $e) {
             return response('DocumentHandler: There is something wrong with the database connection', 500);
         }
-        $updatedDocument = $this->setFoldersId($updatedDocument);
-        return $this->makeDocument($updatedDocument);
+        return $document;
     }
 
     public function deleteDocumentsByFolderId(int $folderId)
