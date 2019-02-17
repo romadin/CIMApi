@@ -42,6 +42,10 @@ class ActionsController extends ApiController
             return $this->getReturnValueObject($request, $this->actionHandler->updateAction($request->post(), $id));
         }
 
+        if(!$request->input('projectId')) {
+            return response('Project id is missing', 400);
+        }
+
         return $this->getReturnValueObject($request, $this->actionHandler->createAction($request->post()));
     }
 

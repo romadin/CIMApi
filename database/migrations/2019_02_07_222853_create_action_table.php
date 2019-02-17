@@ -15,10 +15,9 @@ class CreateActionTable extends Migration
     {
         Schema::create('actions', function (Blueprint $table) {
             $table->increments('id');
-            $table->string('code');
-            $table->string('general');
+            $table->unsignedInteger('code');
             $table->string('description');
-            $table->string('holder');
+            $table->string('actionHolder');
             $table->unsignedInteger('week');
             $table->string('comments');
             $table->boolean('isDone')->default(false);

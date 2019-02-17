@@ -49,6 +49,8 @@ class ActionsHandler
 
     public function createAction($postData)
     {
+        $postData['code'] = $this->getLatestCodeFromProject($postData['projectId']) + 1;
+
         try {
             $newActionId = DB::table(self::ACTION_TABLE)->insertGetId($postData);
         } catch (\Exception $e) {
@@ -66,7 +68,7 @@ class ActionsHandler
         } catch (\Exception $e) {
             return response('ActionsHandler: There is something wrong with the database connection', 403);
         }
-        return $this->getActionById($id);
+        return $this->getActionById((int)$id);
     }
 
     public function deleteAction(int $id)
@@ -94,15 +96,32 @@ class ActionsHandler
 
         return true;
     }
+
+    private function getLatestCodeFromProject(int $projectId): int
+    {
+        try {
+            $result = DB::table(self::ACTION_TABLE)
+                ->select('code')
+                ->where('projectId', $projectId)
+                ->orderByDesc('code')
+                ->first();
+            if ($result == null) {
+                return 0;
+            }
+        } catch (\Exception $e) {
+            return response('There is something wrong with the connection', 403);
+        }
+
+        return $result->code;
+    }
     
     private function makeAction($data): Action
     {
         $action = new Action(
             $data->id,
             $data->code,
-            $data->general,
             $data->description,
-            $data->holder,
+            $data->actionHolder,
             $data->week,
             $data->comments,
             $data->isDone,
