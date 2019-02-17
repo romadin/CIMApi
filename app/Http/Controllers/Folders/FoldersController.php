@@ -43,4 +43,14 @@ class FoldersController extends ApiController
     {
         return $this->getReturnValueObject($request, $this->foldersHandler->editFolder($request->post(),$id));
     }
+
+    public function deleteFolders(Request $request, $id = null)
+    {
+        if ( $id ) {
+            return $this->foldersHandler->deleteFolder($this->foldersHandler->getFolderById($id));
+        }
+        if ( ! empty($request->input('projectId'))) {
+            return $this->foldersHandler->deleteFolders($request->input('projectId'));
+        }
+    }
 }

@@ -12,6 +12,7 @@ namespace App\Http\Controllers\Projects;
 use App\Http\Controllers\ApiController;
 use App\Http\Handlers\ActionsHandler;
 use App\Http\Handlers\FoldersHandler;
+use App\Http\Handlers\ProjectsHandler;
 use App\Http\Handlers\UsersHandler;
 use App\Models\Project\Project;
 use Illuminate\Http\Request;
@@ -27,6 +28,11 @@ class ProjectsController extends ApiController
         ['name' => 'BIM Regisseur', 'order' => 0],
         ['name' => 'BIM Manager', 'order' => 0],
     ];
+
+    /**
+     * @var ProjectsHandler
+     */
+    private $projectsHandler;
 
     /**
      * @var FoldersHandler
@@ -45,12 +51,14 @@ class ProjectsController extends ApiController
 
     /**
      * ProjectsController constructor.
+     * @param ProjectsHandler $projectsHandler
      * @param FoldersHandler $foldersHandler
      * @param UsersHandler $usersHandlers
      * @param ActionsHandler $actionHandlers
      */
-    public function __construct(FoldersHandler $foldersHandler, UsersHandler $usersHandlers, ActionsHandler $actionHandlers)
+    public function __construct(ProjectsHandler $projectsHandler, FoldersHandler $foldersHandler, UsersHandler $usersHandlers, ActionsHandler $actionHandlers)
     {
+        $this->projectsHandler = $projectsHandler;
         $this->foldersHandler = $foldersHandler;
         $this->usersHandlers = $usersHandlers;
         $this->actionHandlers = $actionHandlers;
@@ -69,7 +77,7 @@ class ProjectsController extends ApiController
         $projects = [];
 
         foreach ($results as $result) {
-            array_push($projects, $this->makeProject($result));
+            array_push($projects, $this->projectsHandler->makeProject($result));
         }
 
         return $this->getReturnValueArray($request, $projects);
@@ -83,14 +91,7 @@ class ProjectsController extends ApiController
      */
     public function getProject(Request $request, $id)
     {
-        $result = DB::table(self::PROJECT_TABLE)
-            ->where('id', '=', $id)
-            ->first();
-        if ( $result === null ) {
-            return response('Item does not exist', 404);
-        }
-
-        return $this->getReturnValueObject($request, $this->makeProject($result));
+        return $this->getReturnValueObject($request, $this->projectsHandler->getProject($id));
     }
 
     /**
@@ -115,7 +116,7 @@ class ProjectsController extends ApiController
             }
             $result = DB::table(self::PROJECT_TABLE)->where('id', $newId)->first();
 
-            return $this->getReturnValueObject($request, $this->makeProject($result));
+            return $this->getReturnValueObject($request, $this->projectsHandler->makeProject($result));
         }
 
         return response('something went wrong', 400);
@@ -130,7 +131,7 @@ class ProjectsController extends ApiController
      */
     public function deleteProject(Request $request, $id)
     {
-        $foldersDeleted = $this->foldersHandler->deleteFolderByProjectId($id);
+        $foldersDeleted = $this->foldersHandler->deleteFolders($this->foldersHandler->getFoldersByProjectId($id));
         $linkedUsers = $this->usersHandlers->deleteProjectLink($id);
         $linkedActionsDeleted = $this->actionHandlers->deleteActionByProjectId($id);
 
@@ -160,23 +161,7 @@ class ProjectsController extends ApiController
 
         $result = DB::table(self::PROJECT_TABLE)->where('id', $id)->first();
 
-        return $this->makeProject($result);
+        return $this->projectsHandler->makeProject($result);
     }
 
-    /**
-     * Make an project model from the given data.
-     * @param $data
-     * @return Project
-     */
-    private function makeProject($data)
-    {
-        $project = new Project(
-            $data->id,
-            $data->name
-        );
-        $project->setActionListId($data->action_list_id);
-        $project->setAgendaId($data->agenda_id);
-
-        return $project;
-    }
 }

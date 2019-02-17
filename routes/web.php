@@ -38,7 +38,9 @@ $router->group(['middleware' => 'auth'], function () use ($router)
 
         $router->post('users[/{id}]', 'Users\UsersController@postUser');
         $router->post('documents[/{id}]', 'Documents\DocumentsController@postDocuments');
+
         $router->post('folders/{id}', 'Folders\FoldersController@postFolders');
+        $router->delete('folders[/{id}]', 'Folders\FoldersController@deleteFolders');
 
         $router->post('folders/{folderId}/documents', 'FoldersLinkDocumentsController@postFoldersLinkDocuments');
         $router->delete('folders/{folderId}/documents/{documentId}', 'FoldersLinkDocumentsController@deleteFoldersLinkDocuments');
