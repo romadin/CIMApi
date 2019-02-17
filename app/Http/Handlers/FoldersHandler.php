@@ -154,10 +154,10 @@ class FoldersHandler
         try {
             $this->documentsHandler->deleteDocumentsByFolderId($folder->getId());
 
-            DB::table(self::FOLDERS_TABLE)->delete($folder->getId());
             DB::table(self::FOLDERS_LINK_TABLE)
                 ->where('folderId', '=', $folder->getId())
                 ->delete();
+            DB::table(self::FOLDERS_TABLE)->delete($folder->getId());
         }catch (\Exception $e) {
             var_dump('delete exception');
             return response('FoldersHandler: There is something wrong with the database connection', 403);
