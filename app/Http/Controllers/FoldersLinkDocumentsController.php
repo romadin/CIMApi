@@ -20,11 +20,6 @@ class FoldersLinkDocumentsController extends ApiController
         $this->foldersLinksHandler = $foldersLinkDocumentsHandler;
     }
 
-    public function postFoldersLinkDocuments(Request $request, int $folderId)
-    {
-        return $this->getReturnValueObject($request, $this->foldersLinksHandler->linkDocumentsToFolder($request->input('documentsId'), $folderId));
-    }
-
     public function deleteFoldersLinkDocuments(Request $request, int $folderId, int $documentId)
     {
         return $this->getReturnValueObject($request, $this->foldersLinksHandler->deleteLink($folderId, $documentId));

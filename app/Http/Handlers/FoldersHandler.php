@@ -127,7 +127,7 @@ class FoldersHandler
             $newFolderId = DB::table(self::FOLDERS_TABLE)->insertGetId($row);
             if ($projectId === null) {
                 // if project id is null then its a link between folders, so folder gets a sub folder.
-                $this->setLinkFolderHasSubFolder( $parentFolderId, $newFolderId, $folderTemplate['order']);
+                $this->insertLink($parentFolderId, $newFolderId, $folderTemplate['order'], self::FOLDERS_LINK_TABLE,  'folderSubId');
                 // on the subFolder we need to attach documents with the given template
                 $this->documentsHandler->createDocumentsWithTemplate($newFolderId, self::defaultSubFolderDocumentTemplate[$folderTemplate['name']]);
             }
@@ -204,6 +204,25 @@ class FoldersHandler
     }
 
     /**
+     * Delete the subFolder link from the main folder.
+     * @param $folderId
+     * @param $subFolderId
+     * @return int
+     */
+    public function deleteSubFolderLink($folderId, $subFolderId): int
+    {
+        try {
+            DB::table(self::FOLDERS_LINK_TABLE)
+                ->where('folderId', $folderId)
+                ->where('folderSubId', $subFolderId)
+                ->delete();
+        } catch (\Exception $e) {
+            return response('FoldersHandler: There is something wrong with the database connection', 403);
+        }
+        return $folderId;
+    }
+
+    /**
      * Set Sub Folders at the main folder by the given template.
      * @param int $projectId
      * @param array $template
@@ -226,22 +245,47 @@ class FoldersHandler
         return true;
     }
 
-    private function setLinkFolderHasSubFolder(int $folderId, int $subFolderId, int $order)
+
+    /**
+     * Add an sub folder to an folder.
+     * @param int $folderId
+     * @param int[] $subFolderIds
+     * @param int | null $order
+     * @return int|Response|\Laravel\Lumen\Http\ResponseFactory
+     */
+    public function setLinkFolderHasSubFolder(int $folderId, $subFolderIds, $order = null)
     {
-        if ($folderId === $subFolderId) {
-            return response('FoldersHandler: cant give the same id', 400);
+        foreach ($subFolderIds as $subFolderId) {
+            $order = $order !== null ? $order : 0;
+            $inserted = $this->insertLink($folderId, $subFolderId, $order, self::FOLDERS_LINK_TABLE, 'folderSubId');
+
+            if ( !$inserted ) {
+                return $inserted;
+            }
         }
+
+        return $folderId;
+    }
+
+    public function insertLink(int $folderId, int $subItemId, int $order, string $table, string $subItemColumn)
+    {
         try {
-            DB::table(self::FOLDERS_LINK_TABLE)
-                ->insert([
+            $result = DB::table($table)
+                ->where('folderId', $folderId)
+                ->where($subItemColumn, $subItemId)->first();
+            if ( $result === null ) {
+                DB::table($table)->insert([
                     'folderId' => $folderId,
-                    'folderSubId' => $subFolderId,
-                    'order' => $order,
+                    $subItemColumn => $subItemId,
+                    'order' => $order
                 ]);
-        } catch (\Exception $e)
-        {
-            return response('FoldersHandler: There is something wrong with the database connection', 403);
+            } else {
+                return response('The link already exist', 403);
+            }
+        } catch (\Exception $e) {
+            return response('FoldersLinkDocumentsHandler: There is something wrong with the database connection', 500);
         }
+        return true;
     }
 
     private function makeFolder($data): Folder

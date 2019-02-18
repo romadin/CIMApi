@@ -32,7 +32,11 @@ class FoldersLinkDocumentsHandler
     public function linkDocumentsToFolder($documentsId, int $folderId)
     {
         foreach ($documentsId as $documentId) {
-            $this->insertLink($folderId, $documentId);
+            $inserted = $this->foldersHandler->insertLink($folderId, $documentId,0, self::FOLDER_LINK_DOCUMENT_TABLE, 'documentId');
+
+            if ( !$inserted ) {
+                return $inserted;
+            }
         }
         return $this->foldersHandler->getFolderById($folderId);
     }
@@ -51,24 +55,6 @@ class FoldersLinkDocumentsHandler
         }
 
         return $this->foldersHandler->getFolderById($folderId);
-    }
-
-    private function insertLink(int $folderId, int $documentId)
-    {
-        try {
-            $result = DB::table(self::FOLDER_LINK_DOCUMENT_TABLE)
-                ->where('folderId', $folderId)
-                ->where('documentId', $documentId)->first();
-            if ( $result === null ) {
-                DB::table(self::FOLDER_LINK_DOCUMENT_TABLE)->insert([
-                    'folderId' => $folderId,
-                    'documentId' => $documentId
-                ]);
-            }
-        } catch (\Exception $e) {
-            return response('FoldersLinkDocumentsHandler: There is something wrong with the database connection', 500);
-        }
-        return true;
     }
 
 }
