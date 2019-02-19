@@ -21,49 +21,49 @@ class FoldersHandler
 
     //@todo need a better way for templating
     const defaultSubFolderTemplate = [
-        ['name' => 'Model afspraak', 'order' => 7],
-        ['name' => 'Analyse', 'order' =>  9],
-        ['name' => 'Planning', 'order' => 10],
-        ['name' => 'Informatiebehoefte', 'order' => 11],
-        ['name' => 'Over BIM', 'order' => 13],
+        ['name' => 'Model afspraak', 'order' => 7, 'fromTemplate' => true],
+        ['name' => 'Analyse', 'order' =>  9, 'fromTemplate' => true],
+        ['name' => 'Planning', 'order' => 10, 'fromTemplate' => true],
+        ['name' => 'Informatiebehoefte', 'order' => 11, 'fromTemplate' => true],
+        ['name' => 'Over BIM', 'order' => 12, 'fromTemplate' => true],
     ];
 
     const defaultSubFolderDocumentTemplate = [
         'Model afspraak' => [
-            ['name' => 'Bestandformaten', 'order' => 1],
-            ['name' => 'IFC export instelling', 'order' => 2],
-            ['name' => 'Bestandnamen', 'order' => 3],
-            ['name' => 'NUL-punt', 'order' => 4],
-            ['name' => 'Object- en materiaalbeschrijving', 'order' => 5],
-            ['name' => 'Parameters', 'order' => 6],
-            ['name' => 'Ruimte objecten', 'order' => 7],
-            ['name' => 'Ruimte afwerking', 'order' => 8],
-            ['name' => 'Zones', 'order' => 9],
+            ['name' => 'Bestandformaten', 'order' => 1, 'fromTemplate' => true],
+            ['name' => 'IFC export instelling', 'order' => 2, 'fromTemplate' => true],
+            ['name' => 'Bestandnamen', 'order' => 3, 'fromTemplate' => true],
+            ['name' => 'NUL-punt', 'order' => 4, 'fromTemplate' => true],
+            ['name' => 'Object- en materiaalbeschrijving', 'order' => 5, 'fromTemplate' => true],
+            ['name' => 'Parameters', 'order' => 6, 'fromTemplate' => true],
+            ['name' => 'Ruimte objecten', 'order' => 7, 'fromTemplate' => true],
+            ['name' => 'Ruimte afwerking', 'order' => 8, 'fromTemplate' => true],
+            ['name' => 'Zones', 'order' => 9, 'fromTemplate' => true],
         ],
         'Analyse' => [
-            ['name' => 'Constructie analyse', 'order' => 1],
-            ['name' => 'Brandveiligheid', 'order' => 2],
-            ['name' => 'Akoestiek', 'order' => 3],
-            ['name' => 'Energieverbruik', 'order' => 4],
-            ['name' => 'Kosten calculatie', 'order' => 5],
-            ['name' => 'Planning', 'order' => 6],
+            ['name' => 'Constructie analyse', 'order' => 1, 'fromTemplate' => true],
+            ['name' => 'Brandveiligheid', 'order' => 2, 'fromTemplate' => true],
+            ['name' => 'Akoestiek', 'order' => 3, 'fromTemplate' => true],
+            ['name' => 'Energieverbruik', 'order' => 4, 'fromTemplate' => true],
+            ['name' => 'Kosten calculatie', 'order' => 5, 'fromTemplate' => true],
+            ['name' => 'Planning', 'order' => 6, 'fromTemplate' => true],
         ],
         'Planning' => [
-            ['name' => 'LEAN', 'order' => 1],
-            ['name' => 'Projectplanning', 'order' => 2],
+            ['name' => 'LEAN', 'order' => 1, 'fromTemplate' => true],
+            ['name' => 'Projectplanning', 'order' => 2, 'fromTemplate' => true],
         ],
         'Informatiebehoefte' => [
-            ['name' => 'Specifieke gevraagde informatie Bedr. A', 'order' => 1],
-            ['name' => 'Specifieke gevraagde informatie Bedr. B', 'order' => 2],
+            ['name' => 'Specifieke gevraagde informatie Bedr. A', 'order' => 1, 'fromTemplate' => true],
+            ['name' => 'Specifieke gevraagde informatie Bedr. B', 'order' => 2, 'fromTemplate' => true],
         ],
         'Over BIM' => [
-            ['name' => 'Wat is BIM', 'order' => 1],
-            ['name' => 'Little BIM en big BIM', 'order' => 3],
-            ['name' => 'IFC', 'order' => 4],
-            ['name' => 'BIR kenniskaarten', 'order' => 5],
-            ['name' => 'BIR kenniskaarten', 'order' => 6],
-            ['name' => 'CB-NL', 'order' => 7],
-            ['name' => 'Algemene voordelen', 'order' => 8],
+            ['name' => 'Wat is BIM', 'order' => 1, 'fromTemplate' => true],
+            ['name' => 'Little BIM en big BIM', 'order' => 3, 'fromTemplate' => true],
+            ['name' => 'IFC', 'order' => 4, 'fromTemplate' => true],
+            ['name' => 'BIR kenniskaarten', 'order' => 5, 'fromTemplate' => true],
+            ['name' => 'BIR kenniskaarten', 'order' => 6, 'fromTemplate' => true],
+            ['name' => 'CB-NL', 'order' => 7, 'fromTemplate' => true],
+            ['name' => 'Algemene voordelen', 'order' => 8, 'fromTemplate' => true],
         ],
 
     ];
@@ -123,6 +123,7 @@ class FoldersHandler
                 'name' => $folderTemplate['name'],
                 'projectId' => $projectId,
                 'mainFolder' => $folderTemplate['name']=== 'BIM-Uitvoeringsplan' ? true : false,
+                'fromTemplate' => $folderTemplate['fromTemplate'],
             ];
             $newFolderId = DB::table(self::FOLDERS_TABLE)->insertGetId($row);
             if ($projectId === null) {
@@ -298,7 +299,8 @@ class FoldersHandler
                 self::FOLDERS_TABLE. '.projectId',
                 self::FOLDERS_TABLE. '.on',
                 self::FOLDERS_TABLE. '.mainFolder',
-                self::FOLDERS_LINK_TABLE. '.order'])
+                self::FOLDERS_LINK_TABLE. '.order',
+                self::FOLDERS_TABLE. '.fromTemplate'])
             ->join(self::FOLDERS_TABLE, self::FOLDERS_LINK_TABLE . '.folderSubId', '=', self::FOLDERS_TABLE . '.id')
             ->where(self::FOLDERS_LINK_TABLE. '.folderId', '=', $data->id )
             ->get();
@@ -315,6 +317,7 @@ class FoldersHandler
             $data->on,
             $data->mainFolder,
             isset($data->order) ? $data->order : 0,
+            $data->fromTemplate,
             $data->projectId,
             empty($subFolders) ? null : $subFolders
         );

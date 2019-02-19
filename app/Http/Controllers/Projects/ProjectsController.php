@@ -22,11 +22,11 @@ class ProjectsController extends ApiController
 {
     const PROJECT_TABLE = 'projects';
     const defaultFoldersTemplate = [
-        ['name' => 'BIM-Uitvoeringsplan', 'order' => 0],
-        ['name' => 'BIM-Modelleur', 'order' => 0],
-        ['name' => 'BIM-Coördinator', 'order' => 0],
-        ['name' => 'BIM Regisseur', 'order' => 0],
-        ['name' => 'BIM Manager', 'order' => 0],
+        ['name' => 'BIM-Uitvoeringsplan', 'order' => 0, 'fromTemplate' => true],
+        ['name' => 'BIM-Modelleur', 'order' => 0, 'fromTemplate' => true],
+        ['name' => 'BIM-Coördinator', 'order' => 0, 'fromTemplate' => true],
+        ['name' => 'BIM Regisseur', 'order' => 0, 'fromTemplate' => true],
+        ['name' => 'BIM Manager', 'order' => 0, 'fromTemplate' => true],
     ];
 
     /**

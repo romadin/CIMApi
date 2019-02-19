@@ -121,12 +121,12 @@ class ActionsHandler
             $data->id,
             $data->code,
             $data->description,
-            $data->actionHolder,
-            $data->week,
-            $data->comments,
             $data->isDone,
             $data->projectId
         );
+        $action->setWeek($data->week);
+        $action->setActionHolder($data->actionHolder);
+        $action->setComments($data->comments);
 
         return $action;
     }

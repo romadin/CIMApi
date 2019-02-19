@@ -46,6 +46,10 @@ class ActionsController extends ApiController
             return response('Project id is missing', 400);
         }
 
+        if(!$request->input('description')) {
+            return response('Description content is missing', 400);
+        }
+
         return $this->getReturnValueObject($request, $this->actionHandler->createAction($request->post()));
     }
 

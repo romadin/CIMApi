@@ -29,19 +29,19 @@ class Action implements JsonSerializable
     private $description;
 
     /**
-     * @var string
+     * @var string | null
      */
-    private $actionHolder;
+    private $actionHolder = null;
 
     /**
-     * @var int
+     * @var int | null
      */
-    private $week;
+    private $week = null;
 
     /**
-     * @var string
+     * @var string | null
      */
-    private $comments;
+    private $comments = null;
 
     /**
      * @var boolean
@@ -59,20 +59,14 @@ class Action implements JsonSerializable
      * @param int $id
      * @param string $code
      * @param string $description
-     * @param string $actionHolder
-     * @param int $week
-     * @param string $comments
      * @param bool $isDone
      * @param int $projectId
      */
-    public function __construct(int $id, string $code, string $description, string $actionHolder, int $week, string $comments, bool $isDone, int $projectId)
+    public function __construct(int $id, string $code, string $description, bool $isDone, int $projectId)
     {
         $this->id = $id;
         $this->code = $code;
         $this->description = $description;
-        $this->actionHolder = $actionHolder;
-        $this->week = $week;
-        $this->comments = $comments;
         $this->isDone = $isDone;
         $this->projectId = $projectId;
     }
@@ -126,49 +120,49 @@ class Action implements JsonSerializable
     }
 
     /**
-     * @return string
+     * @return string | null
      */
-    public function getActionHolder(): string
+    public function getActionHolder()
     {
         return $this->actionHolder;
     }
 
     /**
-     * @param string $actionHolder
+     * @param string | null $actionHolder
      */
-    public function setActionHolder(string $actionHolder): void
+    public function setActionHolder($actionHolder): void
     {
         $this->actionHolder = $actionHolder;
     }
 
     /**
-     * @return int
+     * @return int | null
      */
-    public function getWeek(): int
+    public function getWeek()
     {
         return $this->week;
     }
 
     /**
-     * @param int $week
+     * @param int | null $week
      */
-    public function setWeek(int $week): void
+    public function setWeek($week): void
     {
         $this->week = $week;
     }
 
     /**
-     * @return string
+     * @return string | null
      */
-    public function getComments(): string
+    public function getComments()
     {
         return $this->comments;
     }
 
     /**
-     * @param string $comments
+     * @param string | null $comments
      */
-    public function setComments(string $comments): void
+    public function setComments($comments): void
     {
         $this->comments = $comments;
     }

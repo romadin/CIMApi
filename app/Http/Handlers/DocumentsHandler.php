@@ -18,13 +18,12 @@ class DocumentsHandler
 
     //@todo need a better way for templating
     const defaultDocumentTemplate = [
-        ['name' => 'Projectgegevens', 'order' => 1],
-        ['name' => 'Doelstelling', 'order' => 2],
-        ['name' => 'Proces', 'order' => 3],
-        ['name' => 'Normen', 'order' => 4],
-        ['name' => 'Voorwaarden', 'order' => 5],
-        ['name' => 'BIM toepassing', 'order' => 7],
-        ['name' => 'Modeloverzicht', 'order' => 12],
+        ['name' => 'Projectgegevens', 'order' => 1, 'fromTemplate' => true],
+        ['name' => 'Doelstelling', 'order' => 2, 'fromTemplate' => true],
+        ['name' => 'Proces', 'order' => 3, 'fromTemplate' => true],
+        ['name' => 'Normen', 'order' => 4, 'fromTemplate' => true],
+        ['name' => 'Voorwaarden', 'order' => 5, 'fromTemplate' => true],
+        ['name' => 'BIM toepassing', 'order' => 7, 'fromTemplate' => true],
     ];
 
     /**
@@ -37,6 +36,7 @@ class DocumentsHandler
             ->select([
                 self::DOCUMENT_TABLE.'.id', self::DOCUMENT_TABLE.'.originalName',
                 self::DOCUMENT_TABLE.'.name', self::DOCUMENT_TABLE.'.content',
+                self::DOCUMENT_TABLE.'.fromTemplate',
                 self::DOCUMENT_LINK_FOLDER_TABLE.'.folderId',
                 self::DOCUMENT_LINK_FOLDER_TABLE. '.order',
             ])
@@ -60,6 +60,7 @@ class DocumentsHandler
             ->select([
                 self::DOCUMENT_TABLE.'.id', self::DOCUMENT_TABLE.'.originalName',
                 self::DOCUMENT_TABLE.'.name', self::DOCUMENT_TABLE.'.content',
+                self::DOCUMENT_TABLE.'.fromTemplate',
                 self::DOCUMENT_LINK_FOLDER_TABLE.'.folderId',
                 self::DOCUMENT_LINK_FOLDER_TABLE. '.order',
             ])
@@ -146,7 +147,8 @@ class DocumentsHandler
             $data->name,
             $data->content,
             $foldersId,
-            $data->order
+            $data->order,
+            $data->fromTemplate
         );
 
         return $document;
