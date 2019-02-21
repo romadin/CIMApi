@@ -58,6 +58,16 @@ class User implements JsonSerializable
      */
     private $projectsId = [];
 
+    /**
+     * @var null | string
+     */
+    private $image = null;
+
+    /**
+     * @var null | string
+     */
+    private $token = null;
+
     public function __construct(
         int $id,
         string $firstName,
@@ -230,6 +240,38 @@ class User implements JsonSerializable
         $this->projectsId = $projectsId;
     }
 
+    /**
+     * @return null|string
+     */
+    public function getImage(): ?string
+    {
+        return $this->image;
+    }
+
+    /**
+     * @param null|string $image
+     */
+    public function setImage(?string $image): void
+    {
+        $this->image = $image;
+    }
+
+    /**
+     * @return null|string
+     */
+    public function getToken(): ?string
+    {
+        return $this->token;
+    }
+
+    /**
+     * @param null|string $token
+     */
+    public function setToken(?string $token): void
+    {
+        $this->token = $token;
+    }
+
     public function jsonSerialize()
     {
         return [
@@ -240,7 +282,8 @@ class User implements JsonSerializable
             'email' => $this->getEmail(),
             'function' => $this->getFunction(),
             'role' => $this->getRole(),
-            'projectsId' => $this->getProjectsId()
+            'projectsId' => $this->getProjectsId(),
+            'hasImage' => $this->getImage() !== null,
         ];
     }
 

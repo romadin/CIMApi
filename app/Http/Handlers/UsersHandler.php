@@ -28,6 +28,8 @@ class UsersHandler
         self::USERS_TABLE.'.function',
         self::USERS_TABLE.'.password',
         self::USERS_TABLE.'.role_id',
+        self::USERS_TABLE.'.image',
+        self::USERS_TABLE.'.token',
         self::ROLES_TABLE.'.name as roleName',
     ];
 
@@ -122,17 +124,65 @@ class UsersHandler
         return $this->makeUser($user);
     }
 
-    public function editUser($postData, $id)
+    public function getImage(int $id)
     {
+        $image = DB::table(self::USERS_TABLE)
+            ->select('image')
+            ->where('id', $id)
+            ->first();
+        return $image;
+    }
+
+    public function editUser($postData, $id, $image, $activationToken)
+    {
+        if ($activationToken) {
+            $this->removeActivationToken($id);
+        }
+        $data = [];
+
+        $data['image'] = $image ? $image->openFile()->fread($image->getSize()) : null;
+        foreach ($postData as $key => $value) {
+            if ($key === 'password') {
+                $data[$key] = password_hash($postData['password'], PASSWORD_DEFAULT);
+            } else {
+                $data[$key] = $value;
+            }
+        }
+
         try {
             DB::table(self::USERS_TABLE)
                 ->where('id', $id)
-                ->update($postData);
+                ->update($data);
         } catch (\Exception $e) {
             return response('UsersHandler: There is something wrong with the database connection', 403);
         }
 
         return $this->getUserById($id);
+    }
+
+    public function postUser($postData, $image)
+    {
+        $newId = DB::table(self::USERS_TABLE)->insertGetId([
+            'firstName' => $postData['firstName'],
+            'insertion' => $postData['insertion'],
+            'lastName' => $postData['lastName'],
+            'email' => $postData['email'],
+            'function' => $postData['function'],
+            'image' => $image ? $image->openFile()->fread($image->getSize()) : $image,
+            'token' => bin2hex(random_bytes(64))
+        ]);
+
+        if ( $newId ) {
+            // insert the link for the user to the projects.
+            foreach (json_decode($postData['projectsId']) as $projectId) {
+                DB::table(self::PROJECT_LINK_TABLE)->insert([
+                    'userId' => $newId, 'projectId' => $projectId
+                ]);
+            }
+
+            return $this->getUserById($newId);
+        }
+        return response('Creating the new user went wrong', 400);
     }
 
     /**
@@ -146,6 +196,18 @@ class UsersHandler
             DB::table(self::PROJECT_LINK_TABLE)
                 ->where('projectId', $projectId)
                 ->delete();
+        } catch (\Exception $e) {
+            return response('There is something wrong with the connection', 403);
+        }
+        return true;
+    }
+
+    private function removeActivationToken($id)
+    {
+        try {
+            DB::table(self::USERS_TABLE)
+                ->where('id', $id)
+                ->update(['token' => null]);
         } catch (\Exception $e) {
             return response('There is something wrong with the connection', 403);
         }
@@ -184,6 +246,13 @@ class UsersHandler
             $data->password,
             $role
         );
+
+        if (isset($data->image)) {
+            $user->setImage($data->image);
+        }
+        if (isset($data->token)) {
+            $user->setToken($data->token);
+        }
 
         $user->setProjectsId($this->getProjectsIdFromUser($user));
 

@@ -10,23 +10,30 @@ namespace App\Http\Controllers\Users;
 
 use App\Http\Handlers\UsersHandler;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Contracts\Auth\Factory as Auth;
+
+use App\Mail\UserActivation;
 use App\Http\Controllers\ApiController;
-use App\Models\User;
 
 class UsersController extends ApiController
 {
-    const TABLE_USER = 'users';
-    const TABLE_USER_HAS_PROJECTS = 'users_has_projects';
+    /**
+     * The authentication guard factory instance.
+     *
+     * @var Auth
+     */
+    protected $auth;
 
     /**
      * @var UsersHandler
      */
     private $usersHandler;
 
-    public function __construct(UsersHandler $usersHandler)
+    public function __construct(UsersHandler $usersHandler, Auth $auth)
     {
         $this->usersHandler = $usersHandler;
+        $this->auth = $auth;
     }
 
     public function getUsers(Request $request)
@@ -39,38 +46,33 @@ class UsersController extends ApiController
 
     public function getUser(Request $request, $id)
     {
-
         $user = $this->usersHandler->getUserById($id);
-        $user->removePassword();
+        return $this->getReturnValueObject($request, $user);
+    }
+
+    public function getUserActivation(Request $request)
+    {
+        $user = $this->auth->guard(null)->user();
         return $this->getReturnValueObject($request, $user);
     }
 
     public function postUser(Request $request, $id = null)
     {
         if ($id) {
-            return $this->getReturnValueObject($request, $this->usersHandler->editUser($request->post(), $id));
+            return $this->getReturnValueObject($request,
+                $this->usersHandler->editUser($request->post(), $id, $request->file('image'), $request->input('activationToken') ));
         }
 
-        $newId = DB::table(self::TABLE_USER)->insertGetId([
-            'firstName' => $request->input('firstName'),
-            'insertion' => $request->input('insertion'),
-            'lastName' => $request->input('lastName'),
-            'email' => $request->input('email'),
-            'function' => $request->input('function'),
-            'password' => password_hash($request->input('password'), PASSWORD_DEFAULT),
-        ]);
+        $user =  $this->usersHandler->postUser($request->post(), $request->file('image'));
+        // sendMail
+        Mail::to($request->input('email'))
+            ->send(new UserActivation($user));
 
-        if ( $newId ) {
-            // insert the link for the user to the projects.
-            foreach ($request->input('projectsId') as $projectId) {
-                DB::table(self::TABLE_USER_HAS_PROJECTS)->insert([
-                    'userId' => $newId, 'projectId' => $projectId
-                ]);
-            }
+        return $this->getReturnValueObject($request, $user);
+    }
 
-            return $this->getReturnValueObject($request, $this->usersHandler->getUserById($newId));
-        }
-
-        return response('something went wrong', 400);
+    public function getUserImage(Request $request, $id)
+    {
+        return $this->usersHandler->getImage($id)->image;
     }
 }

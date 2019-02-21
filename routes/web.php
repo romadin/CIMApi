@@ -26,7 +26,10 @@ $router->group(['middleware' => 'auth'], function () use ($router)
     $router->get('folders/{id}', 'Folders\FoldersController@getFolder');
 
     $router->get('users', 'Users\UsersController@getUsers');
+    $router->get('users/activate', 'Users\UsersController@getUserActivation');
     $router->get('users/{id}', 'Users\UsersController@getUser');
+    $router->get('users/{id}/image', 'Users\UsersController@getUserImage');
+    $router->post('users[/{id}]', 'Users\UsersController@postUser');
 
     $router->get('actions', 'Actions\ActionsController@getActions');
     $router->post('actions[/{id}]', 'Actions\ActionsController@createOrUpdateAction');
@@ -36,7 +39,6 @@ $router->group(['middleware' => 'auth'], function () use ($router)
         $router->post('projects[/{id}]', 'Projects\ProjectsController@createOrUpdateProject');
         $router->delete('projects/{id}', 'Projects\ProjectsController@deleteProject');
 
-        $router->post('users[/{id}]', 'Users\UsersController@postUser');
         $router->post('documents[/{id}]', 'Documents\DocumentsController@postDocuments');
 
         $router->post('folders/{id}', 'Folders\FoldersController@postFolders');
