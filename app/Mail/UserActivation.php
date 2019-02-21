@@ -30,7 +30,7 @@ class UserActivation extends Mailable
      *
      * @var string
      */
-    protected $hostName = 'http://localhost:4200';
+    protected $hostName = 'http://ec2-18-130-197-184.eu-west-2.compute.amazonaws.com';
 
     public function __construct(User $user)
     {
