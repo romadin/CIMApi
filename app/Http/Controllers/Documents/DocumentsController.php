@@ -46,7 +46,21 @@ class DocumentsController extends ApiController
                 $request->input('template'));
             return $this->getReturnValueArray($request, $newDocuments);
         }
+
+        if ($request->input('folderId')) {
+            return $this->documentsHandler->createDocument($request);
+
+        }
         return response('Not implemented', 501);
+    }
+
+    public function deleteDocument(Request $request, $id )
+    {
+        $done = $this->documentsHandler->deleteDocument($id);
+        if ($done) {
+            return json_encode('document Deleted');
+        }
+        return response('Trying to delete document ' .  $id . 'went wrong', 403);
     }
 
     private function editDocument(Request $request, $id)

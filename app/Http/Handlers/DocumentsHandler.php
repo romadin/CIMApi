@@ -9,12 +9,14 @@
 namespace App\Http\Handlers;
 
 use App\Models\Document\Document;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class DocumentsHandler
 {
     const DOCUMENT_TABLE = 'documents';
     const DOCUMENT_LINK_FOLDER_TABLE = 'folders_has_documents';
+    const FOLDER_LINK_SUB_FOLDER_TABLE = 'folders_has_folders';
 
     //@todo need a better way for templating
     const defaultDocumentTemplate = [
@@ -72,6 +74,35 @@ class DocumentsHandler
         return $this->makeDocument($documentResult);
     }
 
+    public function createDocument(Request $request)
+    {
+        $row = [
+            'originalName' => $request->input('name'),
+            'name' => $request->input('name'),
+            'content' => $request->input('content'),
+        ];
+        try {
+            $id = DB::table(self::DOCUMENT_TABLE)
+                ->insertGetId($row);
+
+
+            $order = $request->input('order');
+
+            // insert the link folder has document en set order.
+            DB::table(self::DOCUMENT_LINK_FOLDER_TABLE)
+                ->insert([
+                    'folderId' => $request->input('folderId'),
+                    'documentId' => $id,
+                    'order' => isset($order) ? $order : $this->getLatestOrderFromFolder($request->input('folderId')) + 1,
+                ]);
+
+            $document = $this->getDocumentById($id);
+        } catch (\Exception $e) {
+            return response($e->getMessage(), 500);
+        }
+        return $document;
+    }
+
     /**
      * Create document from an given template.
      * @param int $folderId
@@ -85,7 +116,8 @@ class DocumentsHandler
             $row = [
                 'originalName' => $documentTemplate['name'],
                 'name' => null,
-                'content' => null
+                'content' => null,
+                'fromTemplate' => $documentTemplate['fromTemplate'],
             ];
             $newDocumentID = DB::table(self::DOCUMENT_TABLE)->insertGetId($row);
 
@@ -135,6 +167,44 @@ class DocumentsHandler
         }
 
         return true;
+    }
+
+    public function deleteDocument(int $id)
+    {
+        try {
+            DB::table(self::DOCUMENT_LINK_FOLDER_TABLE)
+                ->where('documentId', $id)
+                ->delete();
+
+            DB::table(self::DOCUMENT_TABLE)->delete($id);
+        } catch (\Exception $e) {
+            return response('DocumentHandler: There is something wrong with the database connection', 500);
+        }
+
+        return true;
+    }
+
+    public function getLatestOrderFromFolder(int $folderId)
+    {
+        try {
+            $query = DB::table(self::DOCUMENT_LINK_FOLDER_TABLE)
+                ->select('order')
+                ->where('folderId', $folderId);
+
+            $result = DB::table(self::FOLDER_LINK_SUB_FOLDER_TABLE)
+                ->select('order')
+                ->where('folderId', $folderId)
+                ->union($query)
+                ->orderByDesc('order')
+                ->first();
+            if ($result == null) {
+                return 0;
+            }
+        } catch (\Exception $e) {
+            return response('There is something wrong with the connection', 403);
+        }
+
+        return $result->order;
     }
 
     private function makeDocument($data): Document

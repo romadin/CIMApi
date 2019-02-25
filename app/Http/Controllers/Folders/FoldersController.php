@@ -47,6 +47,15 @@ class FoldersController extends ApiController
         return $this->getReturnValueObject($request, $this->foldersHandler->getFolderById($id));
     }
 
+    public function createFolder(Request $request)
+    {
+        if ($request->input('projectId') | $request->input('parentFolderId')) {
+            return $this->getReturnValueObject($request, $this->foldersHandler->postFolder($request->post()));
+        }
+
+        return response('The project id or parent folder id is missing ', 404);
+    }
+
     public function postFolders(Request $request, $id, $subItemId = null)
     {
         $postData = $request->post();
@@ -81,11 +90,12 @@ class FoldersController extends ApiController
     {
         if ( $id ) {
             /** Check if we need to delete the links and not the main folder its self.  */
-            if ( !empty($request->input('subFolders')) || !empty($request->input('subDocuments')) ) {
+            if ( !empty($request->input('subFolders')) || !empty($request->input('subDocuments')) || !empty($request->input('parentFolderId')) ) {
                 $subDocumentsId = ['subDocumentsId' => $request->input('subDocuments') ];
                 $subFoldersId = ['subFoldersId' => $request->input('subFolders') ];
+                $parentFolderId = ['parentFolderId' => $request->input('parentFolderId') ];
 
-                $links = array_merge($subFoldersId, $subDocumentsId);
+                $links = array_merge($subFoldersId, $subDocumentsId, $parentFolderId);
                 $this->deleteLinksFromFolder($id, $links);
                 return $this->getFolder($request, $id);
             }
@@ -113,6 +123,9 @@ class FoldersController extends ApiController
             foreach($links['subDocumentsId'] as $subDocumentId) {
                 $this->foldersLinkDocumentsHandler->deleteLink($folderId, $subDocumentId);
             }
+        }
+        if (! empty($links['parentFolderId'])) {
+            $this->foldersHandler->deleteSubFolderLink($links['parentFolderId'], $folderId);
         }
     }
 

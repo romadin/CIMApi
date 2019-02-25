@@ -73,6 +73,8 @@ class FoldersHandler
      */
     private $documentsHandler;
 
+    private $folderCache = [];
+
     public function __construct(DocumentsHandler $documentsHandler)
     {
         $this->documentsHandler = $documentsHandler;
@@ -116,6 +118,30 @@ class FoldersHandler
         return $this->makeFolder($folder);
     }
 
+    public function getFolderByIdWithOrder(int $id, int $parentId)
+    {
+        try {
+            $folder = DB::table(self::FOLDERS_TABLE)
+                ->select([
+                    self::FOLDERS_TABLE. '.id',
+                    self::FOLDERS_TABLE. '.name',
+                    self::FOLDERS_TABLE. '.projectId',
+                    self::FOLDERS_TABLE. '.on',
+                    self::FOLDERS_TABLE. '.mainFolder',
+                    self::FOLDERS_LINK_TABLE. '.order',
+                    self::FOLDERS_TABLE. '.fromTemplate',
+                    self::FOLDERS_LINK_TABLE. '.folderId AS parentFolderId'])
+                ->join(self::FOLDERS_LINK_TABLE, self::FOLDERS_TABLE . '.id' , '=', self::FOLDERS_LINK_TABLE . '.folderSubId')
+                ->where(self::FOLDERS_LINK_TABLE.'.folderId', $parentId)
+                ->where(self::FOLDERS_LINK_TABLE.'.folderSubId', $id)
+                ->first();
+        } catch (\Exception $e) {
+            return response('FoldersHandler: There is something wrong with the database connection', 403);
+        }
+
+        return $this->makeFolder($folder);
+    }
+
     public function createFoldersTemplate(array $template, $projectId = null, $parentFolderId = null): void
     {
         foreach ($template as $folderTemplate) {
@@ -139,6 +165,31 @@ class FoldersHandler
             // @todo make a more variable sub folder template, now its hardcoded.
             $this->setSubFolderFromProjectId($projectId, self::defaultSubFolderTemplate);
         }
+    }
+
+    public function postFolder($data)
+    {
+        try {
+            $id = DB::table(self::FOLDERS_TABLE)
+                ->insertGetId([
+                    'name' => $data['name'],
+                    'projectId' => isset($data['projectId']) ? $data['projectId'] : null
+                ]);
+
+            if ($data['parentFolderId']) {
+                DB::table(self::FOLDERS_LINK_TABLE)
+                    ->insert([
+                        'folderId' => $data['parentFolderId'],
+                        'folderSubId' => $id,
+                        'order' => $this->documentsHandler->getLatestOrderFromFolder($data['parentFolderId']) + 1
+                    ]);
+                return $this->getFolderByIdWithOrder($id, $data['parentFolderId']);
+            }
+        } catch (\Exception $e) {
+            return response('FoldersHandler: There is something wrong with the database connection', 403);
+        }
+
+        return $this->getFolderById($id);
     }
 
     public function editFolder($data, int $id): Folder
@@ -291,7 +342,38 @@ class FoldersHandler
 
     private function makeFolder($data): Folder
     {
+        if (isset($this->folderCache[$data->id])) {
+            return $this->folderCache[$data->id];
+        }
+        $folder = new Folder(
+            $data->id,
+            $data->name,
+            $data->on,
+            $data->mainFolder,
+            isset($data->order) ? $data->order : 0,
+            $data->fromTemplate,
+            $data->projectId
+        );
+
+        $folder->setSubFolders($this->getSubFolders($folder, 'folderId'));
+
+//        $folder->setParentFolders($this->getSubOrParentFolders($folder, 'folderSubId'));
+        $folder->setParentFoldersId($this->getParentFoldersId($folder));
+
+        $this->folderCache[$folder->getId()] = $folder;
+
+        return $folder;
+    }
+
+    /**
+     * @param Folder $folder
+     * @param string $type = folderId | folderSubId
+     * @param null | Folder $folderToDoSomething
+     * @return array
+     */
+    private function getSubFolders(Folder $folder, string $type) {
         $subFolders = [];
+        $joinOn = $type === 'folderId' ? 'folderSubId' : 'folderId';
         $subFoldersResult = DB::table(self::FOLDERS_LINK_TABLE)
             ->select([
                 self::FOLDERS_TABLE. '.id',
@@ -300,29 +382,35 @@ class FoldersHandler
                 self::FOLDERS_TABLE. '.on',
                 self::FOLDERS_TABLE. '.mainFolder',
                 self::FOLDERS_LINK_TABLE. '.order',
-                self::FOLDERS_TABLE. '.fromTemplate'])
-            ->join(self::FOLDERS_TABLE, self::FOLDERS_LINK_TABLE . '.folderSubId', '=', self::FOLDERS_TABLE . '.id')
-            ->where(self::FOLDERS_LINK_TABLE. '.folderId', '=', $data->id )
-            ->get();
+                self::FOLDERS_TABLE. '.fromTemplate',
+                self::FOLDERS_LINK_TABLE. '.folderId AS parentFolderId'])
+                ->join(self::FOLDERS_TABLE, self::FOLDERS_LINK_TABLE . '.' . $joinOn , '=', self::FOLDERS_TABLE . '.id')
+                ->where(self::FOLDERS_LINK_TABLE. '.' . $type, '=', $folder->getId() )
+                ->get();
 
         if (! empty($subFoldersResult)) {
             foreach ($subFoldersResult as $result) {
-                array_push($subFolders, $this->makeFolder($result));
+                array_push($subFolders, $this->makeFolder($result, $folder));
             }
         }
+        return $subFolders;
+    }
 
-        $folder = new Folder(
-            $data->id,
-            $data->name,
-            $data->on,
-            $data->mainFolder,
-            isset($data->order) ? $data->order : 0,
-            $data->fromTemplate,
-            $data->projectId,
-            empty($subFolders) ? null : $subFolders
-        );
+    private function getParentFoldersId(Folder $folder) {
 
-        return $folder;
+        $parentFoldersId = [];
+        $parentFolders = DB::table(self::FOLDERS_LINK_TABLE)
+            ->select([self::FOLDERS_LINK_TABLE.'.folderId'])
+            ->join(self::FOLDERS_TABLE, self::FOLDERS_LINK_TABLE . '.folderId' , '=', self::FOLDERS_TABLE . '.id')
+            ->where(self::FOLDERS_LINK_TABLE. '.folderSubId', '=', $folder->getId() )
+            ->get();
+
+        if (! empty($parentFolders)) {
+            foreach ($parentFolders as $result) {
+                array_push($parentFoldersId, $result->folderId);
+            }
+        }
+        return $parentFoldersId;
     }
 
 }

@@ -35,7 +35,7 @@ class Folder implements JsonSerializable
     /**
      * @var Folder[] | null
      */
-    private $subFolders;
+    private $subFolders = null;
 
     /**
      * @var boolean
@@ -53,6 +53,11 @@ class Folder implements JsonSerializable
     private $fromTemplate;
 
     /**
+     * @var null | int[]
+     */
+    private $parentFolders = null;
+
+    /**
      * Folder constructor.
      * @param int $id
      * @param string $name
@@ -61,9 +66,8 @@ class Folder implements JsonSerializable
      * @param int $order
      * @param boolean $fromTemplate
      * @param int | null $projectId
-     * @param Folder[] | null $subFolders
      */
-    public function __construct(int $id, string $name, bool $on, $isMainFolder, $order, $fromTemplate, $projectId = null, $subFolders = null)
+    public function __construct(int $id, string $name, bool $on, $isMainFolder, $order, $fromTemplate, $projectId = null)
     {
         $this->id = $id;
         $this->name = $name;
@@ -71,7 +75,6 @@ class Folder implements JsonSerializable
         $this->isMainFolder = $isMainFolder;
         $this->order = $order;
         $this->projectId = $projectId;
-        $this->subFolders = $subFolders;
         $this->fromTemplate = $fromTemplate;
     }
 
@@ -203,6 +206,22 @@ class Folder implements JsonSerializable
         $this->fromTemplate = $fromTemplate;
     }
 
+    /**
+     * @return int[]|null
+     */
+    public function getParentFoldersId(): ?array
+    {
+        return $this->parentFolders;
+    }
+
+    /**
+     * @param int[]|null $parentFolders
+     */
+    public function setParentFoldersId(?array $parentFolders): void
+    {
+        $this->parentFolders = $parentFolders;
+    }
+
     public function jsonSerialize()
     {
         return [
@@ -214,6 +233,7 @@ class Folder implements JsonSerializable
             'order' => $this->getOrder(),
             'isMain' => $this->isMainFolder(),
             'fromTemplate' => $this->isfromTemplate(),
+            'parentFoldersId' => $this->getParentFoldersId(),
         ];
     }
 
