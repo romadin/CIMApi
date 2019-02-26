@@ -19,6 +19,7 @@ $router->group(['middleware' => 'auth'], function () use ($router)
         return $router->app->version();
     });
     $router->get('projects', 'Projects\ProjectsController@getProjects');
+    $router->get('projects/{id}', 'Projects\ProjectsController@getProject');
     $router->get('documents', 'Documents\DocumentsController@getDocuments');
     $router->get('roles/{id}', 'Roles\RolesController@getRole');
 
@@ -49,6 +50,8 @@ $router->group(['middleware' => 'auth'], function () use ($router)
         $router->delete('folders/{folderId}/documents/{documentId}', 'FoldersLinkDocumentsController@deleteFoldersLinkDocuments');
 
         $router->delete('actions[/{id}]', 'Actions\ActionsController@deleteAction');
+
+        $router->delete('users/{id}', 'Users\UsersController@deleteUser');
 
     });
 });

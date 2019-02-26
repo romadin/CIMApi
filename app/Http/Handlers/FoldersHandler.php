@@ -21,49 +21,80 @@ class FoldersHandler
 
     //@todo need a better way for templating
     const defaultSubFolderTemplate = [
-        ['name' => 'Model afspraak', 'order' => 7, 'fromTemplate' => true],
-        ['name' => 'Analyse', 'order' =>  9, 'fromTemplate' => true],
-        ['name' => 'Planning', 'order' => 10, 'fromTemplate' => true],
-        ['name' => 'Informatiebehoefte', 'order' => 11, 'fromTemplate' => true],
-        ['name' => 'Over BIM', 'order' => 12, 'fromTemplate' => true],
+        ['name' => 'Doel en toepassing', 'order' => 2, 'fromTemplate' => true],
+        ['name' => 'Analyse', 'order' =>  3, 'fromTemplate' => true],
+        ['name' => 'BIM-process', 'order' =>  4, 'fromTemplate' => true],
+        ['name' => 'Informatie en data', 'order' =>  5, 'fromTemplate' => true],
+        ['name' => 'Communicatie', 'order' =>  6, 'fromTemplate' => true],
+        ['name' => 'Model afspraken', 'order' => 7, 'fromTemplate' => true],
+        ['name' => 'Planning', 'order' => 9, 'fromTemplate' => true],
+        ['name' => 'Eigendom', 'order' => 10, 'fromTemplate' => true],
+        ['name' => 'Over BIM', 'order' => 11, 'fromTemplate' => true],
     ];
 
     const defaultSubFolderDocumentTemplate = [
-        'Model afspraak' => [
-            ['name' => 'Bestandformaten', 'order' => 1, 'fromTemplate' => true],
-            ['name' => 'IFC export instelling', 'order' => 2, 'fromTemplate' => true],
-            ['name' => 'Bestandnamen', 'order' => 3, 'fromTemplate' => true],
-            ['name' => 'NUL-punt', 'order' => 4, 'fromTemplate' => true],
-            ['name' => 'Object- en materiaalbeschrijving', 'order' => 5, 'fromTemplate' => true],
-            ['name' => 'Parameters', 'order' => 6, 'fromTemplate' => true],
-            ['name' => 'Ruimte objecten', 'order' => 7, 'fromTemplate' => true],
-            ['name' => 'Ruimte afwerking', 'order' => 8, 'fromTemplate' => true],
-            ['name' => 'Zones', 'order' => 9, 'fromTemplate' => true],
+        'Doel en toepassing' => [
+            ['name' => 'BIM-doelen', 'order' => 1, 'fromTemplate' => true],
+            ['name' => 'BIM-toepassing', 'order' => 2, 'fromTemplate' => true],
+            ['name' => 'Aspectmodellen', 'order' => 3, 'fromTemplate' => true],
+            ['name' => 'Verantwoordelijkheden', 'order' => 4, 'fromTemplate' => true],
         ],
         'Analyse' => [
-            ['name' => 'Constructie analyse', 'order' => 1, 'fromTemplate' => true],
-            ['name' => 'Brandveiligheid', 'order' => 2, 'fromTemplate' => true],
-            ['name' => 'Akoestiek', 'order' => 3, 'fromTemplate' => true],
-            ['name' => 'Energieverbruik', 'order' => 4, 'fromTemplate' => true],
-            ['name' => 'Kosten calculatie', 'order' => 5, 'fromTemplate' => true],
-            ['name' => 'Planning', 'order' => 6, 'fromTemplate' => true],
+            ['name' => 'Controle output project partners', 'order' => 1, 'fromTemplate' => true],
+            ['name' => 'Bouwbesluit toets', 'order' => 2, 'fromTemplate' => true],
+            ['name' => 'Hoeveelheden extractie', 'order' => 3, 'fromTemplate' => true],
+            ['name' => 'Clash detectie', 'order' => 4, 'fromTemplate' => true],
+        ],
+        'BIM-process' => [
+            ['name' => 'Organisatie van de (BIM-)samenwerking', 'order' => 1, 'fromTemplate' => true],
+            ['name' => 'Organisatieschema voor het project', 'order' => 2, 'fromTemplate' => true],
+            ['name' => 'Overall workflow / proces schema', 'order' => 3, 'fromTemplate' => true],
+        ],
+        'Informatie en data' => [
+            ['name' => 'Dataoverdrachtschema', 'order' => 1, 'fromTemplate' => true],
+            ['name' => 'Beheer van BIM-extracten', 'order' => 2, 'fromTemplate' => true],
+            ['name' => 'Uitwisselingsformaten', 'order' => 3, 'fromTemplate' => true],
+            ['name' => 'Modelcontrole / borging modelkwaliteit', 'order' => 4, 'fromTemplate' => true],
+            ['name' => 'Droogzwemmen', 'order' => 5, 'fromTemplate' => true],
+        ],
+        'Communicatie' => [
+            ['name' => 'Informatie-uitwisseling', 'order' => 1, 'fromTemplate' => true],
+            ['name' => 'Gegevens behoefte schema – LEAN', 'order' => 2, 'fromTemplate' => true],
+            ['name' => 'Clash-schema', 'order' => 3, 'fromTemplate' => true],
+            ['name' => 'Doc. Man.Sys. (DMS) / borging modelkwaliteit', 'order' => 4, 'fromTemplate' => true],
+            ['name' => 'Communicatie van issues', 'order' => 5, 'fromTemplate' => true],
+            ['name' => '2D extracten', 'order' => 6, 'fromTemplate' => true],
+            ['name' => '3D bestanden', 'order' => 7, 'fromTemplate' => true],
+        ],
+        'Model afspraken' => [
+            ['name' => 'NUL-punt', 'order' => 1, 'fromTemplate' => true],
+            ['name' => 'Bestandnamen', 'order' => 2, 'fromTemplate' => true],
+            ['name' => 'Nauwkeurigheid en toleranties', 'order' => 3, 'fromTemplate' => true],
+            ['name' => 'IFC export instelling', 'order' => 4, 'fromTemplate' => true],
+            ['name' => 'Object- en materiaalbeschrijving', 'order' => 5, 'fromTemplate' => true],
+            ['name' => 'Shared parameters', 'order' => 6, 'fromTemplate' => true],
+            ['name' => 'Niet-gemodelleerde onderdelen', 'order' => 7, 'fromTemplate' => true],
+            ['name' => 'Demarcatie ‘2D – 3D’ / Geometrie – data', 'order' => 8, 'fromTemplate' => true],
+            ['name' => 'Detailniveau export IFC', 'order' => 9, 'fromTemplate' => true],
         ],
         'Planning' => [
             ['name' => 'LEAN', 'order' => 1, 'fromTemplate' => true],
             ['name' => 'Projectplanning', 'order' => 2, 'fromTemplate' => true],
         ],
-        'Informatiebehoefte' => [
-            ['name' => 'Specifieke gevraagde informatie Bedr. A', 'order' => 1, 'fromTemplate' => true],
-            ['name' => 'Specifieke gevraagde informatie Bedr. B', 'order' => 2, 'fromTemplate' => true],
+        'Eigendom' => [
+            ['name' => 'Intellectuele eigendom ', 'order' => 1, 'fromTemplate' => true],
+            ['name' => 'Eigendom van het BIM', 'order' => 2, 'fromTemplate' => true],
+            ['name' => 'Aansprakelijkheid voor BIM-data', 'order' => 3, 'fromTemplate' => true],
         ],
         'Over BIM' => [
             ['name' => 'Wat is BIM', 'order' => 1, 'fromTemplate' => true],
             ['name' => 'Little BIM en big BIM', 'order' => 3, 'fromTemplate' => true],
             ['name' => 'IFC', 'order' => 4, 'fromTemplate' => true],
             ['name' => 'BIR kenniskaarten', 'order' => 5, 'fromTemplate' => true],
-            ['name' => 'BIR kenniskaarten', 'order' => 6, 'fromTemplate' => true],
-            ['name' => 'CB-NL', 'order' => 7, 'fromTemplate' => true],
-            ['name' => 'Algemene voordelen', 'order' => 8, 'fromTemplate' => true],
+            ['name' => 'CB-NL', 'order' => 6, 'fromTemplate' => true],
+            ['name' => 'Algemene voordelen', 'order' => 7, 'fromTemplate' => true],
+            ['name' => 'Video', 'order' => 8, 'fromTemplate' => true],
+            ['name' => 'Definities', 'order' => 9, 'fromTemplate' => true],
         ],
 
     ];
@@ -227,7 +258,6 @@ class FoldersHandler
                     ->delete();
                 DB::table(self::FOLDERS_TABLE)->delete($folder->getId());
             }catch (\Exception $e) {
-                var_dump($e->getMessage(), $folder->getId());
                 return response('FoldersHandler: There is something wrong with the database connection', 403);
             }
         }

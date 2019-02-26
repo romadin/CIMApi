@@ -19,6 +19,7 @@ class UsersTable2DefaultUsersSeeder extends Seeder
             'function' => 'manager',
             'password' => password_hash('admin', PASSWORD_DEFAULT),
             'role_id' => 1,
+            'phoneNumber' => '0611111111',
         ]);
 
         DB::table('users')->insert([
@@ -29,6 +30,7 @@ class UsersTable2DefaultUsersSeeder extends Seeder
             'function' => 'werknemer',
             'password' => password_hash('welkom01', PASSWORD_DEFAULT),
             'role_id' => 2,
+            'phoneNumber' => '0622222222',
         ]);
     }
 }

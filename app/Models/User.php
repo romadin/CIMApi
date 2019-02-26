@@ -68,6 +68,11 @@ class User implements JsonSerializable
      */
     private $token = null;
 
+    /**
+     * @var null | string
+     */
+    private $phoneNumber = null;
+
     public function __construct(
         int $id,
         string $firstName,
@@ -272,6 +277,22 @@ class User implements JsonSerializable
         $this->token = $token;
     }
 
+    /**
+     * @return string|null
+     */
+    public function getPhoneNumber(): ?string
+    {
+        return $this->phoneNumber;
+    }
+
+    /**
+     * @param string|null $phoneNumber
+     */
+    public function setPhoneNumber(?string $phoneNumber): void
+    {
+        $this->phoneNumber = $phoneNumber;
+    }
+
     public function jsonSerialize()
     {
         return [
@@ -284,6 +305,7 @@ class User implements JsonSerializable
             'role' => $this->getRole(),
             'projectsId' => $this->getProjectsId(),
             'hasImage' => $this->getImage() !== null,
+            'phoneNumber' => $this->getPhoneNumber(),
         ];
     }
 

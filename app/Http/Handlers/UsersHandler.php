@@ -25,6 +25,7 @@ class UsersHandler
         self::USERS_TABLE.'.insertion',
         self::USERS_TABLE.'.lastName',
         self::USERS_TABLE.'.email',
+        self::USERS_TABLE.'.phoneNumber',
         self::USERS_TABLE.'.function',
         self::USERS_TABLE.'.password',
         self::USERS_TABLE.'.role_id',
@@ -140,7 +141,7 @@ class UsersHandler
         }
         $data = [];
 
-        $data['image'] = $image ? $image->openFile()->fread($image->getSize()) : null;
+        $image ? $data['image'] = $image->openFile()->fread($image->getSize()) : null;
         foreach ($postData as $key => $value) {
             if ($key === 'password') {
                 $data[$key] = password_hash($postData['password'], PASSWORD_DEFAULT);
@@ -167,6 +168,7 @@ class UsersHandler
             'insertion' => $postData['insertion'],
             'lastName' => $postData['lastName'],
             'email' => $postData['email'],
+            'phoneNumber' => $postData['phoneNumber'],
             'function' => $postData['function'],
             'image' => $image ? $image->openFile()->fread($image->getSize()) : $image,
             'token' => bin2hex(random_bytes(64))
@@ -185,6 +187,20 @@ class UsersHandler
         return response('Creating the new user went wrong', 400);
     }
 
+    public function deleteUser(int $userId) {
+        try {
+            DB::table(self::PROJECT_LINK_TABLE)
+                ->where('userId', $userId)
+                ->delete();
+
+            DB::table(self::USERS_TABLE)
+                ->where('id', $userId)
+                ->delete();
+        } catch (\Exception $e) {
+            return response('There is something wrong with the connection', 403);
+        }
+        return json_encode('User deleted');
+    }
     /**
      * Delete the link between users and projects.
      * @param int $projectId
@@ -201,6 +217,45 @@ class UsersHandler
         }
         return true;
     }
+
+    /**
+     * Delete the link between user and project.
+     * @param int $userId
+     * @param int $projectId
+     * @return bool | \Illuminate\Http\Response|\Laravel\Lumen\Http\ResponseFactory
+     */
+    public function deleteUserByProjectLink(int $userId, int $projectId)
+    {
+        try {
+            DB::table(self::PROJECT_LINK_TABLE)
+                ->where('userId', $userId)
+                ->where('projectId', $projectId)
+                ->delete();
+
+            //@todo if user has no projects do we want to remove the user? or keep ?
+//            if ( !$this->userHasProjects($userId) ) {
+//                $this->deleteUser($userId);
+//                return json_encode('User deleted');
+//            }
+            return json_encode('User deleted from project');
+        } catch (\Exception $e) {
+            return response('There is something wrong with the connection', 403);
+        }
+    }
+
+    private function userHasProjects(int $id)
+    {
+        try {
+            $result = DB::table(self::PROJECT_LINK_TABLE)
+                ->where('userId', $id)
+                ->get();
+        } catch (\Exception $e) {
+            return response('There is something wrong with the connection', 403);
+        }
+
+        return !$result->isEmpty();
+    }
+
 
     private function removeActivationToken($id)
     {
@@ -246,6 +301,8 @@ class UsersHandler
             $data->password,
             $role
         );
+
+        $user->setPhoneNumber(isset($data->phoneNumber) ? $data->phoneNumber : null);
 
         if (isset($data->image)) {
             $user->setImage($data->image);

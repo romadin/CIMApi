@@ -20,6 +20,7 @@ class CreateUsersTable extends Migration
             $table->string('insertion')->nullable($value = true);
             $table->string('lastName');
             $table->string('email', 250)->unique();
+            $table->string('phoneNumber', 20)->unique();
             $table->string('function');
             $table->string('password')->default(password_hash(random_bytes(10), PASSWORD_DEFAULT));
             $table->binary('image')->nullable(true);

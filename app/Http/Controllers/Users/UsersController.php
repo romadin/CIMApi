@@ -62,7 +62,6 @@ class UsersController extends ApiController
             return $this->getReturnValueObject($request,
                 $this->usersHandler->editUser($request->post(), $id, $request->file('image'), $request->input('activationToken') ));
         }
-
         $user =  $this->usersHandler->postUser($request->post(), $request->file('image'));
         // sendMail
         Mail::to($request->input('email'))
@@ -74,5 +73,14 @@ class UsersController extends ApiController
     public function getUserImage(Request $request, $id)
     {
         return $this->usersHandler->getImage($id)->image;
+    }
+
+    public function deleteUser(Request $request, $id) {
+        if ($request->input('projectId')) {
+            /** Delete the link between user and project. Keep the user if he has more project links*/
+            return $this->usersHandler->deleteUserByProjectLink($id, $request->input('projectId'));
+        }
+
+        return $this->usersHandler->deleteUser($id);
     }
 }
