@@ -17,6 +17,7 @@ class UsersHandler
 {
     const USERS_TABLE = 'users';
     const ROLES_TABLE = 'roles';
+    const API_TOKEN_TABLE = 'user_api_token';
     const PROJECT_LINK_TABLE = 'users_has_projects';
 
     private $defaultSelect = [
@@ -191,6 +192,10 @@ class UsersHandler
         try {
             DB::table(self::PROJECT_LINK_TABLE)
                 ->where('userId', $userId)
+                ->delete();
+
+            DB::table(self::API_TOKEN_TABLE)
+                ->where('user_id', $userId)
                 ->delete();
 
             DB::table(self::USERS_TABLE)
