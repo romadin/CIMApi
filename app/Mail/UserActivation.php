@@ -30,8 +30,8 @@ class UserActivation extends Mailable
      *
      * @var string
      */
-    protected $hostName = 'http://ec2-35-176-156-216.eu-west-2.compute.amazonaws.com';
-//    protected $hostName = 'http://localhost:4200';
+//    protected $hostName = 'http://ec2-35-176-156-216.eu-west-2.compute.amazonaws.com';
+    protected $hostName = 'http://localhost:4200';
 
     public function __construct(User $user)
     {
@@ -50,7 +50,7 @@ class UserActivation extends Mailable
 
     private function getLink():string
     {
-        return $this->hostName . '/activate/' . $this->user->getToken();
+        return $this->hostName . '/gebruikers/activate/' . $this->user->getToken();
     }
 
 }
