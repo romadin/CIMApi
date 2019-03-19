@@ -13,6 +13,10 @@
 
 $router->post('authenticate', 'Authenticate\Authenticate@login');
 
+$router->group(['middleware' => 'appToken'], function () use ($router) {
+    $router->get('organisations', 'Organisation\OrganisationController@getOrganisation');
+});
+
 $router->group(['middleware' => 'auth'], function () use ($router)
 {
     $router->get('/', function () use ($router) {

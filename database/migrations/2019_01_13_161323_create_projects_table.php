@@ -18,6 +18,8 @@ class CreateProjectsTable extends Migration
             $table->string('name');
             $table->unsignedInteger('agenda_id')->nullable(true);
             $table->unsignedInteger('action_list_id')->nullable(true);
+            $table->unsignedInteger( 'organisationId');
+            $table->foreign('organisationId')->references('id')->on('organisations');
             $table->timestamps();
         });
     }

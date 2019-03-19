@@ -8,7 +8,6 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\Role;
 use Illuminate\Contracts\Auth\Factory as Auth;
 use Illuminate\Http\Request;
 use Closure;

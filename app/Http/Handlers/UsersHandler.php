@@ -317,6 +317,7 @@ class UsersHandler
         }
 
         $user->setProjectsId($this->getProjectsIdFromUser($user));
+        $user->setOrganisationId($data->organisationId);
 
         return $user;
     }

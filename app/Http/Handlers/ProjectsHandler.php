@@ -47,7 +47,8 @@ class ProjectsHandler
     {
         $project = new Project(
             $data->id,
-            $data->name
+            $data->name,
+            $data->organisationId
         );
         $project->setActionListId($data->action_list_id);
         $project->setAgendaId($data->agenda_id);

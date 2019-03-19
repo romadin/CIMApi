@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\Role;
 use App\Models\User as newUser;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
 
@@ -38,79 +39,59 @@ class AuthServiceProvider extends ServiceProvider
                    return null;
                 }
 
-                $user = DB::table('users')
-                    ->select([
-                        'users.id',
-                        'users.firstName',
-                        'users.insertion',
-                        'users.lastName',
-                        'users.email',
-                        'users.function',
-                        'users.password',
-                        'users.role_id',
-                        'roles.name as roleName'
-                    ])
-                    ->join('roles', 'users.role_id', '=', 'roles.id')
-                    ->where('users.id', $result->user_id)
-                    ->first();
-
+                $user = $this->getUserFromDatabase('users.id', $result->user_id);
                 if ($user === null) {
                    throw new \Exception('wrong api token', 401);
                 }
 
-                $role = new Role(
-                    $user->role_id,
-                    $user->roleName
-                );
-
-                return new newUser(
-                    $user->id,
-                    $user->firstName,
-                    $user->insertion,
-                    $user->lastName,
-                    $user->email,
-                    $user->function,
-                    $user->password,
-                    $role
-                );
+                return $this->makeUser($user);
             } else if ($request->input('activationToken')) {
-                $user = DB::table('users')
-                    ->select([
-                        'users.id',
-                        'users.firstName',
-                        'users.insertion',
-                        'users.lastName',
-                        'users.email',
-                        'users.function',
-                        'users.password',
-                        'users.role_id',
-                        'roles.name as roleName'
-                    ])
-                    ->join('roles', 'users.role_id', '=', 'roles.id')
-                    ->where('users.token', $request->input('activationToken'))
-                    ->first();
+                $user = $this->getUserFromDatabase('users.token', $request->input('activationToken'));
 
                 if ($user === null) {
                     throw new \Exception('wrong api token', 401);
                 }
-
-                $role = new Role(
-                    $user->role_id,
-                    $user->roleName
-                );
-
-                return new newUser(
-                    $user->id,
-                    $user->firstName,
-                    $user->insertion,
-                    $user->lastName,
-                    $user->email,
-                    $user->function,
-                    $user->password,
-                    $role
-                );
+                return $this->makeUser($user);
             }
             return null;
         });
+    }
+
+    private function getUserFromDatabase(string $column, $searchValue)
+    {
+        return DB::table('users')
+            ->select([
+                'users.id',
+                'users.firstName',
+                'users.insertion',
+                'users.lastName',
+                'users.email',
+                'users.function',
+                'users.password',
+                'users.role_id',
+                'roles.name as roleName'
+            ])
+            ->join('roles', 'users.role_id', '=', 'roles.id')
+            ->where($column, $searchValue)
+            ->first();
+    }
+
+    private function makeUser($userData): User
+    {
+        $role = new Role(
+            $userData->role_id,
+            $userData->roleName
+        );
+
+        return new newUser(
+            $userData->id,
+            $userData->firstName,
+            $userData->insertion,
+            $userData->lastName,
+            $userData->email,
+            $userData->function,
+            $userData->password,
+            $role
+        );
     }
 }

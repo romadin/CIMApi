@@ -24,6 +24,11 @@ class Project implements JsonSerializable
     private $name;
 
     /**
+     * @var int
+     */
+    private $projectId;
+
+    /**
      * @var int | null
      */
     private $agendaId = null;
@@ -33,9 +38,7 @@ class Project implements JsonSerializable
      */
     private $actionListId = null;
 
-    public function __construct(
-        int $id,
-        string $name)
+    public function __construct(int $id, string $name, int $projectId)
     {
         $this->id = $id;
         $this->name = $name;
@@ -71,6 +74,22 @@ class Project implements JsonSerializable
     public function setName(string $name): void
     {
         $this->name = $name;
+    }
+
+    /**
+     * @return int
+     */
+    public function getProjectId(): int
+    {
+        return $this->projectId;
+    }
+
+    /**
+     * @param int $projectId
+     */
+    public function setProjectId(int $projectId): void
+    {
+        $this->projectId = $projectId;
     }
 
     /**

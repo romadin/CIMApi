@@ -9,10 +9,12 @@
 namespace App\Mail;
 
 
-use App\Models\User;
+use Illuminate\Queue\SerializesModels;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
-use Illuminate\Queue\SerializesModels;
+use App\Http\Handlers\OrganisationHandler;
+use App\Models\Organisation\Organisation;
+use App\Models\User;
 
 class UserActivation extends Mailable
 {
@@ -26,31 +28,31 @@ class UserActivation extends Mailable
     protected $user;
 
     /**
-     * The hostname
-     *
-     * @var string
+     * @var OrganisationHandler
      */
-    protected $hostName = 'http://ec2-3-8-123-16.eu-west-2.compute.amazonaws.com';
-//    protected $hostName = 'http://localhost:4200';
+    private $organisationHandler;
 
-    public function __construct(User $user)
+    public function __construct(User $user, OrganisationHandler $organisationHandler)
     {
         $this->user = $user;
+        $this->organisationHandler = $organisationHandler;
     }
 
     public function build()
     {
+        $organisation = $this->organisationHandler->getOrganisationById($this->user->getOrganisationId());
+
         return $this->view('emails.userActivationView')
             ->with([
                 'userName' => $this->user->getFirstName() . ' ' . $this->user->getInsertion() ? $this->user->getInsertion() . ' ' . $this->user->getLastName() : $this->user->getLastName(),
                 'email' => $this->user->getEmail(),
-                'link' => $this->getLink() ])
+                'link' => $this->getLink($organisation) ])
             ->subject('Gebruiker activatie mail voor de BIM uitvoering app');
     }
 
-    private function getLink():string
+    private function getLink(Organisation $organisation):string
     {
-        return $this->hostName . '/gebruikers/activate/' . $this->user->getToken();
+        return $organisation->getName() .'.'. env('APP_URL') . '/gebruikers/activate/' . $this->user->getToken();
     }
 
 }

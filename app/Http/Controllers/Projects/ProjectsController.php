@@ -72,7 +72,7 @@ class ProjectsController extends ApiController
      */
     public function getProjects(Request $request)
     {
-        $results = DB::table(self::PROJECT_TABLE)->get();
+        $results = DB::table(self::PROJECT_TABLE)->where('organisationId', $request->input('organisationId'))->get();
 
         $projects = [];
 

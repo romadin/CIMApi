@@ -64,6 +64,7 @@ $app->singleton(
  ]);
 
  $app->routeMiddleware([
+     'appToken' => App\Http\Middleware\AppTokenMiddleware::class,
      'auth' => App\Http\Middleware\Authenticate::class,
      'admin' => App\Http\Middleware\AdminMiddleware::class,
  ]);
@@ -92,6 +93,8 @@ $app->alias('mailer', Illuminate\Mail\Mailer::class);
 $app->alias('mailer', Illuminate\Contracts\Mail\Mailer::class);
 $app->alias('mailer', Illuminate\Contracts\Mail\MailQueue::class);
 
+
+$app->configure('app');
 /*
 |--------------------------------------------------------------------------
 | Load The Application Routes
@@ -102,7 +105,6 @@ $app->alias('mailer', Illuminate\Contracts\Mail\MailQueue::class);
 | can respond to, as well as the controllers that may handle them.
 |
 */
-
 $app->router->group([
     'namespace' => 'App\Http\Controllers',
 ], function ($router) {

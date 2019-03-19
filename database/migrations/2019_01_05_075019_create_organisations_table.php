@@ -1,0 +1,40 @@
+<?php
+
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Migrations\Migration;
+
+class CreateOrganisationsTable extends Migration
+{
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up()
+    {
+        Schema::defaultStringLength(191);
+
+        Schema::create('organisations', function (Blueprint $table) {
+            $table->increments('id');
+            $table->string('name')->unique();
+            $table->string('primaryColor')->default('#F5F5F5');
+            $table->string('secondaryColor')->default('#000');
+            $table->unsignedInteger('maxUsers')->default(5);
+            $table->binary('logo')->nullable(true);
+            $table->timestamps();
+        });
+        DB::statement("ALTER TABLE `organisations`  MODIFY COLUMN `logo` mediumblob");
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        Schema::dropIfExists('organisations');
+    }
+}
