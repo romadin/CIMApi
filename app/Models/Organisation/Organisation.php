@@ -146,6 +146,7 @@ class Organisation implements JsonSerializable
     {
         return [
             'id' => $this->getId(),
+            'name' => $this->getName(),
             'primaryColor' => $this->getPrimaryColor(),
             'secondaryColor' => $this->getsecondaryColor(),
             'maxUsers' => $this->getMaxUsers(),
