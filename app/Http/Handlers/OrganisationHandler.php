@@ -17,7 +17,15 @@ class OrganisationHandler
 
     public function getOrganisationByName(string $name)
     {
-        $result = DB::table(self::table)->where('name', $name)->first();
+        try {
+            $result = DB::table(self::table)->where('name', $name)->first();
+        } catch (\Exception $e) {
+            return json_encode($e->getMessage());
+        }
+
+        if (!$result) {
+            return [];
+        }
 
         return $this->makeOrganisation($result);
     }
