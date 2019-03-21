@@ -11,9 +11,8 @@
 |
 */
 
-$router->post('authenticate', 'Authenticate\Authenticate@login');
-
 $router->group(['middleware' => 'appToken'], function () use ($router) {
+    $router->post('authenticate', 'Authenticate\Authenticate@login');
     $router->get('organisations', 'Organisation\OrganisationController@getOrganisation');
 });
 
@@ -38,6 +37,8 @@ $router->group(['middleware' => 'auth'], function () use ($router)
 
     $router->get('actions', 'Actions\ActionsController@getActions');
     $router->post('actions[/{id}]', 'Actions\ActionsController@createOrUpdateAction');
+
+    $router->get('mail/activate/{id}', 'Mail\MailController@sendUserActivation');
 
     $router->group(['middleware' => 'admin'], function() use ($router)
     {

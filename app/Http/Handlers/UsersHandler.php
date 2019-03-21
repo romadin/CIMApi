@@ -32,6 +32,7 @@ class UsersHandler
         self::USERS_TABLE.'.role_id',
         self::USERS_TABLE.'.image',
         self::USERS_TABLE.'.token',
+        self::USERS_TABLE.'.organisationId',
         self::ROLES_TABLE.'.name as roleName',
     ];
 
@@ -89,13 +90,14 @@ class UsersHandler
         return $users;
     }
 
-    public function getUserByEmail(string $email)
+    public function getUserByEmail(string $email, $organisationId)
     {
         try {
             $result = DB::table(self::USERS_TABLE)
                 ->select($this->defaultSelect)
                 ->join(self::ROLES_TABLE, self::USERS_TABLE.'.role_id', '=', self::ROLES_TABLE.'.id')
                 ->where(self::USERS_TABLE.'.email', '=', $email)
+                ->where(self::USERS_TABLE.'.organisationId', $organisationId)
                 ->first();
             if ( $result === null) {
                 return response('Wrong credentials.', 502);
@@ -162,7 +164,7 @@ class UsersHandler
         return $this->getUserById($id);
     }
 
-    public function postUser($postData, $image)
+    public function postUser($postData, $image, $organisationId)
     {
         $newId = DB::table(self::USERS_TABLE)->insertGetId([
             'firstName' => $postData['firstName'],
@@ -172,7 +174,8 @@ class UsersHandler
             'phoneNumber' => $postData['phoneNumber'],
             'function' => $postData['function'],
             'image' => $image ? $image->openFile()->fread($image->getSize()) : $image,
-            'token' => bin2hex(random_bytes(64))
+            'token' => bin2hex(random_bytes(64)),
+            'organisationId' => $organisationId,
         ]);
 
         if ( $newId ) {

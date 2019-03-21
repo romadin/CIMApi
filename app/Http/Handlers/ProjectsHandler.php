@@ -38,6 +38,22 @@ class ProjectsHandler
 
     }
 
+    public function postProject($postData, $organisationId)
+    {
+        $postData['organisationId'] = $organisationId;
+        try {
+            $id = DB::table(self::PROJECT_TABLE)
+                ->insertGetId($postData);
+            if ( $id === null ) {
+                return response('Item is not been mad', 404);
+            }
+        } catch (\Exception $e) {
+            return \response('ProjectHandler: There is something wrong with the database connection',500);
+        }
+
+        return $id;
+    }
+
     /**
      * Make an project model from the given data.
      * @param $data
@@ -50,8 +66,6 @@ class ProjectsHandler
             $data->name,
             $data->organisationId
         );
-        $project->setActionListId($data->action_list_id);
-        $project->setAgendaId($data->agenda_id);
 
         return $project;
     }

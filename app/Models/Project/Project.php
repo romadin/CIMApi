@@ -26,22 +26,14 @@ class Project implements JsonSerializable
     /**
      * @var int
      */
-    private $projectId;
+    private $organisationId;
 
-    /**
-     * @var int | null
-     */
-    private $agendaId = null;
 
-    /**
-     * @var int | null
-     */
-    private $actionListId = null;
-
-    public function __construct(int $id, string $name, int $projectId)
+    public function __construct(int $id, string $name, int $organisationId)
     {
         $this->id = $id;
         $this->name = $name;
+        $this->organisationId = $organisationId;
     }
 
     /**
@@ -79,49 +71,17 @@ class Project implements JsonSerializable
     /**
      * @return int
      */
-    public function getProjectId(): int
+    public function getOrganisationId(): int
     {
-        return $this->projectId;
+        return $this->organisationId;
     }
 
     /**
-     * @param int $projectId
+     * @param int $organisationId
      */
-    public function setProjectId(int $projectId): void
+    public function setOrganisationId(int $organisationId): void
     {
-        $this->projectId = $projectId;
-    }
-
-    /**
-     * @return int | null
-     */
-    public function getAgendaId()
-    {
-        return $this->agendaId;
-    }
-
-    /**
-     * @param int | null $agendaId
-     */
-    public function setAgendaId($agendaId): void
-    {
-        $this->agendaId = $agendaId;
-    }
-
-    /**
-     * @return int | null
-     */
-    public function getActionListId()
-    {
-        return $this->actionListId;
-    }
-
-    /**
-     * @param int | null $actionListId
-     */
-    public function setActionListId($actionListId): void
-    {
-        $this->actionListId = $actionListId;
+        $this->organisationId = $organisationId;
     }
 
     public function jsonSerialize()
@@ -129,8 +89,7 @@ class Project implements JsonSerializable
         return [
             'id' => $this->getId(),
             'name' => $this->getName(),
-            'agendaId' => $this->getAgendaId(),
-            'actionListId' => $this->getActionListId(),
+            'organisationId' => $this->getOrganisationId(),
         ];
     }
 

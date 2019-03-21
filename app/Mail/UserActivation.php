@@ -30,29 +30,27 @@ class UserActivation extends Mailable
     /**
      * @var OrganisationHandler
      */
-    private $organisationHandler;
+    private $organisation;
 
-    public function __construct(User $user, OrganisationHandler $organisationHandler)
+    public function __construct(User $user, Organisation $organisation)
     {
         $this->user = $user;
-        $this->organisationHandler = $organisationHandler;
+        $this->organisation = $organisation;
     }
 
     public function build()
     {
-        $organisation = $this->organisationHandler->getOrganisationById($this->user->getOrganisationId());
-
         return $this->view('emails.userActivationView')
             ->with([
                 'userName' => $this->user->getFirstName() . ' ' . $this->user->getInsertion() ? $this->user->getInsertion() . ' ' . $this->user->getLastName() : $this->user->getLastName(),
                 'email' => $this->user->getEmail(),
-                'link' => $this->getLink($organisation) ])
+                'link' => $this->getLink() ])
             ->subject('Gebruiker activatie mail voor de BIM uitvoering app');
     }
 
-    private function getLink(Organisation $organisation):string
+    private function getLink():string
     {
-        return $organisation->getName() .'.'. env('APP_URL') . '/gebruikers/activate/' . $this->user->getToken();
+        return $this->organisation->getName() .'.'. env('APP_URL') . '/gebruikers/activate/' . $this->user->getToken();
     }
 
 }

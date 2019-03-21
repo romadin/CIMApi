@@ -10,10 +10,8 @@ namespace App\Http\Controllers\Users;
 
 use App\Http\Handlers\UsersHandler;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Contracts\Auth\Factory as Auth;
 
-use App\Mail\UserActivation;
 use App\Http\Controllers\ApiController;
 
 class UsersController extends ApiController
@@ -62,10 +60,7 @@ class UsersController extends ApiController
             return $this->getReturnValueObject($request,
                 $this->usersHandler->editUser($request->post(), $id, $request->file('image'), $request->input('activationToken') ));
         }
-        $user =  $this->usersHandler->postUser($request->post(), $request->file('image'));
-        // sendMail
-        Mail::to($request->input('email'))
-            ->send(new UserActivation($user));
+        $user =  $this->usersHandler->postUser($request->post(), $request->file('image'), $request->input('organisationId'));
 
         return $this->getReturnValueObject($request, $user);
     }

@@ -106,7 +106,7 @@ class ProjectsController extends ApiController
             return $this->updateProject($request, $id);
         }
 
-        $newId = DB::table(self::PROJECT_TABLE)->insertGetId($request->post());
+        $newId = $this->projectsHandler->postProject($request->post(), $request->input('organisationId'));
 
         if ( $newId ) {
 

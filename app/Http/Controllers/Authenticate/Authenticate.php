@@ -57,7 +57,7 @@ class Authenticate extends Controller
             return json_encode(['token' => $_SESSION['api_token']['token'], 'user_id' => $_SESSION['api_token']['user_id']]);
         }
 
-        $user = $this->usersHandler->getUserByEmail($email);
+        $user = $this->usersHandler->getUserByEmail($email, $request->input('organisationId'));
 
         // clear old sessions
         unset($_SESSION['api_token']);
