@@ -166,17 +166,23 @@ class UsersHandler
 
     public function postUser($postData, $image, $organisationId)
     {
-        $newId = DB::table(self::USERS_TABLE)->insertGetId([
-            'firstName' => $postData['firstName'],
-            'insertion' => $postData['insertion'],
-            'lastName' => $postData['lastName'],
-            'email' => $postData['email'],
-            'phoneNumber' => $postData['phoneNumber'],
-            'function' => $postData['function'],
-            'image' => $image ? $image->openFile()->fread($image->getSize()) : $image,
-            'token' => bin2hex(random_bytes(64)),
-            'organisationId' => $organisationId,
-        ]);
+        try {
+            $newId = DB::table(self::USERS_TABLE)->insertGetId([
+                'firstName' => $postData['firstName'],
+                'insertion' => $postData['insertion'],
+                'lastName' => $postData['lastName'],
+                'email' => $postData['email'],
+                'phoneNumber' => $postData['phoneNumber'],
+                'function' => $postData['function'],
+                'image' => $image ? $image->openFile()->fread($image->getSize()) : $image,
+                'token' => bin2hex(random_bytes(64)),
+                'organisationId' => $organisationId,
+            ]);
+        } catch (\Exception $e)
+        {
+            return response($e->getCode());
+        }
+
 
         if ( $newId ) {
             // insert the link for the user to the projects.

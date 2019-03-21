@@ -9,6 +9,7 @@
 namespace App\Http\Controllers\Users;
 
 use App\Http\Handlers\UsersHandler;
+use Validator;
 use Illuminate\Http\Request;
 use Illuminate\Contracts\Auth\Factory as Auth;
 
@@ -54,14 +55,17 @@ class UsersController extends ApiController
         return $this->getReturnValueObject($request, $user);
     }
 
-    public function postUser(Request $request, $id = null)
+    public function createUser(Request $request)
     {
-        if ($id) {
-            return $this->getReturnValueObject($request,
-                $this->usersHandler->editUser($request->post(), $id, $request->file('image'), $request->input('activationToken') ));
-        }
-        $user =  $this->usersHandler->postUser($request->post(), $request->file('image'), $request->input('organisationId'));
+        $this->setValidators($request->post());
+        $user = $this->usersHandler->postUser($request->post(), $request->file('image'), $request->input('organisationId'));
 
+        return $this->getReturnValueObject($request, $user);
+    }
+
+    public function editUser(Request $request, $id)
+    {
+        $user = $this->usersHandler->editUser($request->post(), $id, $request->file('image'), $request->input('activationToken'));
         return $this->getReturnValueObject($request, $user);
     }
 
@@ -77,5 +81,22 @@ class UsersController extends ApiController
         }
 
         return $this->usersHandler->deleteUser($id);
+    }
+
+    private function setValidators($requestData)
+    {
+        $messages = [
+            'email.unique' => 'Duplicate email',
+            'phoneNumber.unique' => 'Duplicate phone number'
+        ];
+        $rules =  [
+            'email' => 'unique:users',
+            'phoneNumber' => 'unique:users',
+        ];
+        $validator = Validator::make($requestData, $rules, $messages);
+
+        if($validator->fails()) {
+            return json_encode($validator->errors()->messages());
+        }
     }
 }

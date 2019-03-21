@@ -33,7 +33,7 @@ $router->group(['middleware' => 'auth'], function () use ($router)
     $router->get('users/activate', 'Users\UsersController@getUserActivation');
     $router->get('users/{id}', 'Users\UsersController@getUser');
     $router->get('users/{id}/image', 'Users\UsersController@getUserImage');
-    $router->post('users[/{id}]', 'Users\UsersController@postUser');
+    $router->post('users/{id}', 'Users\UsersController@editUser');
 
     $router->get('actions', 'Actions\ActionsController@getActions');
     $router->post('actions[/{id}]', 'Actions\ActionsController@createOrUpdateAction');
@@ -57,7 +57,7 @@ $router->group(['middleware' => 'auth'], function () use ($router)
         $router->delete('actions[/{id}]', 'Actions\ActionsController@deleteAction');
 
         $router->delete('users/{id}', 'Users\UsersController@deleteUser');
-
+        $router->post('users', 'Users\UsersController@createUser');
     });
 });
 
