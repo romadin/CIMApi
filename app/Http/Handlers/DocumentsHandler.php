@@ -22,8 +22,8 @@ class DocumentsHandler
     const defaultDocumentTemplate = [
         ['name' => 'Projectgegevens', 'order' => 1, 'fromTemplate' => true],
         ['name' => 'Verplichtingen van de OPDRACHTGEVER', 'order' => 8, 'fromTemplate' => true],
-        ['name' => 'Normen', 'order' => 4, 'fromTemplate' => true],
-        ['name' => 'Voorwaarden', 'order' => 5, 'fromTemplate' => true],
+//        ['name' => 'Normen', 'order' => 4, 'fromTemplate' => true],
+//        ['name' => 'Voorwaarden', 'order' => 5, 'fromTemplate' => true],
         ['name' => 'BIM toepassing', 'order' => 7, 'fromTemplate' => true],
     ];
 
