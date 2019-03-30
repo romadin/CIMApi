@@ -20,6 +20,7 @@ class CreateEventsTable extends Migration
             $table->unsignedInteger('projectId');
             $table->dateTime('startDate');
             $table->dateTime('endDate');
+            $table->json('location');
             $table->timestamps();
 
             $table->foreign('projectId')->references('id')->on('projects');

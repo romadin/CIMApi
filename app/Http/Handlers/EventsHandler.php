@@ -10,6 +10,7 @@ namespace App\Http\Handlers;
 
 
 use App\Models\Event\Event;
+use App\Models\Event\Location;
 use DateTime;
 use Illuminate\Support\Facades\DB;
 
@@ -40,6 +41,10 @@ class EventsHandler
         $event = new Event();
         foreach ($data as $key => $value) {
             if ($value) {
+                if ($key === 'location') {
+                    $event->setLocation($this->makeLocation(json_decode($value)));
+                    continue;
+                }
                 $method = 'set'. ucfirst($key);
                 if(method_exists($event, $method)) {
                     try {
@@ -51,6 +56,16 @@ class EventsHandler
             }
         }
         return $event;
+    }
+
+    private function makeLocation($locationData): Location
+    {
+        $location = new Location();
+        $location->setStreetName($locationData->streetName);
+        $location->setZipCode($locationData->zipCode);
+        $location->setResidence($locationData->residence);
+
+        return $location;
     }
 
 }

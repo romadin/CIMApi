@@ -42,6 +42,11 @@ class Event implements JsonSerializable
      */
     private $endDate;
 
+    /**
+     * @var Location
+     */
+    private $location;
+
     public function __construct() {}
 
     /**
@@ -140,6 +145,22 @@ class Event implements JsonSerializable
         $this->endDate = $endDate;
     }
 
+    /**
+     * @return Location
+     */
+    public function getLocation(): Location
+    {
+        return $this->location;
+    }
+
+    /**
+     * @param Location $location
+     */
+    public function setLocation(Location $location): void
+    {
+        $this->location = $location;
+    }
+
     public function jsonSerialize()
     {
         return [
@@ -149,6 +170,7 @@ class Event implements JsonSerializable
             'projectId' => $this->getProjectId(),
             'startDate' => $this->getStartDate(),
             'endDate' => $this->getEndDate(),
+            'location' => $this->getLocation(),
         ];
     }
 }
