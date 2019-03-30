@@ -38,6 +38,8 @@ $router->group(['middleware' => 'auth'], function () use ($router)
     $router->get('actions', 'Actions\ActionsController@getActions');
     $router->post('actions[/{id}]', 'Actions\ActionsController@createOrUpdateAction');
 
+    $router->get('events', 'Events\EventsController@getEvents');
+
     $router->get('mail/activate/{id}', 'Mail\MailController@sendUserActivation');
 
     $router->group(['middleware' => 'admin'], function() use ($router)

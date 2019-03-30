@@ -17,12 +17,13 @@ class CreateActionTable extends Migration
             $table->increments('id');
             $table->unsignedInteger('code');
             $table->string('description');
-            $table->string('actionHolder')->nullable(true);
+            $table->unsignedInteger('userId')->nullable(true);
             $table->unsignedInteger('week')->nullable(true);
             $table->string('comments')->nullable(true);
             $table->boolean('isDone')->default(false);
             $table->unsignedInteger('projectId');
             $table->foreign('projectId')->references('id')->on('projects');
+            $table->foreign('userId')->references('id')->on('users');
 
             $table->timestamps();
         });

@@ -16,6 +16,15 @@ class ActionsHandler
 {
     const ACTION_TABLE = 'actions';
     const ACTION_LINK_PROJECTS = 'projects_has_actions';
+    /**
+     * @var UsersHandler
+     */
+    private $usersHandler;
+
+    public function __construct(UsersHandler $usersHandler)
+    {
+        $this->usersHandler = $usersHandler;
+    }
 
     public function getActionsForProject($projectId)
     {
@@ -125,7 +134,7 @@ class ActionsHandler
             $data->projectId
         );
         $action->setWeek($data->week);
-        $action->setActionHolder($data->actionHolder);
+        $action->setActionHolder($this->usersHandler->getUserById($data->userId));
         $action->setComments($data->comments);
 
         return $action;

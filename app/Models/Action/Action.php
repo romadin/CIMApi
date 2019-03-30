@@ -8,6 +8,7 @@
 
 namespace App\Models\Action;
 
+use App\Models\User;
 use JsonSerializable;
 
 class Action implements JsonSerializable
@@ -29,7 +30,7 @@ class Action implements JsonSerializable
     private $description;
 
     /**
-     * @var string | null
+     * @var User | null
      */
     private $actionHolder = null;
 
@@ -120,7 +121,7 @@ class Action implements JsonSerializable
     }
 
     /**
-     * @return string | null
+     * @return User | null
      */
     public function getActionHolder()
     {
@@ -128,7 +129,7 @@ class Action implements JsonSerializable
     }
 
     /**
-     * @param string | null $actionHolder
+     * @param User | null $actionHolder
      */
     public function setActionHolder($actionHolder): void
     {
