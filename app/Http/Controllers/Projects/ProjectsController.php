@@ -11,6 +11,7 @@ namespace App\Http\Controllers\Projects;
 
 use App\Http\Controllers\ApiController;
 use App\Http\Handlers\ActionsHandler;
+use App\Http\Handlers\EventsHandler;
 use App\Http\Handlers\FoldersHandler;
 use App\Http\Handlers\ProjectsHandler;
 use App\Http\Handlers\UsersHandler;
@@ -42,12 +43,17 @@ class ProjectsController extends ApiController
     /**
      * @var UsersHandler
      */
-    private $usersHandlers;
+    private $usersHandler;
 
     /**
      * @var ActionsHandler
      */
-    private $actionHandlers;
+    private $actionHandler;
+
+    /**
+     * @var EventsHandler
+     */
+    private $eventsHandler;
 
     /**
      * ProjectsController constructor.
@@ -55,13 +61,15 @@ class ProjectsController extends ApiController
      * @param FoldersHandler $foldersHandler
      * @param UsersHandler $usersHandlers
      * @param ActionsHandler $actionHandlers
+     * @param EventsHandler $eventsHandler
      */
-    public function __construct(ProjectsHandler $projectsHandler, FoldersHandler $foldersHandler, UsersHandler $usersHandlers, ActionsHandler $actionHandlers)
+    public function __construct(ProjectsHandler $projectsHandler, FoldersHandler $foldersHandler, UsersHandler $usersHandlers, ActionsHandler $actionHandlers, EventsHandler $eventsHandler)
     {
         $this->projectsHandler = $projectsHandler;
         $this->foldersHandler = $foldersHandler;
-        $this->usersHandlers = $usersHandlers;
-        $this->actionHandlers = $actionHandlers;
+        $this->usersHandler = $usersHandlers;
+        $this->actionHandler = $actionHandlers;
+        $this->eventsHandler = $eventsHandler;
     }
 
 
@@ -132,8 +140,9 @@ class ProjectsController extends ApiController
     public function deleteProject(Request $request, $id)
     {
         $foldersDeleted = $this->foldersHandler->deleteFolders($this->foldersHandler->getFoldersByProjectId($id));
-        $linkedUsers = $this->usersHandlers->deleteProjectLink($id);
-        $linkedActionsDeleted = $this->actionHandlers->deleteActionByProjectId($id);
+        $linkedUsers = $this->usersHandler->deleteProjectLink($id);
+        $linkedActionsDeleted = $this->actionHandler->deleteActionByProjectId($id);
+        $linkedEvents = $this->eventsHandler->deleteEventByProjectId($id);
 
         if( $foldersDeleted && $linkedUsers && $linkedActionsDeleted ) {
             $deletedId = DB::table(self::PROJECT_TABLE)->delete($id);

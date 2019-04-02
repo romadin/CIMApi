@@ -36,6 +36,70 @@ class EventsHandler
         return $events;
     }
 
+    public function getEventById(int $id)
+    {
+        try {
+            $result = DB::table(self::EVENTS_TABLE)
+                ->where('id', $id)
+                ->first();
+        } catch (\Exception $e) {
+            return $e->getMessage();
+        }
+
+        return $this->makeEvent($result);
+    }
+
+    public function editEvent($id, $postData)
+    {
+        try {
+            DB::table(self::EVENTS_TABLE)
+                ->where('id', $id)
+                ->update($postData);
+        } catch (\Exception $e) {
+            return $e->getMessage();
+        }
+
+        return $this->getEventById($id);
+    }
+
+    public function postEvent($postData)
+    {
+        try {
+            $id = DB::table(self::EVENTS_TABLE)
+                ->insertGetId($postData);
+        } catch (\Exception $e) {
+            return $e->getMessage();
+        }
+
+        return $this->getEventById($id);
+    }
+
+    public function deleteEvent(int $id)
+    {
+        try {
+            DB::table(self::EVENTS_TABLE)
+                ->where('id', $id)
+                ->delete();
+        } catch (\Exception $e) {
+            return $e->getMessage();
+        }
+
+        return response('Event has been deleted', 200);
+    }
+
+    public function deleteEventByProjectId(int $projectId)
+    {
+        try {
+            DB::table(self::EVENTS_TABLE)
+                ->where('projectId', $projectId)
+                ->delete();
+        } catch (\Exception $e) {
+            return $e->getMessage();
+        }
+
+        return response('Events has been deleted', 200);
+    }
+
     private function makeEvent($data): Event
     {
         $event = new Event();

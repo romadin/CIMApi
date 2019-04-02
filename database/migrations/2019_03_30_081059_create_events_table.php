@@ -16,11 +16,11 @@ class CreateEventsTable extends Migration
         Schema::create('events', function (Blueprint $table) {
             $table->increments('id');
             $table->string('name');
-            $table->string('description');
+            $table->string('description')->nullable(true);
             $table->unsignedInteger('projectId');
             $table->dateTime('startDate');
             $table->dateTime('endDate');
-            $table->json('location');
+            $table->json('location')->nullable(true);
             $table->timestamps();
 
             $table->foreign('projectId')->references('id')->on('projects');

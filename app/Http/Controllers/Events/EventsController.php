@@ -32,4 +32,24 @@ class EventsController extends ApiController
         return $this->getReturnValueArray($request, $this->eventsHandler->getEventsByProjectId($projectId));
     }
 
+    public function postEvents(Request $request, $id = null)
+    {
+        if ($id) {
+            return $this->getReturnValueObject($request, $this->eventsHandler->editEvent($id, $request->post()));
+        }
+
+        $projectId = $request->input('projectId');
+
+        if (empty($projectId)) {
+            return response('Project id is missing', 200);
+        }
+
+        return $this->getReturnValueObject($request, $this->eventsHandler->postEvent($request->post()));
+    }
+
+    public function deleteEvents($id)
+    {
+        return $this->eventsHandler->deleteEvent($id);
+    }
+
 }

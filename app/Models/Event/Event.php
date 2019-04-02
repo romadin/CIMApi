@@ -23,9 +23,9 @@ class Event implements JsonSerializable
      */
     private $name;
     /**
-     * @var string
+     * @var string | null
      */
-    private $description;
+    private $description = null;
 
     /**
      * @var int
@@ -43,9 +43,9 @@ class Event implements JsonSerializable
     private $endDate;
 
     /**
-     * @var Location
+     * @var Location | null
      */
-    private $location;
+    private $location = null;
 
     public function __construct() {}
 
@@ -82,17 +82,17 @@ class Event implements JsonSerializable
     }
 
     /**
-     * @return string
+     * @return string | null
      */
-    public function getDescription(): string
+    public function getDescription(): ?string
     {
         return $this->description;
     }
 
     /**
-     * @param string $description
+     * @param string | null $description
      */
-    public function setDescription(string $description): void
+    public function setDescription(?string $description): void
     {
         $this->description = $description;
     }
@@ -146,17 +146,17 @@ class Event implements JsonSerializable
     }
 
     /**
-     * @return Location
+     * @return Location | null
      */
-    public function getLocation(): Location
+    public function getLocation(): ?Location
     {
         return $this->location;
     }
 
     /**
-     * @param Location $location
+     * @param Location | null $location
      */
-    public function setLocation(Location $location): void
+    public function setLocation(?Location $location): void
     {
         $this->location = $location;
     }

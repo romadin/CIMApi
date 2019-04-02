@@ -60,6 +60,9 @@ $router->group(['middleware' => 'auth'], function () use ($router)
 
         $router->delete('users/{id}', 'Users\UsersController@deleteUser');
         $router->post('users', 'Users\UsersController@createUser');
+
+        $router->post('events[/{id}]', 'Events\EventsController@postEvents');
+        $router->delete('events/{id}', 'Events\EventsController@deleteEvents');
     });
 });
 
