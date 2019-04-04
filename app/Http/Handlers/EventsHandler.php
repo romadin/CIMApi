@@ -42,6 +42,9 @@ class EventsHandler
             $result = DB::table(self::EVENTS_TABLE)
                 ->where('id', $id)
                 ->first();
+            if ($result === null) {
+                return response('event not found', 200);
+            }
         } catch (\Exception $e) {
             return $e->getMessage();
         }
@@ -84,7 +87,7 @@ class EventsHandler
             return $e->getMessage();
         }
 
-        return response('Event has been deleted', 200);
+        return json_encode('Event has been deleted');
     }
 
     public function deleteEventByProjectId(int $projectId)
