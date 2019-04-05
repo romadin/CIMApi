@@ -63,6 +63,7 @@ class ActionsHandler
         try {
             $newActionId = DB::table(self::ACTION_TABLE)->insertGetId($postData);
         } catch (\Exception $e) {
+            var_dump($e->getMessage());
             return response('ActionsHandler: There is something wrong with the database connection', 403);
         }
         return $this->getActionById($newActionId);
@@ -134,7 +135,7 @@ class ActionsHandler
             $data->projectId
         );
         $action->setWeek($data->week);
-        $action->setActionHolder($this->usersHandler->getUserById($data->userId));
+        $action->setActionHolder($data->userId ? $this->usersHandler->getUserById($data->userId): $data->userId);
         $action->setComments($data->comments);
 
         return $action;
