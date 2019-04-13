@@ -12,6 +12,7 @@ use App\Models\Document\Document;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 
 class DocumentsHandler
 {
@@ -22,13 +23,9 @@ class DocumentsHandler
 
     //@todo need a better way for templating
     const defaultDocumentTemplate = [
-        ['name' => 'Projectgegevens', 'order' => 1, 'fromTemplate' => true],
-        ['name' => 'Verplichtingen van de OPDRACHTGEVER', 'order' => 8, 'fromTemplate' => true],
-//        ['name' => 'Normen', 'order' => 4, 'fromTemplate' => true],
-//        ['name' => 'Voorwaarden', 'order' => 5, 'fromTemplate' => true],
-        ['name' => 'BIM toepassing', 'order' => 7, 'fromTemplate' => true],
+        ['name' => 'Projectgegevens', 'folderName' => 'projectData', 'order' => 1, 'fromTemplate' => true],
+        ['name' => 'Verplichtingen van de OPDRACHTGEVER', 'folderName' => 'obligationsOfClient', 'order' => 7, 'fromTemplate' => true],
     ];
-
     /**
      * @param int $folderId
      * @return Document[]
@@ -114,10 +111,17 @@ class DocumentsHandler
     {
         $template = $template !== 'default' ? $template : self::defaultDocumentTemplate;
         foreach ($template as $documentTemplate) {
+            $filePath = 'templateText/' .  $documentTemplate['folderName'] .'.html';
+            try {
+                $content = File::get(storage_path($filePath));
+            } catch (\Exception $e) {
+                $content = null;
+            }
+
             $row = [
                 'originalName' => $documentTemplate['name'],
                 'name' => null,
-                'content' => null,
+                'content' => $content,
                 'fromTemplate' => $documentTemplate['fromTemplate'],
             ];
             $newDocumentID = DB::table(self::DOCUMENT_TABLE)->insertGetId($row);
@@ -217,10 +221,9 @@ class DocumentsHandler
         return json_encode(['imageUrl' => $base64]);
     }
 
-    public function postImage($postData, int $documentId, UploadedFile $image)
+    public function postImage(int $documentId, UploadedFile $image)
     {
         $data = [];
-
 
         $data['image'] = $image->openFile()->fread($image->getSize());
         $data['imageName'] = $image->getClientOriginalName();

@@ -65,7 +65,7 @@ class DocumentsController extends ApiController
 
     public function uploadImage(Request $request, $id)
     {
-        $image = $this->documentsHandler->postImage($request->post(), $id, $request->file('file'));
+        $image = $this->documentsHandler->postImage($id, $request->file('file'));
         return $this->getReturnValueObject($request, $image);
     }
 
