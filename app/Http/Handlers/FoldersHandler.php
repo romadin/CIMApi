@@ -27,9 +27,9 @@ class FoldersHandler
         ['name' => 'Informatie en data', 'order' =>  4, 'fromTemplate' => true],
         ['name' => 'Communicatie', 'order' =>  5, 'fromTemplate' => true],
         ['name' => 'Model afspraken', 'order' => 6, 'fromTemplate' => true],
-        ['name' => 'Planning', 'order' => 8, 'fromTemplate' => true],
-        ['name' => 'Eigendom', 'order' => 9, 'fromTemplate' => true],
-        ['name' => 'Over BIM', 'order' => 10, 'fromTemplate' => true],
+//        ['name' => 'Planning', 'order' => 8, 'fromTemplate' => true],
+//        ['name' => 'Eigendom', 'order' => 9, 'fromTemplate' => true],
+//        ['name' => 'Over BIM', 'order' => 10, 'fromTemplate' => true],
     ];
 
     const defaultSubFolderDocumentTemplate = [
@@ -83,25 +83,25 @@ class FoldersHandler
             ['name' => 'Modelleren van samengestelde objecten', 'order' => 13, 'fromTemplate' => true, 'folderName' => 'modelingCompoundObjects'],
             ['name' => 'Nauwkeurigheid en toleranties', 'order' => 14, 'fromTemplate' => true, 'folderName' => 'accuracyAndTolerances'],
         ],
-        'Planning' => [
-            ['name' => 'LEAN', 'order' => 1, 'fromTemplate' => true, 'folderName' => 'lean'],
-            ['name' => 'Projectplanning', 'order' => 2, 'fromTemplate' => true, 'folderName' => 'projectPlanning'],
-        ],
-        'Eigendom' => [
-            ['name' => 'Intellectuele eigendom ', 'order' => 1, 'fromTemplate' => true, 'folderName' => 'intellectualOwnership'],
-            ['name' => 'Eigendom van het BIM', 'order' => 2, 'fromTemplate' => true, 'folderName' => 'propertyOfBIM'],
-            ['name' => 'Aansprakelijkheid voor BIM-data', 'order' => 3, 'fromTemplate' => true, 'folderName' => 'liabilityForBIMData'],
-        ],
-        'Over BIM' => [
-            ['name' => 'Wat is BIM', 'order' => 1, 'fromTemplate' => true, 'folderName' => 'whatIsBIM'],
-            ['name' => 'Little BIM en big BIM', 'order' => 3, 'fromTemplate' => true, 'folderName' => 'littleBIMBigBIM'],
-            ['name' => 'IFC', 'order' => 4, 'fromTemplate' => true, 'folderName' => 'IFC'],
-            ['name' => 'BIR kenniskaarten', 'order' => 5, 'fromTemplate' => true, 'folderName' => 'birKnowledgeCard'],
-            ['name' => 'CB-NL', 'order' => 6, 'fromTemplate' => true, 'folderName' => 'cbNL'],
-            ['name' => 'Algemene voordelen', 'order' => 7, 'fromTemplate' => true, 'folderName' => 'generalBenefits'],
-            ['name' => 'Video', 'order' => 8, 'fromTemplate' => true, 'folderName' => 'video'],
-            ['name' => 'Definities', 'order' => 9, 'fromTemplate' => true, 'folderName' => 'Definitions'],
-        ],
+//        'Planning' => [
+//            ['name' => 'LEAN', 'order' => 1, 'fromTemplate' => true, 'folderName' => 'lean'],
+//            ['name' => 'Projectplanning', 'order' => 2, 'fromTemplate' => true, 'folderName' => 'projectPlanning'],
+//        ],
+//        'Eigendom' => [
+//            ['name' => 'Intellectuele eigendom ', 'order' => 1, 'fromTemplate' => true, 'folderName' => 'intellectualOwnership'],
+//            ['name' => 'Eigendom van het BIM', 'order' => 2, 'fromTemplate' => true, 'folderName' => 'propertyOfBIM'],
+//            ['name' => 'Aansprakelijkheid voor BIM-data', 'order' => 3, 'fromTemplate' => true, 'folderName' => 'liabilityForBIMData'],
+//        ],
+//        'Over BIM' => [
+//            ['name' => 'Wat is BIM', 'order' => 1, 'fromTemplate' => true, 'folderName' => 'whatIsBIM'],
+//            ['name' => 'Little BIM en big BIM', 'order' => 3, 'fromTemplate' => true, 'folderName' => 'littleBIMBigBIM'],
+//            ['name' => 'IFC', 'order' => 4, 'fromTemplate' => true, 'folderName' => 'IFC'],
+//            ['name' => 'BIR kenniskaarten', 'order' => 5, 'fromTemplate' => true, 'folderName' => 'birKnowledgeCard'],
+//            ['name' => 'CB-NL', 'order' => 6, 'fromTemplate' => true, 'folderName' => 'cbNL'],
+//            ['name' => 'Algemene voordelen', 'order' => 7, 'fromTemplate' => true, 'folderName' => 'generalBenefits'],
+//            ['name' => 'Video', 'order' => 8, 'fromTemplate' => true, 'folderName' => 'video'],
+//            ['name' => 'Definities', 'order' => 9, 'fromTemplate' => true, 'folderName' => 'Definitions'],
+//        ],
 
     ];
 
