@@ -63,6 +63,12 @@ class DocumentsController extends ApiController
         return response('Trying to delete document ' .  $id . 'went wrong', 403);
     }
 
+    public function uploadImage(Request $request, $id)
+    {
+        $image = $this->documentsHandler->postImage($request->post(), $id, $request->file('file'));
+        return $this->getReturnValueObject($request, $image);
+    }
+
     private function editDocument(Request $request, $id)
     {
         return $this->getReturnValueObject($request, $this->documentsHandler->editDocument($request->post(), $id));

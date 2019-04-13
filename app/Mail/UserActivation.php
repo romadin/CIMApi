@@ -50,7 +50,7 @@ class UserActivation extends Mailable
 
     private function getLink():string
     {
-        return $this->organisation->getName() .'.'. env('APP_URL') . '/gebruikers/activate/' . $this->user->getToken();
+        return 'http://' . $this->organisation->getName() .'.'. env('APP_URL') . '/gebruikers/activate/' . $this->user->getToken();
     }
 
 }

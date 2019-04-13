@@ -10,11 +10,13 @@ namespace App\Http\Handlers;
 
 use App\Models\Document\Document;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 
 class DocumentsHandler
 {
     const DOCUMENT_TABLE = 'documents';
+    const DOCUMENT_IMAGE_TABLE = 'document_image';
     const DOCUMENT_LINK_FOLDER_TABLE = 'folders_has_documents';
     const FOLDER_LINK_SUB_FOLDER_TABLE = 'folders_has_folders';
 
@@ -206,6 +208,38 @@ class DocumentsHandler
         return $result->order;
     }
 
+    public function getDocumentImage($id)
+    {
+        $image = DB::table(self::DOCUMENT_IMAGE_TABLE)
+            ->where('id', $id)
+            ->first();
+        $base64 = 'data:'. $image->extension . ';base64,' . base64_encode($image->image);
+        return json_encode(['imageUrl' => $base64]);
+    }
+
+    public function postImage($postData, int $documentId, UploadedFile $image)
+    {
+        $data = [];
+
+
+        $data['image'] = $image->openFile()->fread($image->getSize());
+        $data['imageName'] = $image->getClientOriginalName();
+        $data['extension'] = $image->getClientMimeType();
+        $data['pathName'] = $image->getPathName();
+        $data['size'] = $image->getSize();
+        $data['documentId'] = $documentId;
+
+        try {
+            $imageId = DB::table(self::DOCUMENT_IMAGE_TABLE)
+                ->insertGetId($data);
+        } catch (\Exception $e) {
+            return response('DocumentHandler: There is something wrong with the database connection', 500);
+        }
+
+        return $this->getDocumentImage($imageId);
+
+    }
+
     private function makeDocument($data): Document
     {
         $foldersId = is_array($data->folderId) ? $data->folderId : [$data->folderId];
@@ -221,6 +255,11 @@ class DocumentsHandler
         );
 
         return $document;
+    }
+
+    private function makeDocumentImage($data)
+    {
+
     }
 
     /**
