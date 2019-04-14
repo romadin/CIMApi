@@ -129,7 +129,6 @@ class EventsHandler
     {
         $location = new Location();
         $location->setStreetName($locationData->streetName);
-        $location->setZipCode($locationData->zipCode);
         $location->setResidence($locationData->residence);
 
         return $location;

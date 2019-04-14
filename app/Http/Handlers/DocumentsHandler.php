@@ -24,12 +24,8 @@ class DocumentsHandler
     //@todo need a better way for templating
     const defaultDocumentTemplate = [
         ['name' => 'Projectgegevens', 'folderName' => 'projectData', 'order' => 1, 'fromTemplate' => true],
-        ['name' => 'Verplichtingen van de Opdrachtgever', 'folderName' => 'obligationsClient', 'order' => 7, 'fromTemplate' => true],
-        ['name' => 'Verplichtingen van de Opdrachtnemer', 'folderName' => 'obligationsContractor', 'order' => 8, 'fromTemplate' => true],
-        ['name' => 'Intellectuele eigendom', 'folderName' => 'intellectualOwnership', 'order' => 9, 'fromTemplate' => true],
-        ['name' => 'Eigendom van het BIM', 'order' => 10, 'fromTemplate' => true, 'folderName' => 'propertyOfBIM'],
-        ['name' => 'Aansprakelijkheid voor BIM-data', 'order' => 11, 'fromTemplate' => true, 'folderName' => 'liabilityForBIMData'],
-
+        ['name' => 'Verplichtingen van de Opdrachtgever', 'folderName' => 'obligationsClient', 'order' => 8, 'fromTemplate' => true],
+        ['name' => 'Verplichtingen van de Opdrachtnemer', 'folderName' => 'obligationsContractor', 'order' => 9, 'fromTemplate' => true],
     ];
     /**
      * @param int $folderId

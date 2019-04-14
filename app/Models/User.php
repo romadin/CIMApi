@@ -78,6 +78,11 @@ class User implements JsonSerializable
      */
     private $organisationId = null;
 
+    /**
+     * @var null | string
+     */
+    private $company = null;
+
     public function __construct(
         int $id,
         string $firstName,
@@ -314,6 +319,22 @@ class User implements JsonSerializable
         $this->organisationId = $organisationId;
     }
 
+    /**
+     * @return null|string
+     */
+    public function getCompany(): ?string
+    {
+        return $this->company;
+    }
+
+    /**
+     * @param null|string $company
+     */
+    public function setCompany(?string $company): void
+    {
+        $this->company = $company;
+    }
+
     public function jsonSerialize()
     {
         return [
@@ -328,6 +349,7 @@ class User implements JsonSerializable
             'hasImage' => $this->getImage() !== null,
             'phoneNumber' => $this->getPhoneNumber(),
             'organisationId' => $this->getOrganisationId(),
+            'company' => $this->getCompany(),
         ];
     }
 

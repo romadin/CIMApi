@@ -33,6 +33,7 @@ class UsersHandler
         self::USERS_TABLE.'.image',
         self::USERS_TABLE.'.token',
         self::USERS_TABLE.'.organisationId',
+        self::USERS_TABLE.'.company',
         self::ROLES_TABLE.'.name as roleName',
     ];
 
@@ -148,6 +149,9 @@ class UsersHandler
         foreach ($postData as $key => $value) {
             if ($key === 'password') {
                 $data[$key] = password_hash($postData['password'], PASSWORD_DEFAULT);
+            } elseif ($key === 'projectsId'){
+                // insert the link for the user to the projects.
+                $this->linkUserHasProjects(json_decode($postData['projectsId']), $id);
             } else {
                 $data[$key] = $value;
             }
@@ -158,7 +162,7 @@ class UsersHandler
                 ->where('id', $id)
                 ->update($data);
         } catch (\Exception $e) {
-            return response('UsersHandler: There is something wrong with the database connection', 403);
+            return response($e->getMessage());
         }
 
         return $this->getUserById($id);
@@ -174,13 +178,14 @@ class UsersHandler
                 'email' => $postData['email'],
                 'phoneNumber' => $postData['phoneNumber'],
                 'function' => $postData['function'],
+                'company' => $postData['company'],
                 'image' => $image ? $image->openFile()->fread($image->getSize()) : $image,
                 'token' => bin2hex(random_bytes(64)),
                 'organisationId' => $organisationId,
             ]);
         } catch (\Exception $e)
         {
-            return response($e->getCode());
+            return response($e->getMessage());
         }
 
 
@@ -257,6 +262,36 @@ class UsersHandler
         }
     }
 
+    private function linkUserHasProjects($projects, $userId)
+    {
+        $user = $this->getUserById($userId);
+        $userProjects = $user->getProjectsId();
+
+        foreach ($projects as $projectId) {
+            $empty = DB::table(self::PROJECT_LINK_TABLE)
+                ->where('userId', $userId)
+                ->where('projectId', $projectId)
+                ->get()
+                ->isEmpty();
+            // remove chosen projects id from userProjects array so that we can delete the link for the projects
+            foreach ($userProjects as $userProjectId) {
+                if ($userProjectId === (int)$projectId) {
+                    array_splice($userProjects, array_search((int)$projectId, $userProjects), 1);
+                }
+            }
+            // set new link to project.
+            if ($empty) {
+                DB::table(self::PROJECT_LINK_TABLE)
+                    ->insert(['userId' => $userId, 'projectId' => $projectId]);
+            }
+        }
+
+        // delete the link with the projects that is not selected anymore
+        foreach ($userProjects as $projectsToDelete) {
+            $this->deleteUserByProjectLink($userId, (int)$projectsToDelete);
+        }
+    }
+
     private function userHasProjects(int $id)
     {
         try {
@@ -327,6 +362,7 @@ class UsersHandler
 
         $user->setProjectsId($this->getProjectsIdFromUser($user));
         $user->setOrganisationId($data->organisationId);
+        $user->setCompany($data->company);
 
         return $user;
     }

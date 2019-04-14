@@ -21,11 +21,6 @@ class Location implements JsonSerializable
     /**
      * @var string
      */
-    private $zipCode;
-
-    /**
-     * @var string
-     */
     private $residence;
 
     public function __construct()
@@ -51,22 +46,6 @@ class Location implements JsonSerializable
     /**
      * @return string
      */
-    public function getZipCode(): string
-    {
-        return $this->zipCode;
-    }
-
-    /**
-     * @param string $zipCode
-     */
-    public function setZipCode(string $zipCode): void
-    {
-        $this->zipCode = $zipCode;
-    }
-
-    /**
-     * @return string
-     */
     public function getResidence(): string
     {
         return $this->residence;
@@ -84,7 +63,6 @@ class Location implements JsonSerializable
     {
         return [
             'streetName' => $this->getStreetName(),
-            'zipCode' => $this->getZipCode(),
             'residence' => $this->getResidence(),
         ];
     }

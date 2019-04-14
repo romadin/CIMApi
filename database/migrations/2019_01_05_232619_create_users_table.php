@@ -23,6 +23,7 @@ class CreateUsersTable extends Migration
             $table->string('phoneNumber', 20)->unique();
             $table->string('function');
             $table->string('password')->default(password_hash(random_bytes(10), PASSWORD_DEFAULT));
+            $table->string('company');
             $table->binary('image')->nullable(true);
             $table->string('token')->nullable(true);
             $table->unsignedInteger('organisationId');
