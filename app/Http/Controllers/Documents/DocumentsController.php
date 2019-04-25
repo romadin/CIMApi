@@ -11,6 +11,7 @@ namespace App\Http\Controllers\Documents;
 
 use App\Http\Controllers\ApiController;
 use App\Http\Handlers\DocumentsHandler;
+use App\Http\Handlers\TemplatesHandler;
 use Illuminate\Http\Request;
 
 class DocumentsController extends ApiController
@@ -21,9 +22,15 @@ class DocumentsController extends ApiController
      */
     private $documentsHandler;
 
-    public function __construct(DocumentsHandler $documentsHandler)
+    /**
+     * @var TemplatesHandler
+     */
+    private $templateHandler;
+
+    public function __construct(DocumentsHandler $documentsHandler, TemplatesHandler $templatesHandler)
     {
         $this->documentsHandler = $documentsHandler;
+        $this->templateHandler = $templatesHandler;
     }
 
     public function getDocuments(Request $request)
@@ -43,7 +50,7 @@ class DocumentsController extends ApiController
         if( $request->input('template') && $request->input('folderId') ) {
             $newDocuments = $this->documentsHandler->createDocumentsWithTemplate(
                 $request->input('folderId'),
-                $request->input('template')
+                $this->templateHandler->getTemplateByName($request->input('template'))->getDocuments()
             );
             return $this->getReturnValueArray($request, $newDocuments);
         }

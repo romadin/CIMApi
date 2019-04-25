@@ -10,6 +10,7 @@ namespace App\Http\Handlers;
 
 
 use App\Models\Template\Template;
+use App\Models\Template\TemplateItemsWithParent;
 use Illuminate\Support\Facades\DB;
 
 class TemplatesHandler
@@ -45,22 +46,40 @@ class TemplatesHandler
     {
         $template = new Template();
 
-        foreach ($data as $key => $value) {
-            if ($value) {
-                $method = 'set'. ucfirst($key);
-                if(method_exists($template, $method)) {
-                    if ($method === 'setFolders' || $method === 'setSubFolders') {
-                        $items = [];
-                        foreach (json_decode($value) as $itemValue) {
-                            array_push($items, $this->templateItemHandler->makeTemplateItem($itemValue));
-                        }
-                        $template->$method($items);
-                    }else {
-                        $template->$method($value);
-                    }
+        $template->setId($data->id);
+        $template->setName($data->name);
+        $template->setFolders($this->createTemplateItems($data->folders));
+        $template->setSubFolders($this->createTemplateItems($data->subFolders));
+        $template->setDocuments($this->createTemplateItems($data->documents));
+        $template->setSubDocuments($this->createTemplateItems($data->subDocuments, true));
+
+        return $template;
+    }
+
+    /**
+     * Create template items. If its multidimensional then we create template items with a parent.
+     * @param $data
+     * @param bool $multidimensional
+     * @return array
+     */
+    private function createTemplateItems($data, $multidimensional = false): array
+    {
+        $items = [];
+        foreach (json_decode($data) as $key => $itemValue) {
+            if ($multidimensional) {
+                $array = [];
+                $parentItems = new TemplateItemsWithParent();
+                $parentItems->setName($key);
+                foreach($itemValue as $item) {
+                    array_push($array, $this->templateItemHandler->makeTemplateItem($item));
                 }
+                $parentItems->setItems($array);
+                array_push($items, $parentItems);
+
+            } else {
+                array_push($items, $this->templateItemHandler->makeTemplateItem($itemValue));
             }
         }
-        return $template;
+        return $items;
     }
 }

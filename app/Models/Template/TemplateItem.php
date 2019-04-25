@@ -20,6 +20,11 @@ class TemplateItem
      */
     private $order;
 
+    /**
+     * @var null | string
+     */
+    private $content = null;
+
     public function __construct()
     {
     }
@@ -56,4 +61,19 @@ class TemplateItem
         $this->order = $order;
     }
 
+    /**
+     * @return null|string
+     */
+    public function getContent(): ?string
+    {
+        return $this->content;
+    }
+
+    /**
+     * @param null|string $content
+     */
+    public function setContent(?string $content): void
+    {
+        $this->content = $content;
+    }
 }

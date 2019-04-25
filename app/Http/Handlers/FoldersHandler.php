@@ -21,55 +21,6 @@ class FoldersHandler
     const PROJECT_TABLE = 'projects';
     const FOLDERS_LINK_TABLE = 'folders_has_folders';
 
-    const defaultSubFolderDocumentTemplate = [
-        'Doel en toepassing' => [
-            ['name' => 'BIM-doelen', 'folderName' => 'bimGoals', 'order' => 1, 'fromTemplate' => true],
-            ['name' => 'BIM-toepassing', 'folderName' => 'bimUsage', 'order' => 2, 'fromTemplate' => true],
-            ['name' => 'Aspectmodellen', 'folderName' => 'aspectModels', 'order' => 3, 'fromTemplate' => true],
-            ['name' => 'Verantwoordelijkheden', 'folderName' => 'responsibilities', 'order' => 4, 'fromTemplate' => true],
-        ],
-        'Analyse' => [
-            ['name' => 'Controle output project partners', 'order' => 1, 'fromTemplate' => true, 'folderName' => 'controlOutputProjectPartners'],
-            ['name' => 'Bouwbesluit toets', 'order' => 2, 'fromTemplate' => true, 'folderName' => 'buildDecision'],
-            ['name' => 'Hoeveelheden extractie', 'order' => 3, 'fromTemplate' => true, 'folderName' => 'loadExtraction'],
-            ['name' => 'Clash detectie', 'order' => 4, 'fromTemplate' => true, 'folderName' => 'clashDetection'],
-        ],
-        'BIM-process' => [
-            ['name' => 'Organisatie van de (BIM-)samenwerking', 'folderName'=> 'organisationCollaboration', 'order' => 1, 'fromTemplate' => true],
-            ['name' => 'Organisatieschema voor het project', 'folderName'=> 'organisationSchemeForProject', 'order' => 2, 'fromTemplate' => true],
-            ['name' => 'Overall workflow / proces schema', 'folderName'=> 'OverallWorkflowProcessSchema', 'order' => 3, 'fromTemplate' => true],
-        ],
-        'Informatie en data' => [
-            ['name' => 'Dataoverdrachtschema', 'order' => 1, 'fromTemplate' => true, 'folderName' => 'dataTransferSchedule'],
-            ['name' => 'Beheer van BIM-extracten', 'order' => 2, 'fromTemplate' => true, 'folderName' => 'managementOfBIMExtracts'],
-            ['name' => 'Uitwisselingsformaten', 'order' => 3, 'fromTemplate' => true, 'folderName' => 'exchangeFormats'],
-            ['name' => 'Modelcontrole / borging modelkwaliteit', 'order' => 4, 'fromTemplate' => true, 'folderName' => 'modelControl'],
-            ['name' => 'Droogzwemmen', 'order' => 5, 'fromTemplate' => true, 'folderName' => 'drySwimming'],
-        ],
-        'Communicatie' => [
-            ['name' => 'Informatie-uitwisseling', 'order' => 1, 'fromTemplate' => true, 'folderName' => 'informationExchange'],
-            ['name' => 'Gegevens behoefte schema – LEAN', 'order' => 2, 'fromTemplate' => true, 'folderName' => 'dataRequirementSchedule'],
-            ['name' => 'Clash-schema', 'order' => 3, 'fromTemplate' => true, 'folderName' => 'clashSchedule'],
-            ['name' => 'Doc. Man.Sys. (DMS) / borging modelkwaliteit', 'order' => 4, 'fromTemplate' => true, 'folderName' => 'dmsModelAssurance'],
-            ['name' => 'Communicatie van issues', 'order' => 5, 'fromTemplate' => true, 'folderName' => 'communicationOfIssues'],
-            ['name' => '2D extracten', 'order' => 6, 'fromTemplate' => true, 'folderName' => '2DExtraction'],
-            ['name' => '3D bestanden', 'order' => 7, 'fromTemplate' => true, 'folderName' => '3DDocuments'],
-        ],
-        'Model afspraken' => [
-            ['name' => 'Algemene modelleerafspraken', 'order' => 1, 'fromTemplate' => true, 'folderName' => 'generalModelingAgreements'],
-            ['name' => 'Bestandnamen', 'order' => 2, 'fromTemplate' => true, 'folderName' => 'fileNames'],
-            ['name' => 'NUL-punt', 'order' => 3, 'fromTemplate' => true, 'folderName' => 'zeroPoint'],
-            ['name' => 'Bouwlaagindeling en -naamgeving', 'order' => 4, 'fromTemplate' => true, 'folderName' => 'constructionLayerLayout'],
-            ['name' => 'Modelleren van samengestelde objecten', 'order' => 13, 'fromTemplate' => true, 'folderName' => 'modelingCompoundObjects'],
-            ['name' => 'Nauwkeurigheid en toleranties', 'order' => 14, 'fromTemplate' => true, 'folderName' => 'accuracyAndTolerances'],
-        ],
-        'Eigendom' => [
-            ['name' => 'Intellectuele eigendom', 'folderName' => 'intellectualOwnership', 'order' => 9, 'fromTemplate' => true],
-            ['name' => 'Eigendom van het BIM', 'order' => 10, 'fromTemplate' => true, 'folderName' => 'propertyOfBIM'],
-            ['name' => 'Aansprakelijkheid voor BIM-data', 'order' => 11, 'fromTemplate' => true, 'folderName' => 'liabilityForBIMData'],
-        ],
-    ];
-
     /**
      * @var DocumentsHandler
      */
@@ -147,29 +98,23 @@ class FoldersHandler
     public function createFoldersTemplate(array $templateContent, Template $template, $projectId = null, $parentFolderId = null): void
     {
         foreach ($templateContent as $folderTemplate) {
-            if ($folderTemplate instanceof TemplateItem) {
-                $row = [
-                    'name' => $folderTemplate->getName(),
-                    'projectId' => $projectId,
-                    'mainFolder' => $folderTemplate->getName() === 'BIM-Uitvoeringsplan' ? true : false,
-                    'fromTemplate' => true,
-                ];
-            } else {
-                var_dump('in the else');
-                $row = [
-                    'name' => $folderTemplate['name'],
-                    'projectId' => $projectId,
-                    'mainFolder' => $folderTemplate['name']=== 'BIM-Uitvoeringsplan' ? true : false,
-                    'fromTemplate' => $folderTemplate['fromTemplate'],
-                ];
-            }
+            $row = [
+                'name' => $folderTemplate->getName(),
+                'projectId' => $projectId,
+                'mainFolder' => $folderTemplate->getName() === 'BIM-Uitvoeringsplan' ? true : false,
+                'fromTemplate' => true,
+            ];
 
             $newFolderId = DB::table(self::FOLDERS_TABLE)->insertGetId($row);
             if ($projectId === null) {
                 // if project id is null then its a link between folders, so folder gets a sub folder.
                 $this->insertLink($parentFolderId, $newFolderId, $folderTemplate->getOrder(), self::FOLDERS_LINK_TABLE,  'folderSubId');
                 // on the subFolder we need to attach documents with the given template
-                $this->documentsHandler->createDocumentsWithTemplate($newFolderId, self::defaultSubFolderDocumentTemplate[$folderTemplate->getName()]);
+                $templateContent = array_filter($template->getSubDocuments(), function($parentFolder) use ($folderTemplate) {
+                    return $parentFolder->getName() === $folderTemplate->getName();
+                });
+                $templateContent = reset($templateContent);
+                $this->documentsHandler->createDocumentsWithTemplate($newFolderId, $templateContent->getItems());
             }
         }
 
@@ -305,7 +250,7 @@ class FoldersHandler
         }
 
         $this->createFoldersTemplate($template->getSubFolders(), $template, null, $result->id);
-        $this->documentsHandler->createDocumentsWithTemplate($result->id, 'default');
+        $this->documentsHandler->createDocumentsWithTemplate($result->id, $template->getDocuments());
         return true;
     }
 

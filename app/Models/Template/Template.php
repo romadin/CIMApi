@@ -32,7 +32,7 @@ class Template
      */
     private $documents = null;
     /**
-     * @var null | TemplateItem[]
+     * @var null | TemplateItemsWithParent[]
      */
     private $subDocuments = null;
 
@@ -105,33 +105,33 @@ class Template
     }
 
     /**
-     * @return null|string
+     * @return null|TemplateItem[]
      */
-    public function getDocuments(): ?string
+    public function getDocuments()
     {
         return $this->documents;
     }
 
     /**
-     * @param null|string $documents
+     * @param null|TemplateItem[] $documents
      */
-    public function setDocuments(?string $documents): void
+    public function setDocuments($documents): void
     {
         $this->documents = $documents;
     }
 
     /**
-     * @return null|string
+     * @return null|TemplateItemsWithParent[]
      */
-    public function getSubDocuments(): ?string
+    public function getSubDocuments()
     {
         return $this->subDocuments;
     }
 
     /**
-     * @param null|string $subDocuments
+     * @param null|TemplateItemsWithParent[] $subDocuments
      */
-    public function setSubDocuments(?string $subDocuments): void
+    public function setSubDocuments($subDocuments): void
     {
         $this->subDocuments = $subDocuments;
     }

@@ -9,10 +9,10 @@
 namespace App\Http\Handlers;
 
 use App\Models\Document\Document;
+use App\Models\Template\TemplateItem;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\File;
 
 class DocumentsHandler
 {
@@ -21,12 +21,6 @@ class DocumentsHandler
     const DOCUMENT_LINK_FOLDER_TABLE = 'folders_has_documents';
     const FOLDER_LINK_SUB_FOLDER_TABLE = 'folders_has_folders';
 
-    //@todo need a better way for templating
-    const defaultDocumentTemplate = [
-        ['name' => 'Projectgegevens', 'folderName' => 'projectData', 'order' => 1, 'fromTemplate' => true],
-        ['name' => 'Verplichtingen van de Opdrachtgever', 'folderName' => 'obligationsClient', 'order' => 8, 'fromTemplate' => true],
-        ['name' => 'Verplichtingen van de Opdrachtnemer', 'folderName' => 'obligationsContractor', 'order' => 9, 'fromTemplate' => true],
-    ];
     /**
      * @param int $folderId
      * @return Document[]
@@ -105,26 +99,21 @@ class DocumentsHandler
     /**
      * Create document from an given template.
      * @param int $folderId
-     * @param array | string $template
+     * @param array $templateContent
      * @return Document[]
      */
-    public function createDocumentsWithTemplate(int $folderId, $template)
+    public function createDocumentsWithTemplate(int $folderId, $templateContent)
     {
-        $template = $template !== 'default' ? $template : self::defaultDocumentTemplate;
-        foreach ($template as $documentTemplate) {
-            $filePath = 'templateText/' .  $documentTemplate['folderName'] .'.html';
-            try {
-                $content = File::get(storage_path($filePath));
-            } catch (\Exception $e) {
-                $content = null;
+        foreach ($templateContent as $documentTemplate) {
+            if ($documentTemplate instanceof TemplateItem) {
+                $row = [
+                    'originalName' => $documentTemplate->getName(),
+                    'name' => null,
+                    'content' => $documentTemplate->getContent(),
+                    'fromTemplate' => true,
+                ];
             }
 
-            $row = [
-                'originalName' => $documentTemplate['name'],
-                'name' => null,
-                'content' => $content,
-                'fromTemplate' => $documentTemplate['fromTemplate'],
-            ];
             $newDocumentID = DB::table(self::DOCUMENT_TABLE)->insertGetId($row);
 
             // insert the link folder has document en set order.
@@ -132,7 +121,7 @@ class DocumentsHandler
                 ->insert([
                     'folderId' => $folderId,
                     'documentId' => $newDocumentID,
-                    'order' => $documentTemplate['order'],
+                    'order' => $documentTemplate instanceof TemplateItem ? $documentTemplate->getOrder() : $documentTemplate['order'],
                 ]);
         }
         return $this->getDocumentsFromFolder($folderId);
