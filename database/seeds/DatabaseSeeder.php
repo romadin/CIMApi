@@ -14,5 +14,6 @@ class DatabaseSeeder extends Seeder
         $this->call('OrganisationTableSeeder');
         $this->call('RolesTableDefaultRolesSeeder');
         $this->call('UsersTable2DefaultUsersSeeder');
+        $this->call('TemplatesTableSeeder');
     }
 }

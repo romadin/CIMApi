@@ -22,6 +22,7 @@ class CreateOrganisationsTable extends Migration
             $table->string('primaryColor')->default('#F5F5F5');
             $table->string('secondaryColor')->default('#000');
             $table->unsignedInteger('maxUsers')->default(5);
+            $table->unsignedInteger('templatesNumber')->default(1);
             $table->binary('logo')->nullable(true);
             $table->timestamps();
         });

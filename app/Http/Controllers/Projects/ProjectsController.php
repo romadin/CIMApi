@@ -10,6 +10,7 @@ namespace App\Http\Controllers\Projects;
 
 
 use App\Http\Controllers\ApiController;
+use App\Http\Controllers\Templates\TemplatesController;
 use App\Http\Handlers\ActionsHandler;
 use App\Http\Handlers\EventsHandler;
 use App\Http\Handlers\FoldersHandler;
@@ -22,13 +23,6 @@ use Illuminate\Support\Facades\DB;
 class ProjectsController extends ApiController
 {
     const PROJECT_TABLE = 'projects';
-    const defaultFoldersTemplate = [
-        ['name' => 'BIM-Uitvoeringsplan', 'order' => 0, 'fromTemplate' => true],
-        ['name' => 'BIM-Modelleur', 'order' => 0, 'fromTemplate' => true],
-        ['name' => 'BIM-Coördinator', 'order' => 0, 'fromTemplate' => true],
-        ['name' => 'BIM Regisseur', 'order' => 0, 'fromTemplate' => true],
-        ['name' => 'BIM Manager', 'order' => 0, 'fromTemplate' => true],
-    ];
 
     /**
      * @var ProjectsHandler
@@ -56,20 +50,33 @@ class ProjectsController extends ApiController
     private $eventsHandler;
 
     /**
+     * @var TemplatesController
+     */
+    private $templateController;
+
+    /**
      * ProjectsController constructor.
      * @param ProjectsHandler $projectsHandler
      * @param FoldersHandler $foldersHandler
      * @param UsersHandler $usersHandlers
      * @param ActionsHandler $actionHandlers
      * @param EventsHandler $eventsHandler
+     * @param TemplatesController $templatesController
      */
-    public function __construct(ProjectsHandler $projectsHandler, FoldersHandler $foldersHandler, UsersHandler $usersHandlers, ActionsHandler $actionHandlers, EventsHandler $eventsHandler)
+    public function __construct(
+        ProjectsHandler $projectsHandler,
+        FoldersHandler $foldersHandler,
+        UsersHandler $usersHandlers,
+        ActionsHandler $actionHandlers,
+        EventsHandler $eventsHandler,
+        TemplatesController $templatesController)
     {
         $this->projectsHandler = $projectsHandler;
         $this->foldersHandler = $foldersHandler;
         $this->usersHandler = $usersHandlers;
         $this->actionHandler = $actionHandlers;
         $this->eventsHandler = $eventsHandler;
+        $this->templateController = $templatesController;
     }
 
 
@@ -117,18 +124,18 @@ class ProjectsController extends ApiController
         $newId = $this->projectsHandler->postProject($request->post(), $request->input('organisationId'));
 
         if ( $newId ) {
-
-            if ( $request->input('template')) {
-                $template = $request->get('template') === 'default' ? self::defaultFoldersTemplate : $request->get('template');
-                $this->foldersHandler->createFoldersTemplate($template, $newId);
+            if ( !$request->input('template')) {
+                return response('No template was given', 400);
             }
+
+            $template = $this->templateController->getTemplate($request->input('template'));
+            $this->foldersHandler->createFoldersTemplate($template->getFolders(), $template, $newId);
             $result = DB::table(self::PROJECT_TABLE)->where('id', $newId)->first();
 
             return $this->getReturnValueObject($request, $this->projectsHandler->makeProject($result));
         }
 
         return response('something went wrong', 400);
-
     }
 
     /**

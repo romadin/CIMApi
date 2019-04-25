@@ -10,6 +10,8 @@ namespace App\Http\Handlers;
 
 
 use App\Models\Folder\Folder;
+use App\Models\Template\Template;
+use App\Models\Template\TemplateItem;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 
@@ -18,19 +20,6 @@ class FoldersHandler
     const FOLDERS_TABLE = 'folders';
     const PROJECT_TABLE = 'projects';
     const FOLDERS_LINK_TABLE = 'folders_has_folders';
-
-    //@todo need a better way for templating
-    const defaultSubFolderTemplate = [
-        ['name' => 'Doel en toepassing', 'order' => 2, 'fromTemplate' => true],
-        ['name' => 'Analyse', 'order' =>  3, 'fromTemplate' => true],
-        ['name' => 'BIM-process', 'order' =>  4, 'fromTemplate' => true],
-        ['name' => 'Informatie en data', 'order' =>  5, 'fromTemplate' => true],
-        ['name' => 'Communicatie', 'order' =>  6, 'fromTemplate' => true],
-        ['name' => 'Model afspraken', 'order' => 7, 'fromTemplate' => true],
-//        ['name' => 'Planning', 'order' => 8, 'fromTemplate' => true],
-        ['name' => 'Eigendom', 'order' => 10, 'fromTemplate' => true],
-//        ['name' => 'Over BIM', 'order' => 10, 'fromTemplate' => true],
-    ];
 
     const defaultSubFolderDocumentTemplate = [
         'Doel en toepassing' => [
@@ -71,37 +60,14 @@ class FoldersHandler
             ['name' => 'Bestandnamen', 'order' => 2, 'fromTemplate' => true, 'folderName' => 'fileNames'],
             ['name' => 'NUL-punt', 'order' => 3, 'fromTemplate' => true, 'folderName' => 'zeroPoint'],
             ['name' => 'Bouwlaagindeling en -naamgeving', 'order' => 4, 'fromTemplate' => true, 'folderName' => 'constructionLayerLayout'],
-//            ['name' => 'Correct gebruik van entiteiten ', 'order' => 5, 'fromTemplate' => true, 'folderName' => 'correctUseEntities'],
-//            ['name' => 'Structuur en naamgeving ', 'order' => 6, 'fromTemplate' => true, 'folderName' => 'structureNaming'],
-//            ['name' => 'Informatie indeling classificatie NL/SfB  ', 'order' => 7, 'fromTemplate' => true, 'folderName' => 'classificationNLSfB'],
-//            ['name' => 'Objecten voorzien van correct materiaal', 'order' => 8, 'fromTemplate' => true, 'folderName' => 'correctMaterial'],
-//            ['name' => 'Doublures & doorsnijdingen', 'order' => 9, 'fromTemplate' => true, 'folderName' => 'duplicationsCuts'],
-//            ['name' => 'Gebruik standaard IFC Properties en Propertysets (Pset##Common)', 'order' => 10, 'fromTemplate' => true, 'folderName' => 'useDefaultIFC'],
-//            ['name' => 'Project specifieke propertysets', 'order' => 11, 'fromTemplate' => true, 'folderName' => 'projectSpecificPropertySets'],
-//            ['name' => 'Model Demarcatielijsten', 'order' => 12, 'fromTemplate' => true, 'folderName' => 'modelDemarcationLists'],
             ['name' => 'Modelleren van samengestelde objecten', 'order' => 13, 'fromTemplate' => true, 'folderName' => 'modelingCompoundObjects'],
             ['name' => 'Nauwkeurigheid en toleranties', 'order' => 14, 'fromTemplate' => true, 'folderName' => 'accuracyAndTolerances'],
         ],
-//        'Planning' => [
-//            ['name' => 'LEAN', 'order' => 1, 'fromTemplate' => true, 'folderName' => 'lean'],
-//            ['name' => 'Projectplanning', 'order' => 2, 'fromTemplate' => true, 'folderName' => 'projectPlanning'],
-//        ],
         'Eigendom' => [
             ['name' => 'Intellectuele eigendom', 'folderName' => 'intellectualOwnership', 'order' => 9, 'fromTemplate' => true],
             ['name' => 'Eigendom van het BIM', 'order' => 10, 'fromTemplate' => true, 'folderName' => 'propertyOfBIM'],
             ['name' => 'Aansprakelijkheid voor BIM-data', 'order' => 11, 'fromTemplate' => true, 'folderName' => 'liabilityForBIMData'],
         ],
-//        'Over BIM' => [
-//            ['name' => 'Wat is BIM', 'order' => 1, 'fromTemplate' => true, 'folderName' => 'whatIsBIM'],
-//            ['name' => 'Little BIM en big BIM', 'order' => 3, 'fromTemplate' => true, 'folderName' => 'littleBIMBigBIM'],
-//            ['name' => 'IFC', 'order' => 4, 'fromTemplate' => true, 'folderName' => 'IFC'],
-//            ['name' => 'BIR kenniskaarten', 'order' => 5, 'fromTemplate' => true, 'folderName' => 'birKnowledgeCard'],
-//            ['name' => 'CB-NL', 'order' => 6, 'fromTemplate' => true, 'folderName' => 'cbNL'],
-//            ['name' => 'Algemene voordelen', 'order' => 7, 'fromTemplate' => true, 'folderName' => 'generalBenefits'],
-//            ['name' => 'Video', 'order' => 8, 'fromTemplate' => true, 'folderName' => 'video'],
-//            ['name' => 'Definities', 'order' => 9, 'fromTemplate' => true, 'folderName' => 'Definitions'],
-//        ],
-
     ];
 
     /**
@@ -178,28 +144,39 @@ class FoldersHandler
         return $this->makeFolder($folder);
     }
 
-    public function createFoldersTemplate(array $template, $projectId = null, $parentFolderId = null): void
+    public function createFoldersTemplate(array $templateContent, Template $template, $projectId = null, $parentFolderId = null): void
     {
-        foreach ($template as $folderTemplate) {
-            $row = [
-                'name' => $folderTemplate['name'],
-                'projectId' => $projectId,
-                'mainFolder' => $folderTemplate['name']=== 'BIM-Uitvoeringsplan' ? true : false,
-                'fromTemplate' => $folderTemplate['fromTemplate'],
-            ];
+        foreach ($templateContent as $folderTemplate) {
+            if ($folderTemplate instanceof TemplateItem) {
+                $row = [
+                    'name' => $folderTemplate->getName(),
+                    'projectId' => $projectId,
+                    'mainFolder' => $folderTemplate->getName() === 'BIM-Uitvoeringsplan' ? true : false,
+                    'fromTemplate' => true,
+                ];
+            } else {
+                var_dump('in the else');
+                $row = [
+                    'name' => $folderTemplate['name'],
+                    'projectId' => $projectId,
+                    'mainFolder' => $folderTemplate['name']=== 'BIM-Uitvoeringsplan' ? true : false,
+                    'fromTemplate' => $folderTemplate['fromTemplate'],
+                ];
+            }
+
             $newFolderId = DB::table(self::FOLDERS_TABLE)->insertGetId($row);
             if ($projectId === null) {
                 // if project id is null then its a link between folders, so folder gets a sub folder.
-                $this->insertLink($parentFolderId, $newFolderId, $folderTemplate['order'], self::FOLDERS_LINK_TABLE,  'folderSubId');
+                $this->insertLink($parentFolderId, $newFolderId, $folderTemplate->getOrder(), self::FOLDERS_LINK_TABLE,  'folderSubId');
                 // on the subFolder we need to attach documents with the given template
-                $this->documentsHandler->createDocumentsWithTemplate($newFolderId, self::defaultSubFolderDocumentTemplate[$folderTemplate['name']]);
+                $this->documentsHandler->createDocumentsWithTemplate($newFolderId, self::defaultSubFolderDocumentTemplate[$folderTemplate->getName()]);
             }
         }
 
         // If there is a parent folder id we dont want to set sub folders.
         if ( $parentFolderId === null ) {
             // @todo make a more variable sub folder template, now its hardcoded.
-            $this->setSubFolderFromProjectId($projectId, self::defaultSubFolderTemplate);
+            $this->setSubFolderFromProjectId($projectId, $template);
         }
     }
 
@@ -312,10 +289,10 @@ class FoldersHandler
     /**
      * Set Sub Folders at the main folder by the given template.
      * @param int $projectId
-     * @param array $template
+     * @param Template $template
      * @return bool | \Illuminate\Http\Response|\Laravel\Lumen\Http\ResponseFactory
      */
-    public function setSubFolderFromProjectId(int $projectId, array $template)
+    public function setSubFolderFromProjectId(int $projectId, Template $template)
     {
         try {
             $result = DB::table(self::FOLDERS_TABLE)
@@ -327,8 +304,8 @@ class FoldersHandler
             return response('FoldersHandler: There is something wrong with the database connection', 403);
         }
 
-        $this->createFoldersTemplate($template, null, $result->id);
-        $this->documentsHandler->createDocumentsWithTemplate($result->id, 'default' );
+        $this->createFoldersTemplate($template->getSubFolders(), $template, null, $result->id);
+        $this->documentsHandler->createDocumentsWithTemplate($result->id, 'default');
         return true;
     }
 

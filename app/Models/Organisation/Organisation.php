@@ -42,6 +42,11 @@ class Organisation implements JsonSerializable
      */
     private $maxUsers = null;
 
+    /**
+     * @var null | int
+     */
+    private $templatesNumber = null;
+
     public function __construct()
     {
     }
@@ -142,14 +147,31 @@ class Organisation implements JsonSerializable
         $this->maxUsers = $maxUsers;
     }
 
+    /**
+     * @return int|null
+     */
+    public function getTemplatesNumber(): ?int
+    {
+        return $this->templatesNumber;
+    }
+
+    /**
+     * @param int|null $templatesNumber
+     */
+    public function setTemplatesNumber(?int $templatesNumber): void
+    {
+        $this->templatesNumber = $templatesNumber;
+    }
+
     public function jsonSerialize()
     {
         return [
             'id' => $this->getId(),
             'name' => $this->getName(),
             'primaryColor' => $this->getPrimaryColor(),
-            'secondaryColor' => $this->getsecondaryColor(),
+            'secondaryColor' => $this->getSecondaryColor(),
             'maxUsers' => $this->getMaxUsers(),
+            'templatesNumber' => $this->getTemplatesNumber(),
             'hasLogo' => $this->getLogo() !== null,
         ];
     }
