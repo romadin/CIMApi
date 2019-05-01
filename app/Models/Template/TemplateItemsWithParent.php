@@ -9,7 +9,9 @@
 namespace App\Models\Template;
 
 
-class TemplateItemsWithParent
+use JsonSerializable;
+
+class TemplateItemsWithParent implements JsonSerializable
 {
     /**
      * @var string
@@ -55,5 +57,13 @@ class TemplateItemsWithParent
     public function setItems(array $items): void
     {
         $this->items = $items;
+    }
+
+    public function jsonSerialize()
+    {
+        return [
+            'name' => $this->getName(),
+            'items' => $this->getItems()
+        ];
     }
 }

@@ -8,8 +8,9 @@
 
 namespace App\Models\Template;
 
+use JsonSerializable;
 
-class Template
+class Template implements JsonSerializable
 {
     /**
      * @var int
@@ -134,6 +135,18 @@ class Template
     public function setSubDocuments($subDocuments): void
     {
         $this->subDocuments = $subDocuments;
+    }
+
+    public function jsonSerialize()
+    {
+        return [
+            'id' => $this->getId(),
+            'name' => $this->getName(),
+            'folders' => $this->getFolders(),
+            'subFolders' => $this->getSubFolders(),
+            'documents' => $this->getDocuments(),
+            'subDocuments' => $this->getSubDocuments(),
+        ];
     }
 
 }

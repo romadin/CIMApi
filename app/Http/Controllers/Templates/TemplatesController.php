@@ -10,6 +10,7 @@ namespace App\Http\Controllers\Templates;
 
 
 use App\Http\Handlers\TemplatesHandler;
+use Illuminate\Http\Request;
 
 class TemplatesController
 {
@@ -24,8 +25,51 @@ class TemplatesController
         $this->templateHandler = $templatesHandler;
     }
 
-    public function getTemplate(string $name)
+    public function getTemplates(Request $request)
     {
-        return $this->templateHandler->getTemplateByName($name);
+        if ( !$request->input('organisationId')) {
+            return response('No organisation id was given', 400);
+        }
+        return $this->templateHandler->getTemplatesByOrganisation($request->input('organisationId'));
+    }
+
+    public function getTemplate(Request $request, $id = null)
+    {
+        if ( $id ) {
+            return $this->templateHandler->getTemplateById($id);
+        }
+
+        if ( !$request->input('template')) {
+            return response('No template was given', 400);
+        }
+        if ( !$request->input('organisationId')) {
+            return response('No organisation id was given', 400);
+        }
+        return $this->templateHandler->getTemplateByName($request->input('template'), $request->input('organisationId'));
+    }
+
+    public function postTemplate(Request $request, $id = null)
+    {
+        if ( !$request->input('name')) {
+            return response('No name was given', 400);
+        }
+        if ( !$request->input('organisationId')) {
+            return response('No organisation id was given', 400);
+        }
+        return $this->templateHandler->createNewTemplate($request->post());
+    }
+
+    public function updateTemplate(Request $request, $id)
+    {
+        if( !$request->input('folders') && !$request->input('subFolders') && !$request->input('documents') && !$request->input('subDocuments')) {
+            return response('No new content was given', 400);
+        }
+
+        return $this->templateHandler->updateTemplate($id, $request->post());
+    }
+
+    public function deleteTemplate(int $id)
+    {
+        return $this->templateHandler->deleteTemplate($id);
     }
 }

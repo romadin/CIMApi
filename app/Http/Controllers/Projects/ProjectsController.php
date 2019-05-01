@@ -17,7 +17,9 @@ use App\Http\Handlers\FoldersHandler;
 use App\Http\Handlers\ProjectsHandler;
 use App\Http\Handlers\UsersHandler;
 use App\Models\Project\Project;
+use App\Models\Template\Template;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 
 class ProjectsController extends ApiController
@@ -128,10 +130,13 @@ class ProjectsController extends ApiController
                 return response('No template was given', 400);
             }
 
-            $template = $this->templateController->getTemplate($request->input('template'));
+            /** @var Template|Response $template */
+            $template = $this->templateController->getTemplate($request);
+            if ($template instanceof Response) {
+                return $template;
+            }
             $this->foldersHandler->createFoldersTemplate($template->getFolders(), $template, $newId);
             $result = DB::table(self::PROJECT_TABLE)->where('id', $newId)->first();
-
             return $this->getReturnValueObject($request, $this->projectsHandler->makeProject($result));
         }
 

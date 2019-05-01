@@ -15,12 +15,15 @@ class CreateTemplatesTable extends Migration
     {
         Schema::create('templates', function (Blueprint $table) {
             $table->increments('id');
+            $table->unsignedInteger('organisationId');
             $table->string('name');
-            $table->json('folders');
-            $table->json('subFolders');
-            $table->json('documents');
-            $table->json('subDocuments');
+            $table->json('folders')->nullable(true);
+            $table->json('subFolders')->nullable(true);
+            $table->json('documents')->nullable(true);
+            $table->json('subDocuments')->nullable(true);
             $table->timestamps();
+
+            $table->foreign('organisationId')->references('id')->on('organisations');
         });
     }
 

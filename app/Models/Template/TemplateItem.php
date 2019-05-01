@@ -9,7 +9,9 @@
 namespace App\Models\Template;
 
 
-class TemplateItem
+use JsonSerializable;
+
+class TemplateItem implements JsonSerializable
 {
     /**
      * @var string
@@ -46,9 +48,9 @@ class TemplateItem
     }
 
     /**
-     * @return string
+     * @return string| null
      */
-    public function getOrder(): string
+    public function getOrder(): ?string
     {
         return $this->order;
     }
@@ -75,5 +77,14 @@ class TemplateItem
     public function setContent(?string $content): void
     {
         $this->content = $content;
+    }
+
+    public function jsonSerialize()
+    {
+        return [
+            'name' => $this->getName(),
+            'content' => $this->getContent(),
+            'order' => $this->getOrder()
+        ];
     }
 }

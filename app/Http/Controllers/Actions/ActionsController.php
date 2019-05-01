@@ -65,10 +65,8 @@ class ActionsController extends ApiController
             if ($this->actionHandler->deleteActionByProjectId($request->input('projectId'))) {
                 return response('Deleted all the actions for project: ' . $request->input('projectId') , 200);
             }
-
         }
 
         return response('Deleting the action did not work, try again later', 400);
     }
-
 }

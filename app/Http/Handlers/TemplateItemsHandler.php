@@ -28,4 +28,11 @@ class TemplateItemsHandler
         }
         return $item;
     }
+
+    public function updateTemplateItem(TemplateItem $templateItem, $data): void
+    {
+        $templateItem->setName($data->name);
+        $templateItem->setContent($data->content);
+        $templateItem->setOrder($data->order);
+    }
 }

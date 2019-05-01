@@ -64,6 +64,12 @@ $router->group(['middleware' => 'auth'], function () use ($router)
 
         $router->post('events[/{id}]', 'Events\EventsController@postEvents');
         $router->delete('events/{id}', 'Events\EventsController@deleteEvents');
+
+        $router->get('templates', 'Templates\TemplatesController@getTemplates');
+        $router->get('templates/{id}', 'Templates\TemplatesController@getTemplate');
+        $router->post('templates', 'Templates\TemplatesController@postTemplate');
+        $router->post('templates/{id}', 'Templates\TemplatesController@updateTemplate');
+        $router->delete('templates/{id}', 'Templates\TemplatesController@deleteTemplate');
     });
 });
 

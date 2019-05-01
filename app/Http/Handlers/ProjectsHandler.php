@@ -45,7 +45,7 @@ class ProjectsHandler
             $id = DB::table(self::PROJECT_TABLE)
                 ->insertGetId($postData);
             if ( $id === null ) {
-                return response('Item is not been mad', 404);
+                return response('Item is not been made', 404);
             }
         } catch (\Exception $e) {
             return \response('ProjectHandler: There is something wrong with the database connection',500);
