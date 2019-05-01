@@ -33,22 +33,16 @@ class TemplatesController
         return $this->templateHandler->getTemplatesByOrganisation($request->input('organisationId'));
     }
 
-    public function getTemplate(Request $request, $id = null)
+    public function getTemplate($id)
     {
-        if ( $id ) {
-            return $this->templateHandler->getTemplateById($id);
+        if ( !$id) {
+            return response('No template id was given', 400);
         }
 
-        if ( !$request->input('template')) {
-            return response('No template was given', 400);
-        }
-        if ( !$request->input('organisationId')) {
-            return response('No organisation id was given', 400);
-        }
-        return $this->templateHandler->getTemplateByName($request->input('template'), $request->input('organisationId'));
+        return $this->templateHandler->getTemplateById($id);
     }
 
-    public function postTemplate(Request $request, $id = null)
+    public function postTemplate(Request $request)
     {
         if ( !$request->input('name')) {
             return response('No name was given', 400);

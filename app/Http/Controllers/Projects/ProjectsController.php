@@ -126,12 +126,12 @@ class ProjectsController extends ApiController
         $newId = $this->projectsHandler->postProject($request->post(), $request->input('organisationId'));
 
         if ( $newId ) {
-            if ( !$request->input('template')) {
+            if ( !$request->input('templateId')) {
                 return response('No template was given', 400);
             }
 
             /** @var Template|Response $template */
-            $template = $this->templateController->getTemplate($request);
+            $template = $this->templateController->getTemplate($request->input('templateId'));
             if ($template instanceof Response) {
                 return $template;
             }
