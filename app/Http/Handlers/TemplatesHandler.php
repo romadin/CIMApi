@@ -33,7 +33,8 @@ class TemplatesHandler
         try {
             $result = DB::table(self::TEMPLATE_TABLE)
                 ->where('organisationId', $organisationId)
-                ->first();
+                ->orWhere('organisationId', '=',0)
+                ->get();
             if ( $result === null ) {
                 return response('Template does not exist', 404);
             }
@@ -41,7 +42,12 @@ class TemplatesHandler
             return \response('TemplatesHandler: There is something wrong with the database connection',500);
         }
 
-        return $this->makeTemplate($result);
+        $templates = [];
+        foreach ($result as $item) {
+            array_push($templates, $this->makeTemplate($item));
+        }
+
+        return $templates;
     }
 
     public function getTemplateByName(string $name, int $organisationId)

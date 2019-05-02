@@ -123,7 +123,12 @@ class ProjectsController extends ApiController
             return $this->updateProject($request, $id);
         }
 
-        $newId = $this->projectsHandler->postProject($request->post(), $request->input('organisationId'));
+        $postData = [
+            'name' => $request->input('name'),
+            'organisationId' => $request->input('organisationId'),
+        ];
+
+        $newId = $this->projectsHandler->postProject($postData);
 
         if ( $newId ) {
             if ( !$request->input('templateId')) {

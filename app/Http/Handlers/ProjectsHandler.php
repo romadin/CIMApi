@@ -38,9 +38,8 @@ class ProjectsHandler
 
     }
 
-    public function postProject($postData, $organisationId)
+    public function postProject(array $postData)
     {
-        $postData['organisationId'] = $organisationId;
         try {
             $id = DB::table(self::PROJECT_TABLE)
                 ->insertGetId($postData);

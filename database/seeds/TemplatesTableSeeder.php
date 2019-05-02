@@ -15,8 +15,8 @@ class TemplatesTableSeeder extends Seeder
     public function run()
     {
         DB::table('templates')->insert([
-            'name' => 'default',
-            'organisationId' => 1,
+            'name' => 'Standaard',
+            'organisationId' => 0,
             'folders' => json_encode(TemplateDefault::FOLDER_DEFAULT),
             'subFolders' => json_encode(TemplateDefault::SUB_FOLDER_DEFAULT),
             'documents' => json_encode([
