@@ -21,6 +21,10 @@ class Template implements JsonSerializable
      */
     private $name = null;
     /**
+     * @var int
+     */
+    private $organisationId;
+    /**
      * @var null | TemplateItem[]
      */
     private $folders = null;
@@ -71,6 +75,22 @@ class Template implements JsonSerializable
     public function setName(?string $name): void
     {
         $this->name = $name;
+    }
+
+    /**
+     * @return int
+     */
+    public function getOrganisationId(): int
+    {
+        return $this->organisationId;
+    }
+
+    /**
+     * @param int $organisationId
+     */
+    public function setOrganisationId(int $organisationId): void
+    {
+        $this->organisationId = $organisationId;
     }
 
     /**
@@ -142,6 +162,7 @@ class Template implements JsonSerializable
         return [
             'id' => $this->getId(),
             'name' => $this->getName(),
+            'organisationId' => $this->getOrganisationId(),
             'folders' => $this->getFolders(),
             'subFolders' => $this->getSubFolders(),
             'documents' => $this->getDocuments(),

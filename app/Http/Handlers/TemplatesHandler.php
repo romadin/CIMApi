@@ -120,12 +120,18 @@ class TemplatesHandler
                     if ($item instanceof TemplateItemsWithParent) {
                         if ($item->getName() === $data->name) {
                             foreach($item->getItems() as $subItem) {
-                                /** @var TemplateItem $subItem */
-                                array_filter($data->items, function($dataSubItem) use ($subItem) {
-                                    if($subItem->getName() === $dataSubItem->name) {
-                                        $this->templateItemHandler->updateTemplateItem($subItem, $dataSubItem);
+                                if (is_array($data->items)) {
+                                    /** @var TemplateItem $subItem */
+                                    array_filter($data->items, function($dataSubItem) use ($subItem) {
+                                        if($subItem->getName() === $dataSubItem->name) {
+                                            $this->templateItemHandler->updateTemplateItem($subItem, $dataSubItem);
+                                        }
+                                    });
+                                } else {
+                                    if($subItem->getName() === $data->items->name) {
+                                        $this->templateItemHandler->updateTemplateItem($subItem, $data->items);
                                     }
-                                });
+                                }
                             };
                         }
                     } else if ($item instanceof TemplateItem) {
@@ -178,6 +184,7 @@ class TemplatesHandler
 
         $template->setId($data->id);
         $template->setName($data->name);
+        $template->setOrganisationId($data->organisationId);
         $template->setFolders($this->createTemplateItems($data->folders));
         $template->setSubFolders($this->createTemplateItems($data->subFolders));
         $template->setDocuments($this->createTemplateItems($data->documents));
