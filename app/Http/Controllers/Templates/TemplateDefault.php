@@ -11,26 +11,40 @@ namespace App\Http\Controllers\Templates;
 
 class TemplateDefault
 {
-    const FOLDER_DEFAULT = [
+    const WORK_FUNCTIONS = [
         ['name' => 'BIM-Uitvoeringsplan', 'order' => 0],
         ['name' => 'BIM-Modelleur', 'order' => 0],
         ['name' => 'BIM-Coördinator', 'order' => 0],
         ['name' => 'BIM Regisseur', 'order' => 0],
         ['name' => 'BIM Manager', 'order' => 0]
     ];
-    const SUB_FOLDER_DEFAULT = [
-        ['name' => 'Doel en toepassing', 'order' => 2],
-        ['name' => 'Analyse', 'order' =>  3],
-        ['name' => 'BIM-process', 'order' =>  4],
-        ['name' => 'Informatie en data', 'order' =>  5],
-        ['name' => 'Communicatie', 'order' =>  6],
-        ['name' => 'Model afspraken', 'order' => 7],
-        ['name' => 'Eigendom', 'order' => 10],
+    const HEADLINES_DEFAULT = [
+        ['name' => 'Doel en toepassing'],
+        ['name' => 'Analyse'],
+        ['name' => 'BIM-process'],
+        ['name' => 'Informatie en data'],
+        ['name' => 'Communicatie'],
+        ['name' => 'Model afspraken'],
+        ['name' => 'Eigendom'],
     ];
-    const DOCUMENTS_DEFAULT = [
-        ['name' => 'Projectgegevens', 'content' => '', 'order' => 1],
-        ['name' => 'Verplichtingen van de Opdrachtgever', 'content' => '', 'order' => 8],
-        ['name' => 'Verplichtingen van de Opdrachtnemer', 'content' => '', 'order' => 9],
+    const WORK_FUNCTION_HAS_HEADLINE = [
+        ['workFunctionId' => 1, 'headlineId' => 1, 'order' => 2],
+        ['workFunctionId' => 1, 'headlineId' => 2, 'order' => 3],
+        ['workFunctionId' => 1, 'headlineId' => 3, 'order' => 4],
+        ['workFunctionId' => 1, 'headlineId' => 4, 'order' => 5],
+        ['workFunctionId' => 1, 'headlineId' => 5, 'order' => 6],
+        ['workFunctionId' => 1, 'headlineId' => 6, 'order' => 7],
+        ['workFunctionId' => 1, 'headlineId' => 7, 'order' => 10],
+    ];
+    const CHAPTERS_DEFAULT = [
+        ['name' => 'Projectgegevens', 'content' => ''],
+        ['name' => 'Verplichtingen van de Opdrachtgever', 'content' => ''],
+        ['name' => 'Verplichtingen van de Opdrachtnemer', 'content' => ''],
+    ];
+    const WORK_FUNCTION_HAS_CHAPTER = [
+        ['workFunctionId' => 1, 'chapterId' => 1, 'order' => 1],
+        ['workFunctionId' => 1, 'chapterId' => 2, 'order' => 8],
+        ['workFunctionId' => 1, 'chapterId' => 3, 'order' => 9],
     ];
     const SUB_DOCUMENTS_DEFAULT = [
         [

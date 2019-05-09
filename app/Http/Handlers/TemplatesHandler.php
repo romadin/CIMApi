@@ -87,9 +87,9 @@ class TemplatesHandler
         $row = [
             'name' => $postData['name'],
             'organisationId' => $postData['organisationId'],
-            'folders' => json_encode(TemplateDefault::FOLDER_DEFAULT),
-            'subFolders' => json_encode(TemplateDefault::SUB_FOLDER_DEFAULT),
-            'documents' => json_encode(TemplateDefault::DOCUMENTS_DEFAULT),
+            'folders' => json_encode(TemplateDefault::WORK_FUNCTIONS),
+            'subFolders' => json_encode(TemplateDefault::HEADLINES),
+            'documents' => json_encode(TemplateDefault::CHAPTERS_DEFAULT),
             'subDocuments' => json_encode(TemplateDefault::SUB_DOCUMENTS_DEFAULT)
         ];
         try {
