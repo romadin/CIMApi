@@ -50,7 +50,7 @@ class DocumentsController extends ApiController
         if( $request->input('template') && $request->input('folderId') ) {
             $newDocuments = $this->documentsHandler->createDocumentsWithTemplate(
                 $request->input('folderId'),
-                $this->templateHandler->getTemplateById($request->input('templateId'))->getDocuments()
+                $this->templateHandler->getTemplateById($request->input('templateId'))->getChapters()
             );
             return $this->getReturnValueArray($request, $newDocuments);
         }

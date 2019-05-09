@@ -8,6 +8,8 @@
 
 namespace App\Models\Template;
 
+use App\Models\Chapter\Chapter;
+use App\Models\Headline\Headline;
 use JsonSerializable;
 
 class Template implements JsonSerializable
@@ -21,25 +23,17 @@ class Template implements JsonSerializable
      */
     private $name = null;
     /**
+     * @var null | boolean
+     */
+    private $isDefault = null;
+    /**
      * @var int
      */
     private $organisationId;
     /**
      * @var null | TemplateItem[]
      */
-    private $folders = null;
-    /**
-     * @var null | TemplateItem[]
-     */
-    private $subFolders = null;
-    /**
-     * @var null | TemplateItem[]
-     */
-    private $documents = null;
-    /**
-     * @var null | TemplateItemsWithParent[]
-     */
-    private $subDocuments = null;
+    private $workFunctions = null;
 
     public function __construct()
     {
@@ -78,6 +72,22 @@ class Template implements JsonSerializable
     }
 
     /**
+     * @return bool|null
+     */
+    public function isDefault(): ?bool
+    {
+        return $this->isDefault;
+    }
+
+    /**
+     * @param bool|null $isDefault
+     */
+    public function setDefault(?bool $isDefault): void
+    {
+        $this->isDefault = $isDefault;
+    }
+
+    /**
      * @return int
      */
     public function getOrganisationId(): int
@@ -96,65 +106,49 @@ class Template implements JsonSerializable
     /**
      * @return null|TemplateItem[]
      */
-    public function getFolders()
+    public function getWorkFunctions()
     {
-        return $this->folders;
+        return $this->workFunctions;
     }
 
     /**
-     * @param null|TemplateItem[] $folders
+     * @param null|TemplateItem[] $workFunctions
      */
-    public function setFolders($folders): void
+    public function setWorkFunctions($workFunctions): void
     {
-        $this->folders = $folders;
-    }
-
-    /**
-     * @return null|TemplateItem[]
-     */
-    public function getSubFolders()
-    {
-        return $this->subFolders;
-    }
-
-    /**
-     * @param null|TemplateItem[] $subFolders
-     */
-    public function setSubFolders($subFolders): void
-    {
-        $this->subFolders = $subFolders;
+        $this->workFunctions = $workFunctions;
     }
 
     /**
      * @return null|TemplateItem[]
      */
-    public function getDocuments()
+    public function getHeadlines()
     {
-        return $this->documents;
+        return $this->headlines;
     }
 
     /**
-     * @param null|TemplateItem[] $documents
+     * @param null|TemplateItem[] $headlines
      */
-    public function setDocuments($documents): void
+    public function setHeadlines($headlines): void
     {
-        $this->documents = $documents;
+        $this->headlines = $headlines;
     }
 
     /**
-     * @return null|TemplateItemsWithParent[]
+     * @return null|TemplateItem[]
      */
-    public function getSubDocuments()
+    public function getChapters()
     {
-        return $this->subDocuments;
+        return $this->chapters;
     }
 
     /**
-     * @param null|TemplateItemsWithParent[] $subDocuments
+     * @param null|TemplateItem[] $chapters
      */
-    public function setSubDocuments($subDocuments): void
+    public function setChapters($chapters): void
     {
-        $this->subDocuments = $subDocuments;
+        $this->chapters = $chapters;
     }
 
     public function jsonSerialize()
@@ -162,11 +156,11 @@ class Template implements JsonSerializable
         return [
             'id' => $this->getId(),
             'name' => $this->getName(),
+            'isDefault' => $this->isDefault(),
             'organisationId' => $this->getOrganisationId(),
-            'folders' => $this->getFolders(),
-            'subFolders' => $this->getSubFolders(),
-            'documents' => $this->getDocuments(),
-            'subDocuments' => $this->getSubDocuments(),
+            'folders' => $this->getWorkFunctions(),
+            'subFolders' => $this->getHeadlines(),
+            'documents' => $this->getChapters(),
         ];
     }
 

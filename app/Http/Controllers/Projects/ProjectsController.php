@@ -140,7 +140,7 @@ class ProjectsController extends ApiController
             if ($template instanceof Response) {
                 return $template;
             }
-            $this->foldersHandler->createFoldersTemplate($template->getFolders(), $template, $newId);
+            $this->foldersHandler->createFoldersTemplate($template->getWorkFunctions(), $template, $newId);
             $result = DB::table(self::PROJECT_TABLE)->where('id', $newId)->first();
             return $this->getReturnValueObject($request, $this->projectsHandler->makeProject($result));
         }

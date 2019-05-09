@@ -249,8 +249,8 @@ class FoldersHandler
             return response('FoldersHandler: There is something wrong with the database connection', 403);
         }
 
-        $this->createFoldersTemplate($template->getSubFolders(), $template, null, $result->id);
-        $this->documentsHandler->createDocumentsWithTemplate($result->id, $template->getDocuments());
+        $this->createFoldersTemplate($template->getHeadlines(), $template, null, $result->id);
+        $this->documentsHandler->createDocumentsWithTemplate($result->id, $template->getChapters());
         return true;
     }
 

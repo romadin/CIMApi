@@ -185,9 +185,9 @@ class TemplatesHandler
         $template->setId($data->id);
         $template->setName($data->name);
         $template->setOrganisationId($data->organisationId);
-        $template->setFolders($this->createTemplateItems($data->folders));
-        $template->setSubFolders($this->createTemplateItems($data->subFolders));
-        $template->setDocuments($this->createTemplateItems($data->documents));
+        $template->setWorkFunctions($this->createTemplateItems($data->folders));
+        $template->setHeadlines($this->createTemplateItems($data->subFolders));
+        $template->setChapters($this->createTemplateItems($data->documents));
         $template->setSubDocuments($this->createTemplateItems($data->subDocuments, true));
 
         return $template;
