@@ -8,8 +8,7 @@
 
 namespace App\Models\Template;
 
-use App\Models\Chapter\Chapter;
-use App\Models\Headline\Headline;
+use App\Models\WorkFunction\WorkFunction;
 use JsonSerializable;
 
 class Template implements JsonSerializable
@@ -31,7 +30,7 @@ class Template implements JsonSerializable
      */
     private $organisationId;
     /**
-     * @var null | TemplateItem[]
+     * @var null | WorkFunction[]
      */
     private $workFunctions = null;
 
@@ -104,7 +103,7 @@ class Template implements JsonSerializable
     }
 
     /**
-     * @return null|TemplateItem[]
+     * @return null|WorkFunction[]
      */
     public function getWorkFunctions()
     {
@@ -112,43 +111,11 @@ class Template implements JsonSerializable
     }
 
     /**
-     * @param null|TemplateItem[] $workFunctions
+     * @param null|WorkFunction[] $workFunctions
      */
     public function setWorkFunctions($workFunctions): void
     {
         $this->workFunctions = $workFunctions;
-    }
-
-    /**
-     * @return null|TemplateItem[]
-     */
-    public function getHeadlines()
-    {
-        return $this->headlines;
-    }
-
-    /**
-     * @param null|TemplateItem[] $headlines
-     */
-    public function setHeadlines($headlines): void
-    {
-        $this->headlines = $headlines;
-    }
-
-    /**
-     * @return null|TemplateItem[]
-     */
-    public function getChapters()
-    {
-        return $this->chapters;
-    }
-
-    /**
-     * @param null|TemplateItem[] $chapters
-     */
-    public function setChapters($chapters): void
-    {
-        $this->chapters = $chapters;
     }
 
     public function jsonSerialize()
@@ -158,9 +125,6 @@ class Template implements JsonSerializable
             'name' => $this->getName(),
             'isDefault' => $this->isDefault(),
             'organisationId' => $this->getOrganisationId(),
-            'folders' => $this->getWorkFunctions(),
-            'subFolders' => $this->getHeadlines(),
-            'documents' => $this->getChapters(),
         ];
     }
 

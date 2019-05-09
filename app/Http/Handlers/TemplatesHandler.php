@@ -22,10 +22,15 @@ class TemplatesHandler
      * @var TemplateItemsHandler
      */
     private $templateItemHandler;
+    /**
+     * @var WorkFunctionsHandler
+     */
+    private $workFunctionsHandler;
 
-    public function __construct(TemplateItemsHandler $templateItemsHandler)
+    public function __construct(TemplateItemsHandler $templateItemsHandler, WorkFunctionsHandler $workFunctionsHandler)
     {
         $this->templateItemHandler = $templateItemsHandler;
+        $this->workFunctionsHandler = $workFunctionsHandler;
     }
 
     public function getTemplatesByOrganisation(int $organisationId)
@@ -33,10 +38,9 @@ class TemplatesHandler
         try {
             $result = DB::table(self::TEMPLATE_TABLE)
                 ->where('organisationId', $organisationId)
-                ->orWhere('organisationId', '=',0)
                 ->get();
             if ( $result === null ) {
-                return response('Template does not exist', 404);
+                $result = $this->createNewDefaultTemplate($organisationId);
             }
         } catch (\Exception $e) {
             return \response('TemplatesHandler: There is something wrong with the database connection',500);
@@ -84,65 +88,30 @@ class TemplatesHandler
 
     public function createNewTemplate(array $postData)
     {
-        $row = [
-            'name' => $postData['name'],
-            'organisationId' => $postData['organisationId'],
-            'folders' => json_encode(TemplateDefault::WORK_FUNCTIONS),
-            'subFolders' => json_encode(TemplateDefault::HEADLINES),
-            'documents' => json_encode(TemplateDefault::CHAPTERS_DEFAULT),
-            'subDocuments' => json_encode(TemplateDefault::SUB_DOCUMENTS_DEFAULT)
-        ];
         try {
             $id = DB::table(self::TEMPLATE_TABLE)
-                ->insertGetId($row);
+                ->insertGetId($postData);
         } catch (\Exception $e) {
             return \response($e->getMessage(),500);
         }
 
-        return $this->getTemplateById($id);
-    }
-
-    public function updateTemplate($id, array $postData)
-    {
-        /** @var Template $template */
         $template = $this->getTemplateById($id);
 
-        foreach ($postData as $key => $data) {
-            $setMethod = 'set'. ucfirst($key);
-            if(method_exists($template, $setMethod)) {
-                $getMethod = 'get'. ucfirst($key);
-                /** @var TemplateItem[] | TemplateItemsWithParent[] $items */
-                $items = $template->$getMethod();
-                $data = json_decode($data);
+        $this->workFunctionsHandler->postWorkFunctions($template->getId(), TemplateDefault::WORK_FUNCTIONS);
 
-                foreach($items as $item) {
-                    /** @var TemplateItem | TemplateItemsWithParent $item */
-                    if ($item instanceof TemplateItemsWithParent) {
-                        if ($item->getName() === $data->name) {
-                            foreach($item->getItems() as $subItem) {
-                                if (is_array($data->items)) {
-                                    /** @var TemplateItem $subItem */
-                                    array_filter($data->items, function($dataSubItem) use ($subItem) {
-                                        if($subItem->getName() === $dataSubItem->name) {
-                                            $this->templateItemHandler->updateTemplateItem($subItem, $dataSubItem);
-                                        }
-                                    });
-                                } else {
-                                    if($subItem->getName() === $data->items->name) {
-                                        $this->templateItemHandler->updateTemplateItem($subItem, $data->items);
-                                    }
-                                }
-                            };
-                        }
-                    } else if ($item instanceof TemplateItem) {
-                        if ($item->getName() === $data->name) {
-                            $this->templateItemHandler->updateTemplateItem($item, $data);
-                        }
-                    }
-                };
-            }
+        return $template;
+    }
+
+    public function updateTemplate(int $id, array $postData)
+    {
+        try {
+            DB::table(self::TEMPLATE_TABLE)
+                ->where('id', $id)
+                ->update($postData);
+        } catch (\Exception $e) {
+            return \response($e->getMessage(),500);
         }
-        return $this->updateTemplateDB($template);
+        return $this->getTemplateById($id);
     }
 
     public function deleteTemplate(int $id)
@@ -160,22 +129,9 @@ class TemplatesHandler
         return json_encode('Template deleted');
     }
 
-    private function updateTemplateDB(Template $template)
+    private function createNewDefaultTemplate(int $organisationId)
     {
-        try {
-            $templateArray = $template->jsonSerialize();
-            $templateArray['folders'] = json_encode($templateArray['folders']);
-            $templateArray['subFolders'] = json_encode($templateArray['subFolders']);
-            $templateArray['documents'] = json_encode($templateArray['documents']);
-            $templateArray['subDocuments'] = json_encode($template->getSubDocuments());
-
-            DB::table(self::TEMPLATE_TABLE)
-                ->where('id', $template->getId())
-                ->update($templateArray);
-        } catch (\Exception $e) {
-            return \response($e->getMessage(),500);
-        }
-        return $template;
+        return [];
     }
 
     private function makeTemplate($data): Template
@@ -185,10 +141,8 @@ class TemplatesHandler
         $template->setId($data->id);
         $template->setName($data->name);
         $template->setOrganisationId($data->organisationId);
-        $template->setWorkFunctions($this->createTemplateItems($data->folders));
-        $template->setHeadlines($this->createTemplateItems($data->subFolders));
-        $template->setChapters($this->createTemplateItems($data->documents));
-        $template->setSubDocuments($this->createTemplateItems($data->subDocuments, true));
+        $template->setDefault($data->isDefault);
+//        $template->setWorkFunctions($this->workFunctionsHandler->getWorkFunctions($template->getId()));
 
         return $template;
     }

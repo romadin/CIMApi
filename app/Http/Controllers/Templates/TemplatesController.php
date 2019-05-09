@@ -55,10 +55,9 @@ class TemplatesController
 
     public function updateTemplate(Request $request, $id)
     {
-        if( !$request->input('folders') && !$request->input('subFolders') && !$request->input('documents') && !$request->input('subDocuments')) {
+        if( !$request->input('name')) {
             return response('No new content was given', 400);
         }
-
         return $this->templateHandler->updateTemplate($id, $request->post());
     }
 
