@@ -23,19 +23,19 @@ class Chapter implements JsonSerializable
     private $name;
 
     /**
-     * @var string | null
+     * @var string|null
      */
-    private $content;
+    private $content = null;
 
     /**
      * @var int|null
      */
-    private $headlineId;
+    private $headlineId = null;
 
     /**
      * @var int|null
      */
-    private $order;
+    private $order = null;
 
     /**
      * Chapter constructor.
@@ -61,23 +61,23 @@ class Chapter implements JsonSerializable
     }
 
     /**
-     * @return string | null
+     * @return string
      */
-    public function getName()
+    public function getName(): string
     {
         return $this->name;
     }
 
     /**
-     * @param string | null $name
+     * @param string $name
      */
-    public function setName($name): void
+    public function setName(string $name): void
     {
         $this->name = $name;
     }
 
     /**
-     * @return string|null
+     * @return null|string
      */
     public function getContent(): ?string
     {
@@ -85,9 +85,9 @@ class Chapter implements JsonSerializable
     }
 
     /**
-     * @param string|null $content
+     * @param null|string $content
      */
-    public function setContent(?$content): void
+    public function setContent(?string $content): void
     {
         $this->content = $content;
     }

@@ -9,6 +9,7 @@
 namespace App\Http\Handlers;
 
 
+use App\Http\Controllers\Templates\TemplateDefault;
 use App\Models\Headline\Headline;
 use App\Models\WorkFunction\WorkFunction;
 use Exception;
@@ -17,6 +18,15 @@ use Illuminate\Support\Facades\DB;
 class HeadlinesHandler
 {
     const TABLE = 'headlines';
+    /**
+     * @var ChaptersHandler
+     */
+    private $chaptersHandler;
+
+    public function __construct(ChaptersHandler $chaptersHandler)
+    {
+        $this->chaptersHandler = $chaptersHandler;
+    }
 
     public function getHeadline(int $id, int $workFunctionId)
     {
@@ -43,14 +53,16 @@ class HeadlinesHandler
     public function postHeadlines(int $workFunctionId, array $newHeadlines)
     {
         $container = [];
-        foreach ($newHeadlines as $headline) {
+        foreach ($newHeadlines as $newHeadline) {
             try {
                 $id = DB::table(self::TABLE)
-                    ->insertGetId($headline);
+                    ->insertGetId($newHeadline);
             } catch (\Exception $e) {
                 return \response($e->getMessage(),500);
             }
-            array_push($container, $this->getHeadline($id, $workFunctionId));
+            $headline = $this->getHeadline($id, $workFunctionId);
+            $headline->setChapters($this->chaptersHandler->postChapters(TemplateDefault::CHAPTERS_FOR_HEADLINE[$headline->getName()]));
+            array_push($container, $headline);
         }
         return $container;
     }

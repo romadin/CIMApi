@@ -10,6 +10,7 @@ namespace App\Http\Handlers;
 
 
 use App\Http\Controllers\Templates\TemplateDefault;
+use App\Models\Chapter\Chapter;
 use App\Models\Headline\Headline;
 use App\Models\WorkFunction\WorkFunction;
 use Exception;
@@ -24,10 +25,15 @@ class WorkFunctionsHandler
      * @var HeadlinesHandler
      */
     private $headlinesHandler;
+    /**
+     * @var ChaptersHandler
+     */
+    private $chaptersHandler;
 
-    public function __construct(HeadlinesHandler $headlinesHandler)
+    public function __construct(HeadlinesHandler $headlinesHandler, ChaptersHandler $chaptersHandler)
     {
         $this->headlinesHandler = $headlinesHandler;
+        $this->chaptersHandler = $chaptersHandler;
     }
 
     public function getWorkFunctions(int $templateId)
@@ -81,11 +87,14 @@ class WorkFunctionsHandler
             }
             $workFunction = $this->getWorkFunction($id);
 
-            /** if it is the main function we need to create and add headlines. */
+            /** if it is the main function we need to create and add headlines, chapters. */
             if ($workFunction->isMainFunction()) {
                 $headlines = $this->headlinesHandler->postHeadlines($workFunction->getId(), TemplateDefault::HEADLINES_DEFAULT);
+                $chapters = $this->chaptersHandler->postChapters(TemplateDefault::CHAPTERS_DEFAULT, $workFunction->getId());
+
                 try {
                     $this->createWorkFunctionHasHeadlines($workFunction, $headlines);
+                    $this->createWorkFunctionHasChapters($workFunction, $chapters);
                 } catch (\Exception $e) {
                     return \response($e->getMessage(),500);
                 }
@@ -112,6 +121,29 @@ class WorkFunctionsHandler
                     'order' => $order ? $order[$i] : TemplateDefault::WORK_FUNCTION_HAS_HEADLINE_ORDER_DEFAULT[$i]
                 ];
                 DB::table(self::MAIN_HAS_HEADLINE_TABLE)
+                    ->insert($row);
+            }
+        } catch (\Exception $e) {
+            throw new Exception($e->getMessage(),500);
+        }
+    }
+
+    /**
+     * @param WorkFunction $workFunction
+     * @param Chapter[] $chapters
+     * @param int[]|null $order
+     * @throws Exception
+     */
+    private function createWorkFunctionHasChapters(WorkFunction $workFunction, $chapters, $order = null): void
+    {
+        try {
+            foreach ($chapters as $i => $chapter) {
+                $row = [
+                    'workFunctionId' => $workFunction->getId(),
+                    'chapterId' => $chapter->getId(),
+                    'order' => $order ? $order[$i] : TemplateDefault::WORK_FUNCTION_HAS_CHAPTER_ORDER_DEFAULT[$i]
+                ];
+                DB::table(self::MAIN_HAS_CHAPTER_TABLE)
                     ->insert($row);
             }
         } catch (\Exception $e) {
