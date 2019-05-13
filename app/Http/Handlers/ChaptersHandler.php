@@ -72,6 +72,44 @@ class ChaptersHandler
         return $container;
     }
 
+    /**
+     * Get the chapters connected to the work function.
+     * @param WorkFunction $workFunction
+     * @return array|\Illuminate\Http\Response|\Laravel\Lumen\Http\ResponseFactory
+     */
+    public function getChaptersByParentWorkFunction(WorkFunction $workFunction)
+    {
+        try {
+            $results = DB::table(self::TABLE)
+                ->select([
+                    self::TABLE.'.id',
+                    self::TABLE.'.name',
+                    self::TABLE.'.content',
+                    self::TABLE.'.headlineId',
+                    self::TABLE.'.order'])
+                ->join(WorkFunctionsHandler::MAIN_HAS_CHAPTER_TABLE, self::TABLE.'.id', '=',WorkFunctionsHandler::MAIN_HAS_CHAPTER_TABLE.'.chapterId')
+                ->where('workFunctionId', $workFunction->getId())
+                ->get();
+            if ( $results === null ) {
+                return [];
+            }
+        } catch (\Exception $e) {
+            return \response('ChaptersHandler: There is something wrong with the database connection',500);
+        }
+
+        $container = [];
+        try {
+            foreach ($results as $result) {
+                $chapter = $this->makeChapter($result, $workFunction->getId());
+                array_push($container, $chapter);
+            }
+        }catch (\Exception $e) {
+            return \response($e->getMessage(),500);
+        }
+
+        return $container;
+    }
+
 
     public function postChapters(array $chapters, int $workFunctionId = null)
     {

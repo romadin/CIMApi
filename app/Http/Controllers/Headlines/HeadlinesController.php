@@ -60,7 +60,7 @@ class HeadlinesController
         $headline = $this->headlinesHandler->postHeadline($request->post(), $workFunctionId);
 
         if ($headline instanceof Headline) {
-            $newOrder = $this->workFunctionsHandler->getHighestOrder($workFunctionId) + 1;
+            $newOrder = $this->workFunctionsHandler->getHighestOrderOfChildItems($workFunctionId) + 1;
             $this->workFunctionsHandler->createWorkFunctionHasHeadlines($this->workFunctionsHandler->getWorkFunction($workFunctionId), [$headline], [$newOrder]);
 
             $headline->setOrder($newOrder);

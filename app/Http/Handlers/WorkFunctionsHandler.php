@@ -69,6 +69,7 @@ class WorkFunctionsHandler
 
         return $this->makeWorkFunction($results);
     }
+
     public function postWorkFunctions(int $templateId, array $workFunctions)
     {
         $container = [];
@@ -102,6 +103,92 @@ class WorkFunctionsHandler
             array_push($container, $workFunction);
         }
         return $container;
+    }
+
+    /**
+     * Create a new work function to a template
+     * @param array $postData
+     * @return WorkFunction|\Illuminate\Http\Response|\Laravel\Lumen\Http\ResponseFactory
+     */
+    public function postWorkFunction(array $postData)
+    {
+        $postData['order'] = $this->getHighestOrder($postData['templateId']) + 1;
+        try {
+            $id = DB::table(self::MAIN_TABLE)
+                ->insertGetId($postData);
+        } catch (\Exception $e) {
+            return \response($e->getMessage(),500);
+        }
+
+        return $this->getWorkFunction($id);
+    }
+
+    public function editWorkFunction(array $postData, int $id)
+    {
+        try {
+            DB::table(self::MAIN_TABLE)
+                ->where('id', $id)
+                ->update($postData);
+        } catch (\Exception $e) {
+            return \response($e->getMessage(),500);
+        }
+
+        return $this->getWorkFunction($id);
+    }
+
+    public function reOrderWorkFunctions(WorkFunction $workFunction, int $order)
+    {
+        if ($order !== $workFunction->getOrder()) {
+            $inBetween = $order > $workFunction->getOrder() ? [$workFunction->getOrder(), $order] : [$order, $workFunction->getOrder()];
+
+            $workFunctions = DB::table(self::MAIN_TABLE)
+                ->select('id', 'order')
+                ->where('templateId', $workFunction->getTemplateId())
+                ->where('id', '!=', $workFunction->getId())
+                ->whereBetween('order', $inBetween)
+                ->get()->toArray();
+
+            foreach ($workFunctions as $item) {
+                $item->order = $order > $workFunction->getOrder() ? $item->order -1 : $item->order +1;
+                DB::table(self::MAIN_TABLE)
+                    ->where('id', $item->id)
+                    ->update((array)$item);
+            }
+
+            DB::table(self::MAIN_TABLE)
+                ->where('id', $workFunction->getId())
+                ->update(['order' => $order]);
+            $workFunction->setOrder($order);
+        }
+
+        return $workFunction;
+    }
+
+    /**
+     * We remove the main function boolean.
+     * @param WorkFunction $workFunction
+     * @return WorkFunction
+     */
+    public function removeMainFunction(WorkFunction $workFunction): WorkFunction
+    {
+        DB::table(self::MAIN_TABLE)
+            ->where('templateId', $workFunction->getTemplateId())
+            ->where('isMainFunction', '=', 1)
+            ->update(['isMainFunction' => 0]);
+        return $workFunction;
+    }
+
+    public function deleteWorkFunction(WorkFunction $workFunction)
+    {
+        try {
+            DB::table(self::MAIN_TABLE)
+                ->where('id', $workFunction->getId())
+                ->delete();
+        } catch (Exception $e) {
+            return \response($e->getMessage(),500);
+        }
+
+        return json_decode('WorkFunction deleted');
     }
 
     /**
@@ -160,7 +247,7 @@ class WorkFunctionsHandler
      * @param int $workFunctionId
      * @return int
      */
-    public function getHighestOrder(int $workFunctionId): int
+    public function getHighestOrderOfChildItems(int $workFunctionId): int
     {
         try {
             $query = DB::table(self::MAIN_HAS_HEADLINE_TABLE)
@@ -227,6 +314,25 @@ class WorkFunctionsHandler
         } catch (\Exception $e) {
             throw new Exception($e->getMessage(),500);
         }
+    }
+
+    /**
+     * Get the highest order from the work_functions table
+     * @param int $templateId
+     * @return int
+     */
+    private function getHighestOrder(int $templateId): int
+    {
+        $result = DB::table(self::MAIN_TABLE)
+            ->select('order')
+            ->where('templateId', $templateId)
+            ->orderByDesc('order')
+            ->first();
+        if ($result == null) {
+            return 0;
+        }
+
+        return $result->order;
     }
 
     private function makeWorkFunction($data): WorkFunction

@@ -50,6 +50,40 @@ class HeadlinesHandler
         return $headline;
     }
 
+    /**
+     * Get the headlines connected to the work function.
+     * @param WorkFunction $workFunction
+     * @return array|\Illuminate\Http\Response|\Laravel\Lumen\Http\ResponseFactory
+     */
+    public function getHeadlinesByWorkFunction(WorkFunction $workFunction)
+    {
+        try {
+            $results = DB::table(self::TABLE)
+                ->select([
+                    self::TABLE.'.id',
+                    self::TABLE.'.name'])
+                ->join(WorkFunctionsHandler::MAIN_HAS_HEADLINE_TABLE, self::TABLE.'.id', '=',WorkFunctionsHandler::MAIN_HAS_HEADLINE_TABLE.'.headlineId')
+                ->where('workFunctionId', $workFunction->getId())
+                ->get();
+            if ( $results === null ) {
+                return response('Headline does not exist', 404);
+            }
+        } catch (\Exception $e) {
+            return \response('HeadlinesHandler: There is something wrong with the database connection',500);
+        }
+
+        $container = [];
+        try {
+            foreach ($results as $result) {
+                array_push($container, $this->makeHeadline($result, $workFunction->getId()));
+            }
+        }catch (\Exception $e) {
+            return \response('HeadlinesHandler: There is something wrong with the database connection',500);
+        }
+
+        return $container;
+    }
+
     public function postHeadlines(int $workFunctionId, array $newHeadlines)
     {
         $container = [];
@@ -121,9 +155,8 @@ class HeadlinesHandler
         $links = DB::table(WorkFunctionsHandler::MAIN_HAS_HEADLINE_TABLE)
             ->where('headlineId', $headline->getId())
             ->get();
-
         foreach ($links as $link) {
-            $this->deleteWorkFunctionHasHeadline($headline->getId(), $link->headlineId);
+            $this->deleteWorkFunctionHasHeadline($headline->getId(), $link->workFunctionId);
         }
 
         if ($workFunction->isMainFunction()) {
