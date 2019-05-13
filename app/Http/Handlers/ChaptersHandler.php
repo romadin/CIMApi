@@ -9,9 +9,11 @@
 namespace App\Http\Handlers;
 
 
-use App\Models\Chapter\Chapter;
 use Exception;
 use Illuminate\Support\Facades\DB;
+use App\Models\Chapter\Chapter;
+use App\Models\Headline\Headline;
+use App\Models\WorkFunction\WorkFunction;
 
 class ChaptersHandler
 {
@@ -39,6 +41,37 @@ class ChaptersHandler
         return $chapter;
     }
 
+    /**
+     * Get the chapters from the parent headline.
+     * @param Headline $headline
+     * @return Chapter[]|\Illuminate\Http\Response|\Laravel\Lumen\Http\ResponseFactory
+     */
+    public function getChaptersByParentHeadline(Headline $headline)
+    {
+        try {
+            $results = DB::table(self::TABLE)
+                ->where('headlineId', $headline->getId())
+                ->get();
+            if ( $results === null ) {
+                return [];
+            }
+        } catch (\Exception $e) {
+            return \response('ChaptersHandler: There is something wrong with the database connection',500);
+        }
+
+        $container = [];
+        try {
+            foreach ($results as $result) {
+                $chapter = $this->makeChapter($result);
+                array_push($container, $chapter);
+            }
+        }catch (\Exception $e) {
+            return \response($e->getMessage(),500);
+        }
+
+        return $container;
+    }
+
 
     public function postChapters(array $chapters, int $workFunctionId = null)
     {
@@ -53,6 +86,66 @@ class ChaptersHandler
             array_push($container, $this->getChapter($id, $workFunctionId));
         }
         return $container;
+    }
+
+    /**
+     * Check if we need to delete the chapter or only the connections.
+     * @param Chapter $chapter
+     * @param WorkFunction|null $workFunction
+     * @return \Illuminate\Http\Response|\Laravel\Lumen\Http\ResponseFactory|mixed
+     */
+    public function deleteChapterAndLink(Chapter $chapter, WorkFunction $workFunction = null)
+    {
+        if ($workFunction) {
+            $this->deleteWorkFunctionHasChapter($chapter->getId(), $workFunction->getId());
+            if ($workFunction->isMainFunction()) {
+                $links = DB::table(WorkFunctionsHandler::MAIN_HAS_CHAPTER_TABLE)
+                    ->where('chapterId', $chapter->getId())
+                    ->get();
+                foreach ($links as $link) {
+                    $this->deleteWorkFunctionHasChapter($chapter->getId(), $link->chapterId);
+                }
+                return $this->deleteChapter($chapter);
+            }
+            return json_decode('Chapter link deleted');
+        }
+        return $this->deleteChapter($chapter);
+    }
+
+    /**
+     * Delete chapter
+     * @param Chapter $chapter
+     * @return \Illuminate\Http\Response|\Laravel\Lumen\Http\ResponseFactory|mixed
+     */
+    private function deleteChapter(Chapter $chapter)
+    {
+        try {
+            DB::table(self::TABLE)
+                ->where('id', $chapter->getId())
+                ->delete();
+        } catch (Exception $e) {
+            return \response($e->getMessage(),500);
+        }
+        return json_decode('Chapter deleted');
+    }
+
+    /**
+     * Delete the connection between the chapter and work function.
+     * @param int $chapterId
+     * @param int $workFunctionId
+     * @return \Illuminate\Http\Response|\Laravel\Lumen\Http\ResponseFactory|mixed
+     */
+    private function deleteWorkFunctionHasChapter(int $chapterId, int $workFunctionId)
+    {
+        try {
+            DB::table(WorkFunctionsHandler::MAIN_HAS_CHAPTER_TABLE)
+                ->where('chapterId', $chapterId)
+                ->where('workFunctionId', $workFunctionId)
+                ->delete();
+        } catch (Exception $e) {
+            return \response($e->getMessage(),500);
+        }
+        return json_decode('Chapter link deleted');
     }
     /**
      * @param Chapter $headline

@@ -36,7 +36,7 @@ class TemplateDefault
         ['workFunctionId' => 1, 'headlineId' => 6, 'order' => 7],
         ['workFunctionId' => 1, 'headlineId' => 7, 'order' => 10],
     ];
-    const WORK_FUNCTION_HAS_HEADLINE_ORDER_DEFAULT = [2, 3, 4, 5, 6, 7, 10,];
+    const WORK_FUNCTION_HAS_HEADLINE_ORDER_DEFAULT = [2, 3, 4, 5, 6, 7, 10];
     const CHAPTERS_DEFAULT = [
         ['name' => 'Projectgegevens', 'content' => ''],
         ['name' => 'Verplichtingen van de Opdrachtgever', 'content' => ''],

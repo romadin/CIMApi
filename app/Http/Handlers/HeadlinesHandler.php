@@ -61,10 +61,105 @@ class HeadlinesHandler
                 return \response($e->getMessage(),500);
             }
             $headline = $this->getHeadline($id, $workFunctionId);
-            $headline->setChapters($this->chaptersHandler->postChapters(TemplateDefault::CHAPTERS_FOR_HEADLINE[$headline->getName()]));
+
+            // set for each default chapter the parent headline id
+            $defaultChapters = array_map(function($chapterRow) use ($headline) {
+                return array_merge($chapterRow, ['headlineId' => $headline->getId()]);
+            }, TemplateDefault::CHAPTERS_FOR_HEADLINE[$headline->getName()]);
+
+            $headline->setChapters($this->chaptersHandler->postChapters($defaultChapters));
             array_push($container, $headline);
         }
         return $container;
+    }
+
+    /**
+     * Create a new headline.
+     * @param array $postData
+     * @param int $workFunctionId
+     * @return Headline|\Illuminate\Http\Response|\Laravel\Lumen\Http\ResponseFactory
+     */
+    public function postHeadline(array $postData, int $workFunctionId)
+    {
+        try {
+            $id = DB::table(self::TABLE)
+                ->insertGetId($postData);
+        } catch (\Exception $e) {
+            return \response($e->getMessage(),500);
+        }
+
+        return $this->getHeadline($id, $workFunctionId);
+    }
+
+    /**
+     * Update a headline.
+     * @param array $postData
+     * @param int $id
+     * @param int $workFunctionId
+     * @return Headline|\Illuminate\Http\Response|\Laravel\Lumen\Http\ResponseFactory
+     */
+    public function updateHeadline(array $postData, int $id, int $workFunctionId)
+    {
+        try {
+            DB::table(self::TABLE)
+                ->update($postData);
+        } catch (\Exception $e) {
+            return \response($e->getMessage(),500);
+        }
+
+        return $this->getHeadline($id, $workFunctionId);
+    }
+
+    /**
+     * Delete headline only if the work function is the main function otherwise delete the link between headline and work function.
+     * @param Headline $headline
+     * @param WorkFunction $workFunction
+     * @return \Illuminate\Http\Response|\Laravel\Lumen\Http\ResponseFactory|mixed
+     */
+    public function deleteHeadline(Headline $headline, WorkFunction $workFunction)
+    {
+        $links = DB::table(WorkFunctionsHandler::MAIN_HAS_HEADLINE_TABLE)
+            ->where('headlineId', $headline->getId())
+            ->get();
+
+        foreach ($links as $link) {
+            $this->deleteWorkFunctionHasHeadline($headline->getId(), $link->headlineId);
+        }
+
+        if ($workFunction->isMainFunction()) {
+            foreach ($this->chaptersHandler->getChaptersByParentHeadline($headline) as $chapter) {
+                $this->chaptersHandler->deleteChapterAndLink($chapter);
+            }
+            try {
+                // delete headline
+                DB::table(self::TABLE)
+                    ->where('id', $headline->getId())
+                    ->delete();
+            } catch (Exception $e) {
+                return \response($e->getMessage(),500);
+            }
+            return json_decode('Headline deleted');
+        }
+        return json_decode('Headline link deleted');
+    }
+
+    /**
+     * Delete the connection between headline and work function.
+     * @param int $headlineId
+     * @param int $workFunctionId
+     * @return \Illuminate\Http\Response|\Laravel\Lumen\Http\ResponseFactory|mixed
+     */
+    private function deleteWorkFunctionHasHeadline(int $headlineId, int $workFunctionId)
+    {
+        try {
+            DB::table(WorkFunctionsHandler::MAIN_HAS_HEADLINE_TABLE)
+                ->where('headlineId', $headlineId)
+                ->where('workFunctionId', $workFunctionId)
+                ->delete();
+        } catch (Exception $e) {
+            return \response($e->getMessage(),500);
+        }
+        return json_decode('Headline link deleted');
     }
 
     /**

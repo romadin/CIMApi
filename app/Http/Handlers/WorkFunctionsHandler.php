@@ -104,6 +104,84 @@ class WorkFunctionsHandler
         return $container;
     }
 
+    /**
+     * Update the order of the items from the work function.
+     * Example ( order 1 going to be order 8. So we take all the orders between 1 and 8 except the one that is going to get a new order and we subtract 1 )
+     * @param int $order
+     * @param Headline|Chapter $childItem
+     * @param int $workFunctionId
+     * @return Headline|Chapter
+     */
+    public function updateChildOrder(int $order, $childItem, int $workFunctionId)
+    {
+        if ($order !== $childItem->getOrder()) {
+            $inBetween = $order > $childItem->getOrder() ? [$childItem->getOrder(), $order] : [$order, $childItem->getOrder()];
+
+            $headlinesLink = DB::table(self::MAIN_HAS_HEADLINE_TABLE)
+                ->select('headlineId', 'order')
+                ->where('workFunctionId', $workFunctionId)
+                ->whereBetween('order', $inBetween)
+                ->get()->toArray();
+
+            $chaptersLink = DB::table(self::MAIN_HAS_CHAPTER_TABLE)
+                ->select('chapterId', 'order')
+                ->where('workFunctionId', $workFunctionId)
+                ->whereBetween('order', $inBetween)
+                ->get()->toArray();
+
+            // filter the current child item out of the result
+            $container = array_merge($headlinesLink, $chaptersLink);
+            $container = array_filter($container, function($item) use ($childItem) { return $item->order !== $childItem->getOrder(); });
+
+            foreach ($container as $item) {
+                $key = isset($item->chapterId) ? 'chapterId' : 'headlineId';
+                $tableName = 'work_function_has_' . str_replace('Id', '', $key);
+                $item->order = $order > $childItem->getOrder() ? $item->order -1 : $item->order +1;
+                DB::table($tableName)
+                    ->where('workFunctionId', $workFunctionId)
+                    ->where( $key, $item->$key)
+                    ->update((array)$item);
+            }
+
+            $className = substr(get_class($childItem), strrpos(get_class($childItem), '\\') + 1);
+            DB::table($childItem instanceof Headline ? self::MAIN_HAS_HEADLINE_TABLE : self::MAIN_HAS_CHAPTER_TABLE)
+                ->where('workFunctionId', $workFunctionId)
+                ->where( strtolower($className) . 'Id', $childItem->getId())
+                ->update(['order' => $order]);
+
+            $childItem->setOrder($order);
+        }
+
+        return $childItem;
+    }
+
+    /**
+     * Get the highest order of all the items in the workFunction
+     * @param int $workFunctionId
+     * @return int
+     */
+    public function getHighestOrder(int $workFunctionId): int
+    {
+        try {
+            $query = DB::table(self::MAIN_HAS_HEADLINE_TABLE)
+                ->select('order')
+                ->where('workFunctionId', $workFunctionId);
+
+            $result = DB::table(self::MAIN_HAS_CHAPTER_TABLE)
+                ->select('order')
+                ->where('workFunctionId', $workFunctionId)
+                ->union($query)
+                ->orderByDesc('order')
+                ->first();
+            if ($result == null) {
+                return 0;
+            }
+        } catch (\Exception $e) {
+            return response('There is something wrong with the connection', 403);
+        }
+
+        return $result->order;
+    }
 
     /**
      * @param WorkFunction $workFunction
@@ -111,7 +189,7 @@ class WorkFunctionsHandler
      * @param int[]|null $order
      * @throws Exception
      */
-    private function createWorkFunctionHasHeadlines(WorkFunction $workFunction, $headlines, $order = null): void
+    public function createWorkFunctionHasHeadlines(WorkFunction $workFunction, $headlines, $order = null): void
     {
         try {
             foreach ($headlines as $i => $headline) {

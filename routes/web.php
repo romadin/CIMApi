@@ -70,6 +70,11 @@ $router->group(['middleware' => 'auth'], function () use ($router)
         $router->post('templates', 'Templates\TemplatesController@postTemplate');
         $router->post('templates/{id}', 'Templates\TemplatesController@updateTemplate');
         $router->delete('templates/{id}', 'Templates\TemplatesController@deleteTemplate');
+
+        $router->get('headlines/{id}', 'Headlines\HeadlinesController@getHeadline');
+        $router->post('headlines', 'Headlines\HeadlinesController@postHeadline');
+        $router->post('headlines/{id}', 'Headlines\HeadlinesController@editHeadline');
+        $router->delete('headlines/{id}', 'Headlines\HeadlinesController@deleteHeadline');
     });
 });
 
