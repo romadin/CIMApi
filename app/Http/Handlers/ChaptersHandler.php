@@ -110,7 +110,6 @@ class ChaptersHandler
         return $container;
     }
 
-
     public function postChapters(array $chapters, int $workFunctionId = null)
     {
         $container = [];
@@ -124,6 +123,54 @@ class ChaptersHandler
             array_push($container, $this->getChapter($id, $workFunctionId));
         }
         return $container;
+    }
+
+    public function postChapter(array $postData, int $workFunctionId = null)
+    {
+        try {
+            $id = DB::table(self::TABLE)
+                ->insertGetId($postData);
+        } catch (\Exception $e) {
+            return \response($e->getMessage(),500);
+        }
+
+        return $this->getChapter($id, $workFunctionId);
+    }
+
+    public function updateChapter(Chapter $chapter)
+    {
+        try {
+            DB::table(self::TABLE)
+                ->where('id', $chapter->getId())
+                ->update($chapter->jsonSerialize());
+        } catch (\Exception $e) {
+            return \response($e->getMessage(),500);
+        }
+        return $chapter;
+    }
+
+    /**
+     * Reorder the chapters within the same headline.
+     * @param Chapter $chapter
+     * @param int $order
+     */
+    public function reOrderChaptersByHeadline(Chapter $chapter, int $order): void
+    {
+        $inBetween = $order > $chapter->getOrder() ? [$chapter->getOrder(), $order] : [$order, $chapter->getOrder()];
+
+        $chapters = DB::table(self::TABLE)
+            ->select('id', 'order')
+            ->where('headlineId', $chapter->getHeadlineId())
+            ->where('id', '!=', $chapter->getId())
+            ->whereBetween('order', $inBetween)
+            ->get()->toArray();
+
+        foreach ($chapters as $item) {
+            $item->order = $order > $chapter->getOrder() ? $item->order -1 : $item->order +1;
+            DB::table(self::TABLE)
+                ->where('id', $item->id)
+                ->update((array)$item);
+        }
     }
 
     /**
@@ -148,6 +195,25 @@ class ChaptersHandler
             return json_decode('Chapter link deleted');
         }
         return $this->deleteChapter($chapter);
+    }
+
+    /**
+     * Get the highest order from the same headline.
+     * @param int $headlineId
+     * @return int
+     */
+    public function getHighestOrderInHeadline(int $headlineId): int
+    {
+        $result = DB::table(self::TABLE)
+            ->select('order')
+            ->where('headlineId', $headlineId)
+            ->orderByDesc('order')
+            ->first();
+        if ($result == null) {
+            return 0;
+        }
+
+        return $result->order;
     }
 
     /**

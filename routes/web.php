@@ -80,6 +80,12 @@ $router->group(['middleware' => 'auth'], function () use ($router)
         $router->post('headlines', 'Headlines\HeadlinesController@postHeadline');
         $router->post('headlines/{id}', 'Headlines\HeadlinesController@editHeadline');
         $router->delete('headlines/{id}', 'Headlines\HeadlinesController@deleteHeadline');
+
+        $router->get('chapters/{id}', 'Chapters\ChaptersController@getChapter');
+        $router->post('chapters', 'Chapters\ChaptersController@postChapter');
+        $router->post('chapters/{id}', 'Chapters\ChaptersController@editChapter');
+        $router->delete('chapters/{id}', 'Chapters\ChaptersController@deleteChapter');
+
     });
 });
 

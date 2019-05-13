@@ -299,7 +299,7 @@ class WorkFunctionsHandler
      * @param int[]|null $order
      * @throws Exception
      */
-    private function createWorkFunctionHasChapters(WorkFunction $workFunction, $chapters, $order = null): void
+    public function createWorkFunctionHasChapters(WorkFunction $workFunction, $chapters, $order = null): void
     {
         try {
             foreach ($chapters as $i => $chapter) {
