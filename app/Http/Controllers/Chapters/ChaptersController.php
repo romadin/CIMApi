@@ -37,6 +37,21 @@ class ChaptersController
         $this->chaptersHandler = $chaptersHandler;
     }
 
+    public function getChapters(Request $request)
+    {
+        if( !$request->input('headlineId') && !$request->input('workFunctionId') ) {
+            return response('parent id is not given', 400);
+        }
+
+        if( $request->input('headlineId') && $request->input('workFunctionId') ) {
+            $headline = $this->headlinesHandler->getHeadline($request->input('headlineId'), $request->input('workFunctionId'));
+            return $this->chaptersHandler->getChaptersByParentHeadline($headline);
+        } else if ($request->input('workFunctionId')) {
+            $workFunction = $this->workFunctionsHandler->getWorkFunction($request->input('workFunctionId'));
+            return $this->chaptersHandler->getChaptersByParentWorkFunction($workFunction);
+        }
+    }
+
     public function getChapter(Request $request, $id)
     {
         return $this->chaptersHandler->getChapter($id, $request->input('workFunctionId'));

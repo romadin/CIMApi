@@ -77,11 +77,13 @@ $router->group(['middleware' => 'auth'], function () use ($router)
         $router->post('workFunctions/{id}', 'WorkFunctions\WorkFunctionsController@editWorkFunction');
         $router->delete('workFunctions/{id}', 'WorkFunctions\WorkFunctionsController@deleteWorkFunction');
 
+        $router->get('headlines', 'Headlines\HeadlinesController@getHeadlines');
         $router->get('headlines/{id}', 'Headlines\HeadlinesController@getHeadline');
         $router->post('headlines', 'Headlines\HeadlinesController@postHeadline');
         $router->post('headlines/{id}', 'Headlines\HeadlinesController@editHeadline');
         $router->delete('headlines/{id}', 'Headlines\HeadlinesController@deleteHeadline');
 
+        $router->get('chapters', 'Chapters\ChaptersController@getChapters');
         $router->get('chapters/{id}', 'Chapters\ChaptersController@getChapter');
         $router->post('chapters', 'Chapters\ChaptersController@postChapter');
         $router->post('chapters/{id}', 'Chapters\ChaptersController@editChapter');

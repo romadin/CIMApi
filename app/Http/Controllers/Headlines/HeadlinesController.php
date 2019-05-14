@@ -38,6 +38,15 @@ class HeadlinesController
         $this->chaptersHandler = $chaptersHandler;
     }
 
+    public function getHeadlines(Request $request)
+    {
+        if( !$request->input('workFunctionId')) {
+            return response('Work function id is not given', 400);
+        }
+
+        return $this->headlinesHandler->getHeadlinesByWorkFunction($this->workFunctionsHandler->getWorkFunction($request->input('workFunctionId')));
+    }
+
     public function getHeadline(Request $request, $id)
     {
         if( !$request->input('workFunctionId')) {

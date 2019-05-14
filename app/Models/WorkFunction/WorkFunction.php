@@ -174,8 +174,6 @@ class WorkFunction implements JsonSerializable
             'isMainFunction' => $this->isMainFunction(),
             'order' => $this->getOrder(),
             'templateId' => $this->getTemplateId(),
-            'headlines' => $this->getHeadlines(),
-            'chapters' => $this->getChapters(),
         ];
     }
 }

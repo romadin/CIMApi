@@ -106,7 +106,6 @@ class Headline implements JsonSerializable
         return [
             'id' => $this->getId(),
             'name' => $this->getName(),
-            'chapters' => $this->getChapters(),
             'order' => $this->getOrder(),
         ];
     }
