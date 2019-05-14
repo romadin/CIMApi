@@ -128,9 +128,9 @@ class ProjectsController extends ApiController
             'organisationId' => $request->input('organisationId'),
         ];
 
-        $newId = $this->projectsHandler->postProject($postData);
+        $project = $this->projectsHandler->postProject($postData);
 
-        if ( $newId ) {
+        if ( $project ) {
             if ( !$request->input('templateId')) {
                 return response('No template was given', 400);
             }
@@ -140,9 +140,10 @@ class ProjectsController extends ApiController
             if ($template instanceof Response) {
                 return $template;
             }
-            $this->foldersHandler->createFoldersTemplate($template->getWorkFunctions(), $template, $newId);
-            $result = DB::table(self::PROJECT_TABLE)->where('id', $newId)->first();
-            return $this->getReturnValueObject($request, $this->projectsHandler->makeProject($result));
+
+            $this->foldersHandler->createFoldersWithTemplate($template->getWorkFunctions(), $template, $project);
+
+            return $this->getReturnValueObject($request, $project);
         }
 
         return response('something went wrong', 400);

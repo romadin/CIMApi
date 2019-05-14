@@ -36,6 +36,15 @@ class WorkFunctionsController
         $this->chaptersHandler = $chaptersHandler;
     }
 
+    public function getWorkFunctions(Request $request)
+    {
+        if( !$request->input('templateId') ) {
+            return response('template id is not given', 400);
+        }
+
+        return $this->workFunctionsHandler->getWorkFunctions($request->input('templateId'));
+    }
+
     public function getWorkFunction($id)
     {
         return $this->workFunctionsHandler->getWorkFunction($id);
@@ -44,7 +53,7 @@ class WorkFunctionsController
     public function postWorkFunction(Request $request)
     {
         if( !$request->input('templateId') ) {
-            return response('Work function id is not given', 400);
+            return response('template id is not given', 400);
         }
         if( !$request->input('name') ) {
             return response('Headline name is not given', 400);

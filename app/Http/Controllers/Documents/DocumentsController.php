@@ -11,6 +11,7 @@ namespace App\Http\Controllers\Documents;
 
 use App\Http\Controllers\ApiController;
 use App\Http\Handlers\DocumentsHandler;
+use App\Http\Handlers\FoldersHandler;
 use App\Http\Handlers\TemplatesHandler;
 use Illuminate\Http\Request;
 
@@ -27,16 +28,23 @@ class DocumentsController extends ApiController
      */
     private $templateHandler;
 
-    public function __construct(DocumentsHandler $documentsHandler, TemplatesHandler $templatesHandler)
+    /**
+     * @var FoldersHandler
+     */
+    private $foldersHandler;
+
+    public function __construct(DocumentsHandler $documentsHandler, TemplatesHandler $templatesHandler, FoldersHandler $foldersHandler)
     {
         $this->documentsHandler = $documentsHandler;
         $this->templateHandler = $templatesHandler;
+        $this->foldersHandler = $foldersHandler;
     }
 
     public function getDocuments(Request $request)
     {
         if ( $request->input('folderId') ) {
-            return $this->getReturnValueArray($request, $this->documentsHandler->getDocumentsFromFolder($request->input('folderId')));
+            $folder = $this->foldersHandler->getFolderById($request->input('folderId'));
+            return $this->getReturnValueArray($request, $this->documentsHandler->getDocumentsFromFolder($folder));
         }
         return response('Not implemented', 501);
     }
@@ -47,22 +55,14 @@ class DocumentsController extends ApiController
             return $this->editDocument($request, $id);
         }
 
-        if( $request->input('template') && $request->input('folderId') ) {
-            $newDocuments = $this->documentsHandler->createDocumentsWithTemplate(
-                $request->input('folderId'),
-                $this->templateHandler->getTemplateById($request->input('templateId'))->getChapters()
-            );
-            return $this->getReturnValueArray($request, $newDocuments);
+        if (!$request->input('folderId')) {
+            return response('parent folder id not given', 501);
         }
 
-        if ($request->input('folderId')) {
-            return $this->documentsHandler->createDocument($request);
-
-        }
-        return response('Not implemented', 501);
+        return $this->documentsHandler->postDocument($request->post(), $this->foldersHandler->getFolderById($request->input('folderId')));
     }
 
-    public function deleteDocument(Request $request, $id )
+    public function deleteDocument($id)
     {
         $done = $this->documentsHandler->deleteDocument($id);
         if ($done) {

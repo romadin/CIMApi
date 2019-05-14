@@ -8,9 +8,9 @@
 
 namespace App\Http\Handlers;
 
+use App\Models\Chapter\Chapter;
 use App\Models\Document\Document;
-use App\Models\Template\TemplateItem;
-use Illuminate\Http\Request;
+use App\Models\Folder\Folder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 
@@ -22,10 +22,10 @@ class DocumentsHandler
     const FOLDER_LINK_SUB_FOLDER_TABLE = 'folders_has_folders';
 
     /**
-     * @param int $folderId
+     * @param Folder $folder
      * @return Document[]
      */
-    public function getDocumentsFromFolder(int $folderId)
+    public function getDocumentsFromFolder(Folder $folder)
     {
         $documentsResult = DB::table(self::DOCUMENT_LINK_FOLDER_TABLE)
             ->select([
@@ -35,7 +35,7 @@ class DocumentsHandler
                 self::DOCUMENT_LINK_FOLDER_TABLE.'.folderId',
                 self::DOCUMENT_LINK_FOLDER_TABLE. '.order',
             ])
-            ->where(self::DOCUMENT_LINK_FOLDER_TABLE.'.folderId', '=', $folderId)
+            ->where(self::DOCUMENT_LINK_FOLDER_TABLE.'.folderId', '=', $folder->getId())
             ->join(self::DOCUMENT_TABLE, self::DOCUMENT_LINK_FOLDER_TABLE. '.documentId', '=', self::DOCUMENT_TABLE. '.id'  )
             ->get();
 
@@ -67,26 +67,18 @@ class DocumentsHandler
         return $this->makeDocument($documentResult);
     }
 
-    public function createDocument(Request $request)
+    public function postDocument(array $postData, Folder $parentFolder, $order = null)
     {
-        $row = [
-            'originalName' => $request->input('name'),
-            'name' => $request->input('name'),
-            'content' => $request->input('content'),
-        ];
         try {
             $id = DB::table(self::DOCUMENT_TABLE)
-                ->insertGetId($row);
-
-
-            $order = $request->input('order');
+                ->insertGetId($postData);
 
             // insert the link folder has document en set order.
             DB::table(self::DOCUMENT_LINK_FOLDER_TABLE)
                 ->insert([
-                    'folderId' => $request->input('folderId'),
+                    'folderId' => $parentFolder->getId(),
                     'documentId' => $id,
-                    'order' => isset($order) ? $order : $this->getLatestOrderFromFolder($request->input('folderId')) + 1,
+                    'order' => isset($order) ? $order : $this->getLatestOrderFromFolder($parentFolder->getId()) + 1,
                 ]);
 
             $document = $this->getDocumentById($id);
@@ -98,33 +90,22 @@ class DocumentsHandler
 
     /**
      * Create document from an given template.
-     * @param int $folderId
-     * @param array $templateContent
+     * @param Folder $folder
+     * @param Chapter[] $documents
      * @return Document[]
      */
-    public function createDocumentsWithTemplate(int $folderId, $templateContent)
+    public function createDocumentsWithTemplate(Folder $folder, $documents)
     {
-        foreach ($templateContent as $documentTemplate) {
-            if ($documentTemplate instanceof TemplateItem) {
-                $row = [
-                    'originalName' => $documentTemplate->getName(),
-                    'name' => null,
-                    'content' => $documentTemplate->getContent(),
-                    'fromTemplate' => true,
-                ];
-            }
-
-            $newDocumentID = DB::table(self::DOCUMENT_TABLE)->insertGetId($row);
-
-            // insert the link folder has document en set order.
-            DB::table(self::DOCUMENT_LINK_FOLDER_TABLE)
-                ->insert([
-                    'folderId' => $folderId,
-                    'documentId' => $newDocumentID,
-                    'order' => $documentTemplate instanceof TemplateItem ? $documentTemplate->getOrder() : $documentTemplate['order'],
-                ]);
+        foreach ($documents as $document) {
+            $row = [
+                'originalName' => $document->getName(),
+                'name' => null,
+                'content' => $document->getContent(),
+                'fromTemplate' => true,
+            ];
+            $this->postDocument($row, $folder, $document->getOrder());
         }
-        return $this->getDocumentsFromFolder($folderId);
+        return $this->getDocumentsFromFolder($folder);
     }
 
     public function editDocument(array $postData, int $id)
@@ -141,17 +122,17 @@ class DocumentsHandler
         return $document;
     }
 
-    public function deleteDocumentsByFolderId(int $folderId)
+    public function deleteDocumentsByFolderId(Folder $folder)
     {
-        $documents = $this->getDocumentsFromFolder($folderId);
+        $documents = $this->getDocumentsFromFolder($folder);
         try {
             foreach ($documents as $document) {
                 DB::table(self::DOCUMENT_LINK_FOLDER_TABLE)
                     ->where('documentId', $document->getId())
-                    ->where('folderId', $folderId)
+                    ->where('folderId', $folder->getId())
                     ->delete();
 
-                $document->setParentFolderIds(array_diff($document->getParentFolderIds(), [$folderId]));
+                $document->setParentFolderIds(array_diff($document->getParentFolderIds(), [$folder->getId()]));
 
                 if ( empty($document->getParentFolderIds()) ) {
                     DB::table(self::DOCUMENT_TABLE)->delete($document->getId());

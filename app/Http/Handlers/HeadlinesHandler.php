@@ -66,7 +66,7 @@ class HeadlinesHandler
                 ->where('workFunctionId', $workFunction->getId())
                 ->get();
             if ( $results === null ) {
-                return response('Headline does not exist', 404);
+                return [];
             }
         } catch (\Exception $e) {
             return \response('HeadlinesHandler: There is something wrong with the database connection',500);
@@ -232,6 +232,7 @@ class HeadlinesHandler
             throw new Exception($e->getMessage(),500);
         }
         $headline->setName($data->name);
+        $headline->setChapters($this->chaptersHandler->getChaptersByParentHeadline($headline));
 
         return $headline;
     }

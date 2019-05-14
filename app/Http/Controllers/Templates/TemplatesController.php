@@ -14,7 +14,6 @@ use Illuminate\Http\Request;
 
 class TemplatesController
 {
-
     /**
      * @var TemplatesHandler
      */

@@ -71,6 +71,7 @@ $router->group(['middleware' => 'auth'], function () use ($router)
         $router->post('templates/{id}', 'Templates\TemplatesController@updateTemplate');
         $router->delete('templates/{id}', 'Templates\TemplatesController@deleteTemplate');
 
+        $router->get('workFunctions', 'WorkFunctions\WorkFunctionsController@getWorkFunctions');
         $router->get('workFunctions/{id}', 'WorkFunctions\WorkFunctionsController@getWorkFunction');
         $router->post('workFunctions', 'WorkFunctions\WorkFunctionsController@postWorkFunction');
         $router->post('workFunctions/{id}', 'WorkFunctions\WorkFunctionsController@editWorkFunction');

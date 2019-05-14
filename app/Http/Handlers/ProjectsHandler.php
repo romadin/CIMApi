@@ -38,6 +38,10 @@ class ProjectsHandler
 
     }
 
+    /**
+     * @param array $postData
+     * @return Project|Response|\Laravel\Lumen\Http\ResponseFactory
+     */
     public function postProject(array $postData)
     {
         try {
@@ -50,7 +54,7 @@ class ProjectsHandler
             return \response('ProjectHandler: There is something wrong with the database connection',500);
         }
 
-        return $id;
+        return $this->getProject($id);
     }
 
     /**

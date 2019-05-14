@@ -10,8 +10,11 @@ namespace App\Http\Handlers;
 
 
 use App\Models\Folder\Folder;
+use App\Models\Headline\Headline;
+use App\Models\Project\Project;
 use App\Models\Template\Template;
 use App\Models\Template\TemplateItem;
+use App\Models\WorkFunction\WorkFunction;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 
@@ -25,12 +28,22 @@ class FoldersHandler
      * @var DocumentsHandler
      */
     private $documentsHandler;
+    /**
+     * @var HeadlinesHandler
+     */
+    private $headlinesHandler;
+    /**
+     * @var ChaptersHandler
+     */
+    private $chaptersHandler;
 
     private $folderCache = [];
 
-    public function __construct(DocumentsHandler $documentsHandler)
+    public function __construct(DocumentsHandler $documentsHandler, HeadlinesHandler $headlinesHandler, ChaptersHandler $chaptersHandler)
     {
         $this->documentsHandler = $documentsHandler;
+        $this->headlinesHandler = $headlinesHandler;
+        $this->chaptersHandler = $chaptersHandler;
     }
 
     public function getFoldersByProjectId($projectId)
@@ -95,33 +108,35 @@ class FoldersHandler
         return $this->makeFolder($folder);
     }
 
-    public function createFoldersTemplate(array $templateContent, Template $template, $projectId = null, $parentFolderId = null): void
+    /**
+     * @param WorkFunction[]| Headline[] $items
+     * @param Template $template
+     * @param null|Project $project
+     * @param null|int $parentFolderId
+     */
+    public function createFoldersWithTemplate($items, Template $template, $project = null, $parentFolderId = null): void
     {
-        foreach ($templateContent as $folderTemplate) {
+        foreach ($items as $item) {
             $row = [
-                'name' => $folderTemplate->getName(),
-                'projectId' => $projectId,
-                'mainFolder' => $folderTemplate->getName() === 'BIM-Uitvoeringsplan' ? true : false,
+                'name' => $item->getName(),
+                'projectId' => $project ? $project->getId() : null,
+                'mainFolder' => method_exists($item, 'isMainFunction') ? $item->isMainFunction(): false,
                 'fromTemplate' => true,
             ];
 
-            $newFolderId = DB::table(self::FOLDERS_TABLE)->insertGetId($row);
-            if ($projectId === null) {
-                // if project id is null then its a link between folders, so folder gets a sub folder.
-                $this->insertLink($parentFolderId, $newFolderId, $folderTemplate->getOrder(), self::FOLDERS_LINK_TABLE,  'folderSubId');
-                // on the subFolder we need to attach documents with the given template
-                $templateContent = array_filter($template->getSubDocuments(), function($parentFolder) use ($folderTemplate) {
-                    return $parentFolder->getName() === $folderTemplate->getName();
-                });
-                $templateContent = reset($templateContent);
-                $this->documentsHandler->createDocumentsWithTemplate($newFolderId, $templateContent->getItems());
-            }
-        }
+            /**
+             * @var Folder $newFolder
+             */
+            $newFolder = $this->postFolder($row);
 
-        // If there is a parent folder id we dont want to set sub folders.
-        if ( $parentFolderId === null ) {
-            // @todo make a more variable sub folder template, now its hardcoded.
-            $this->setSubFolderFromProjectId($projectId, $template);
+            if ($project === null) {
+                // if project id is null then its a link between folders, so folder gets a sub folder.
+                $this->insertLink($parentFolderId, $newFolder->getId(), $item->getOrder(), self::FOLDERS_LINK_TABLE,  'folderSubId');
+
+                $this->documentsHandler->createDocumentsWithTemplate($newFolder, $item->getChapters());
+            } else if ( $parentFolderId === null && $item instanceof WorkFunction && $item->isMainFunction()) {
+                $this->setSubFolderFromProjectId($project, $template, $item);
+            }
         }
     }
 
@@ -131,16 +146,15 @@ class FoldersHandler
             $id = DB::table(self::FOLDERS_TABLE)
                 ->insertGetId([
                     'name' => $data['name'],
-                    'projectId' => isset($data['projectId']) ? $data['projectId'] : null
+                    'projectId' => isset($data['projectId']) ? $data['projectId'] : null,
+                    'mainFolder' => isset($data['mainFolder']) ? $data['mainFolder'] : false,
+                    'fromTemplate' => isset($data['fromTemplate']) ? $data['fromTemplate'] : false,
                 ]);
 
-            if ($data['parentFolderId']) {
-                DB::table(self::FOLDERS_LINK_TABLE)
-                    ->insert([
-                        'folderId' => $data['parentFolderId'],
-                        'folderSubId' => $id,
-                        'order' => $this->documentsHandler->getLatestOrderFromFolder($data['parentFolderId']) + 1
-                    ]);
+            if (isset($data['parentFolderId'])) {
+                $order = $this->documentsHandler->getLatestOrderFromFolder($data['parentFolderId']) + 1;
+                $this->insertLink($data['parentFolderId'], $id, $order, self::FOLDERS_LINK_TABLE, 'folderSubId');
+
                 return $this->getFolderByIdWithOrder($id, $data['parentFolderId']);
             }
         } catch (\Exception $e) {
@@ -177,7 +191,7 @@ class FoldersHandler
                 }
             }
             try {
-                $this->documentsHandler->deleteDocumentsByFolderId($folder->getId());
+                $this->documentsHandler->deleteDocumentsByFolderId($folder);
 
                 DB::table(self::FOLDERS_LINK_TABLE)
                     ->where('folderId', $folder->getId())
@@ -233,24 +247,26 @@ class FoldersHandler
 
     /**
      * Set Sub Folders at the main folder by the given template.
-     * @param int $projectId
+     * @param Project $project
      * @param Template $template
+     * @param WorkFunction $mainWorkFunction
      * @return bool | \Illuminate\Http\Response|\Laravel\Lumen\Http\ResponseFactory
      */
-    public function setSubFolderFromProjectId(int $projectId, Template $template)
+    public function setSubFolderFromProjectId(Project $project, Template $template, WorkFunction $mainWorkFunction)
     {
         try {
             $result = DB::table(self::FOLDERS_TABLE)
-                ->where('projectId', $projectId)
+                ->where('projectId', $project->getId())
                 ->where('mainFolder', true)
                 ->first();
+            $folder = $this->makeFolder($result);
         } catch (\Exception $e)
         {
             return response('FoldersHandler: There is something wrong with the database connection', 403);
         }
 
-        $this->createFoldersTemplate($template->getHeadlines(), $template, null, $result->id);
-        $this->documentsHandler->createDocumentsWithTemplate($result->id, $template->getChapters());
+        $this->createFoldersWithTemplate($this->headlinesHandler->getHeadlinesByWorkFunction($mainWorkFunction), $template, null, $result->id);
+        $this->documentsHandler->createDocumentsWithTemplate($folder, $this->chaptersHandler->getChaptersByParentWorkFunction($mainWorkFunction));
         return true;
     }
 
@@ -279,9 +295,12 @@ class FoldersHandler
     public function insertLink(int $folderId, int $subItemId, int $order, string $table, string $subItemColumn)
     {
         try {
+            // check if link already exist
             $result = DB::table($table)
                 ->where('folderId', $folderId)
-                ->where($subItemColumn, $subItemId)->first();
+                ->where($subItemColumn, $subItemId)
+                ->first();
+
             if ( $result === null ) {
                 DB::table($table)->insert([
                     'folderId' => $folderId,
@@ -325,7 +344,6 @@ class FoldersHandler
     /**
      * @param Folder $folder
      * @param string $type = folderId | folderSubId
-     * @param null | Folder $folderToDoSomething
      * @return array
      */
     private function getSubFolders(Folder $folder, string $type) {
@@ -347,7 +365,7 @@ class FoldersHandler
 
         if (! empty($subFoldersResult)) {
             foreach ($subFoldersResult as $result) {
-                array_push($subFolders, $this->makeFolder($result, $folder));
+                array_push($subFolders, $this->makeFolder($result));
             }
         }
         return $subFolders;
