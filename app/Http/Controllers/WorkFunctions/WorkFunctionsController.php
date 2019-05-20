@@ -12,6 +12,7 @@ namespace App\Http\Controllers\WorkFunctions;
 use App\Http\Handlers\ChaptersHandler;
 use App\Http\Handlers\HeadlinesHandler;
 use App\Http\Handlers\WorkFunctionsHandler;
+use Exception;
 use Illuminate\Http\Request;
 
 class WorkFunctionsController
@@ -65,6 +66,7 @@ class WorkFunctionsController
     public function editWorkFunction(Request $request, $id)
     {
         $workFunction = $this->getWorkFunction($id);
+        $postData = $request->post();
         if ($request->input('order')) {
             // change order
             return $this->workFunctionsHandler->reOrderWorkFunctions($workFunction, $request->input('order'));
@@ -73,7 +75,21 @@ class WorkFunctionsController
             $this->workFunctionsHandler->removeMainFunction($workFunction);
         }
 
-        return $this->workFunctionsHandler->editWorkFunction($request->post(), $id);
+        try {
+            if (isset($postData['chapters'])) {
+                $this->workFunctionsHandler->addChapters($workFunction, $postData['chapters']);
+                unset($postData['chapters']);
+            }
+            if (isset($postData['headlines'])) {
+                $this->workFunctionsHandler->addHeadlines($workFunction, $postData['headlines']);
+                unset($postData['headlines']);
+            }
+        } catch (Exception $e) {
+            return \response($e->getMessage(),500);
+        }
+
+
+        return $this->workFunctionsHandler->editWorkFunction($postData, $id);
     }
 
     public function deleteWorkFunction($id)

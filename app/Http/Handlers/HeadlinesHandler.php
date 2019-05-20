@@ -136,6 +136,7 @@ class HeadlinesHandler
     {
         try {
             DB::table(self::TABLE)
+                ->where('id', $id)
                 ->update($postData);
         } catch (\Exception $e) {
             return \response($e->getMessage(),500);

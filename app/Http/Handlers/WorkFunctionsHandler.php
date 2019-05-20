@@ -116,7 +116,7 @@ class WorkFunctionsHandler
         try {
             $id = DB::table(self::MAIN_TABLE)
                 ->insertGetId($postData);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return \response($e->getMessage(),500);
         }
 
@@ -129,11 +129,70 @@ class WorkFunctionsHandler
             DB::table(self::MAIN_TABLE)
                 ->where('id', $id)
                 ->update($postData);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return \response($e->getMessage(),500);
         }
 
         return $this->getWorkFunction($id);
+    }
+
+    /**
+     * @param WorkFunction $workFunction
+     * @param int[] $chaptersId
+     * @throws Exception
+     */
+    public function addChapters(WorkFunction $workFunction, $chaptersId): void
+    {
+        foreach ($chaptersId as $chapterId) {
+            $row = [
+                'chapterId' => $chapterId,
+                'workFunctionId' => $workFunction->getId(),
+                'order' => $this->getHighestOrderOfChildItems($workFunction->getId()) + 1
+            ];
+            try {
+                $isEmpty = DB::table(self::MAIN_HAS_CHAPTER_TABLE)
+                    ->where('chapterId', $chapterId)
+                    ->where('workFunctionId', $workFunction->getId())
+                    ->get()->isEmpty();
+
+                if($isEmpty) {
+                    DB::table(self::MAIN_HAS_CHAPTER_TABLE)
+                        ->insert($row);
+                }
+
+            } catch (Exception $e) {
+                throw new Exception($e->getMessage(),500);
+            }
+        }
+    }
+
+    /**
+     * @param WorkFunction $workFunction
+     * @param int[] $headlinesId
+     * @throws Exception
+     */
+    public function addHeadlines(WorkFunction $workFunction, $headlinesId): void
+    {
+        foreach ($headlinesId as $headlineId) {
+            $row = [
+                'headlineId' => $headlineId,
+                'workFunctionId' => $workFunction->getId(),
+                'order' => $this->getHighestOrderOfChildItems($workFunction->getId()) + 1
+            ];
+            try {
+                $isEmpty = DB::table(self::MAIN_HAS_HEADLINE_TABLE)
+                    ->where('headlineId', $headlineId)
+                    ->where('workFunctionId', $workFunction->getId())
+                    ->get()->isEmpty();
+
+                if($isEmpty) {
+                    DB::table(self::MAIN_HAS_HEADLINE_TABLE)
+                        ->insert($row);
+                }
+            } catch (Exception $e) {
+                throw new Exception($e->getMessage(),500);
+            }
+        }
     }
 
     public function reOrderWorkFunctions(WorkFunction $workFunction, int $order)

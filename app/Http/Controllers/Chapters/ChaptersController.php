@@ -50,6 +50,8 @@ class ChaptersController
             $workFunction = $this->workFunctionsHandler->getWorkFunction($request->input('workFunctionId'));
             return $this->chaptersHandler->getChaptersByParentWorkFunction($workFunction);
         }
+
+        return response('work function id is not given', 400);
     }
 
     public function getChapter(Request $request, $id)
@@ -90,7 +92,7 @@ class ChaptersController
         $chapter = $this->chaptersHandler->getChapter($id, $request->input('workFunctionId'));
 
         if ($request->input('workFunctionId')) {
-            // set new link or reorder
+            // reorder
             if ($request->input('order')) {
                 return $this->workFunctionsHandler->updateChildOrder($request->input('order'), $chapter, $request->input('workFunctionId'));
             }
