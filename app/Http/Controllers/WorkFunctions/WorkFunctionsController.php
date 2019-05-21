@@ -76,6 +76,7 @@ class WorkFunctionsController
         }
 
         try {
+            // add connections
             if (isset($postData['chapters'])) {
                 $this->workFunctionsHandler->addChapters($workFunction, $postData['chapters']);
                 unset($postData['chapters']);

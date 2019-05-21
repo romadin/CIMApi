@@ -125,12 +125,14 @@ class WorkFunctionsHandler
 
     public function editWorkFunction(array $postData, int $id)
     {
-        try {
-            DB::table(self::MAIN_TABLE)
-                ->where('id', $id)
-                ->update($postData);
-        } catch (Exception $e) {
-            return \response($e->getMessage(),500);
+        if(!empty($postData)) {
+            try {
+                DB::table(self::MAIN_TABLE)
+                    ->where('id', $id)
+                    ->update($postData);
+            } catch (Exception $e) {
+                return \response($e->getMessage(),500);
+            }
         }
 
         return $this->getWorkFunction($id);
