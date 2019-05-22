@@ -10,6 +10,7 @@ namespace App\Http\Handlers;
 
 
 use App\Http\Controllers\Templates\TemplateDefault;
+use App\Models\Chapter\Chapter;
 use App\Models\Template\Template;
 use App\Models\Template\TemplateItem;
 use App\Models\Template\TemplateItemsWithParent;
@@ -26,11 +27,16 @@ class TemplatesHandler
      * @var WorkFunctionsHandler
      */
     private $workFunctionsHandler;
+    /**
+     * @var ChaptersHandler
+     */
+    private $chaptersHandler;
 
-    public function __construct(TemplateItemsHandler $templateItemsHandler, WorkFunctionsHandler $workFunctionsHandler)
+    public function __construct(TemplateItemsHandler $templateItemsHandler, WorkFunctionsHandler $workFunctionsHandler, ChaptersHandler $chaptersHandler)
     {
         $this->templateItemHandler = $templateItemsHandler;
         $this->workFunctionsHandler = $workFunctionsHandler;
+        $this->chaptersHandler = $chaptersHandler;
     }
 
     public function getTemplatesByOrganisation(int $organisationId)
@@ -39,11 +45,11 @@ class TemplatesHandler
             $result = DB::table(self::TEMPLATE_TABLE)
                 ->where('organisationId', $organisationId)
                 ->get();
-            if ( $result === null ) {
-                $result = $this->createNewDefaultTemplate($organisationId);
+            if ( $result->isEmpty() ) {
+                return $this->createNewDefaultTemplate($organisationId);
             }
         } catch (\Exception $e) {
-            return \response('TemplatesHandler: There is something wrong with the database connection',500);
+            return \response($e->getMessage(),500);
         }
 
         $templates = [];
@@ -80,7 +86,7 @@ class TemplatesHandler
                 return response('Template does not exist', 404);
             }
         } catch (\Exception $e) {
-            return \response('TemplatesHandler: There is something wrong with the database connection',500);
+            return \response($e->getMessage(),500);
         }
 
         return $this->makeTemplate($result);
@@ -97,7 +103,7 @@ class TemplatesHandler
 
         $template = $this->getTemplateById($id);
 
-        $this->workFunctionsHandler->postWorkFunctions($template->getId(), TemplateDefault::WORK_FUNCTIONS);
+        $template->setWorkFunctions($this->workFunctionsHandler->postWorkFunctions($template->getId(), TemplateDefault::WORK_FUNCTIONS));
 
         return $template;
     }
@@ -131,7 +137,54 @@ class TemplatesHandler
 
     private function createNewDefaultTemplate(int $organisationId)
     {
-        return [];
+        $templateDefault = $this->getTemplateById(1);
+        $postData = [
+            'name' => 'Standaard template',
+            'organisationId' => $organisationId
+        ];
+        $newTemplate = $this->createNewTemplate($postData);
+
+        foreach ($templateDefault->getWorkFunctions() as $workFunction) {
+            foreach ($workFunction->getChapters() as $defaultChapter) {
+                $chapterContent = $defaultChapter->getContent();
+                if ($chapterContent !== null && $chapterContent !== '') {
+                    // set to new chapter
+                    foreach ($newTemplate->getWorkFunctions() as $newWorkFunction) {
+                        $this->setDefaultContentForChapter($newWorkFunction->getChapters(), $defaultChapter);
+                    }
+                }
+            }
+
+            foreach ($workFunction->getHeadlines() as $defaultHeadline) {
+                foreach ($defaultHeadline->getChapters() as $defaultHeadlineChapter) {
+                    $chapterContent = $defaultHeadlineChapter->getContent();
+                    if ($chapterContent !== null && $chapterContent !== '') {
+                        // set to new chapter
+                        foreach ($newTemplate->getWorkFunctions() as $newWorkFunction) {
+                            foreach ($newWorkFunction->getHeadlines() as $newHeadline) {
+                                $this->setDefaultContentForChapter($newHeadline->getChapters(), $defaultHeadlineChapter);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return [$newTemplate];
+    }
+
+    /**
+     * Search for the chapter with the same name. And set the new content on the chapter.
+     * @param Chapter[] $chapters
+     * @param Chapter $defaultChapter
+     */
+    private function setDefaultContentForChapter($chapters, Chapter $defaultChapter): void
+    {
+        $chapterToSetContentOn = array_filter($chapters, function($chapter) use ($defaultChapter) { return $chapter->getName() === $defaultChapter->getName(); });
+        if (count($chapterToSetContentOn) === 1) {
+            $chapterToSetContentOn = reset($chapterToSetContentOn);
+            $chapterToSetContentOn->setContent($defaultChapter->getContent());
+            $this->chaptersHandler->updateChapter($chapterToSetContentOn);
+        }
     }
 
     private function makeTemplate($data): Template
@@ -147,30 +200,4 @@ class TemplatesHandler
         return $template;
     }
 
-    /**
-     * Create template items. If its multidimensional then we create template items with a parent.
-     * @param $data
-     * @param bool $multidimensional
-     * @return array
-     */
-    private function createTemplateItems($data, $multidimensional = false): array
-    {
-        $items = [];
-        foreach (json_decode($data) as $item) {
-            if ($multidimensional) {
-                $array = [];
-                $parentItems = new TemplateItemsWithParent();
-                $parentItems->setName($item->name);
-                foreach($item->items as $subItem) {
-                    array_push($array, $this->templateItemHandler->makeTemplateItem($subItem));
-                }
-                $parentItems->setItems($array);
-                array_push($items, $parentItems);
-
-            } else {
-                array_push($items, $this->templateItemHandler->makeTemplateItem($item));
-            }
-        }
-        return $items;
-    }
 }

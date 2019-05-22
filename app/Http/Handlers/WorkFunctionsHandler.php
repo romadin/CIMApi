@@ -99,6 +99,8 @@ class WorkFunctionsHandler
                 } catch (\Exception $e) {
                     return \response($e->getMessage(),500);
                 }
+                $workFunction->setHeadlines($headlines);
+                $workFunction->setChapters($chapters);
             }
             array_push($container, $workFunction);
         }
@@ -405,6 +407,8 @@ class WorkFunctionsHandler
         $workFunction->setMainFunction($data->isMainFunction);
         $workFunction->setTemplateId($data->templateId);
         $workFunction->setOrder($data->order);
+        $workFunction->setHeadlines($this->headlinesHandler->getHeadlinesByWorkFunction($workFunction));
+        $workFunction->setChapters($this->chaptersHandler->getChaptersByParentWorkFunction($workFunction));
 
         return $workFunction;
     }
