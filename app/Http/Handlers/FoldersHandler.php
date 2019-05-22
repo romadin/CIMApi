@@ -122,6 +122,7 @@ class FoldersHandler
                 'projectId' => $project ? $project->getId() : null,
                 'mainFolder' => method_exists($item, 'isMainFunction') ? $item->isMainFunction(): false,
                 'fromTemplate' => true,
+                'order' => $item->getOrder()
             ];
 
             /**
@@ -149,6 +150,7 @@ class FoldersHandler
                     'projectId' => isset($data['projectId']) ? $data['projectId'] : null,
                     'mainFolder' => isset($data['mainFolder']) ? $data['mainFolder'] : false,
                     'fromTemplate' => isset($data['fromTemplate']) ? $data['fromTemplate'] : false,
+                    'order' => isset($data['order']) ? $data['order'] : null,
                 ]);
 
             if (isset($data['parentFolderId'])) {

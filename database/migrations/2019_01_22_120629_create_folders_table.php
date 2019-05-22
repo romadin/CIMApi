@@ -21,6 +21,7 @@ class CreateFoldersTable extends Migration
             $table->boolean('on')->default(1);
             $table->boolean('mainFolder')->default(0);
             $table->boolean('fromTemplate')->default(0);
+            $table->unsignedInteger('order')->nullable(true);
             $table->timestamps();
         });
     }
