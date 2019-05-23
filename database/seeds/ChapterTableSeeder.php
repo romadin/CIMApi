@@ -95,7 +95,7 @@ class ChapterTableSeeder extends Seeder
             [
                 'name' => 'Overall workflow / proces schema',
                 'order' => 3,
-                'content' => File::get(storage_path('templateText/OverallWorkflowProcessSchema.html')),
+                'content' => File::get(storage_path('templateText/overallWorkflowProcessSchema.html')),
                 'headlineId' => 3
             ],
             [

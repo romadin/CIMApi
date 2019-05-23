@@ -12,8 +12,6 @@ namespace App\Http\Handlers;
 use App\Http\Controllers\Templates\TemplateDefault;
 use App\Models\Chapter\Chapter;
 use App\Models\Template\Template;
-use App\Models\Template\TemplateItem;
-use App\Models\Template\TemplateItemsWithParent;
 use Illuminate\Support\Facades\DB;
 
 class TemplatesHandler
