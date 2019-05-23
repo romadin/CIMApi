@@ -8,7 +8,6 @@
 
 namespace App\Http\Controllers\Chapters;
 
-
 use App\Http\Handlers\ChaptersHandler;
 use App\Http\Handlers\HeadlinesHandler;
 use App\Http\Handlers\WorkFunctionsHandler;

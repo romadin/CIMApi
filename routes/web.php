@@ -89,6 +89,9 @@ $router->group(['middleware' => 'auth'], function () use ($router)
         $router->post('chapters/{id}', 'Chapters\ChaptersController@editChapter');
         $router->delete('chapters/{id}', 'Chapters\ChaptersController@deleteChapter');
 
+        $router->get('cache[/{id}]', 'Cache\CacheController@getCache');
+        $router->post('cache', 'Cache\CacheController@postCache');
+
     });
 });
 

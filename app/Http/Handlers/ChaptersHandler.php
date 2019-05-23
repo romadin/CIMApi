@@ -8,7 +8,6 @@
 
 namespace App\Http\Handlers;
 
-
 use Exception;
 use Illuminate\Support\Facades\DB;
 use App\Models\Chapter\Chapter;
