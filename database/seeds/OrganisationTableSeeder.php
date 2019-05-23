@@ -14,11 +14,9 @@ class OrganisationTableSeeder extends Seeder
     {
         DB::table('organisations')->insert([
             [
-                'id' => 0,
                 'name' => 'ghost',
             ],
             [
-                'id' => 1,
                 'name' => 'demo',
             ]
         ]);

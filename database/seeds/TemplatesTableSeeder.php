@@ -14,7 +14,7 @@ class TemplatesTableSeeder extends Seeder
     {
         DB::table('templates')->insert([
             'name' => 'Standaard',
-            'organisationId' => 0,
+            'organisationId' => 1,
             'isDefault' => true,
         ]);
     }
