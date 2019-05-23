@@ -42,4 +42,9 @@ class CacheController
         return $this->cacheHandler->createNewCache($request->post());
     }
 
+    public function updateCache(Request $request, int $id)
+    {
+        return $this->cacheHandler->updateCache($this->cacheHandler->getCacheItem($id));
+    }
+
 }

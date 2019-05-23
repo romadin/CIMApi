@@ -16,7 +16,7 @@ class CacheHandler
 {
     const TABLE = 'cache';
 
-    public function getCache(int $id)
+    public function getCacheItem(int $id)
     {
         try {
             $result = DB::table(self::TABLE)
@@ -29,7 +29,7 @@ class CacheHandler
             return \response('CacheHandler: There is something wrong with the database connection',500);
         }
 
-        return $this->createCache($result);
+        return $this->makeCache($result);
     }
 
     public function getCacheByNameAndUrl(string $name, string $url)
@@ -41,13 +41,13 @@ class CacheHandler
                 ->first();
             if ( $result === null ) {
                 $data = ['name' => $name, 'url' => $url];
-                return $this->createCache($data);
+                return $this->makeCache($data);
             }
         } catch (\Exception $e) {
             return \response('CacheHandler: There is something wrong with the database connection',500);
         }
 
-        return $this->createCache($result);
+        return $this->makeCache($result);
     }
 
     public function checkCacheHash($id, $hash)
@@ -72,16 +72,36 @@ class CacheHandler
         $values = $postData;
         $values['hash'] = bin2hex(random_bytes(4));
         try {
-            DB::table(self::TABLE)
+            $id = DB::table(self::TABLE)
                 ->insertGetId($values);
         } catch (\Exception $e) {
             return \response('ChaptersHandler: There is something wrong with the database connection',500);
         }
 
-        return $this->getCacheByHash($values['hash']);
+        return $this->getCacheItem($id);
     }
 
-    private function createCache($data): CacheItem
+    /**
+     * Only update the hash value.
+     * @param CacheItem $cache
+     * @return CacheItem|\Illuminate\Http\Response|\Laravel\Lumen\Http\ResponseFactory
+     * @throws \Exception
+     */
+    public function updateCache(CacheItem $cache)
+    {
+        $values = ['hash' => bin2hex(random_bytes(4))];
+        try {
+            DB::table(self::TABLE)
+                ->where('id', $cache->getId())
+                ->update($values);
+        } catch (\Exception $e) {
+            return \response('ChaptersHandler: There is something wrong with the database connection',500);
+        }
+        $cache->setHash($values['hash']);
+        return $cache;
+    }
+
+    private function makeCache($data): CacheItem
     {
         $cacheItem = new CacheItem();
         $cacheItem->setId($data->id);
