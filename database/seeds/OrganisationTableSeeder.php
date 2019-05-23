@@ -13,7 +13,14 @@ class OrganisationTableSeeder extends Seeder
     public function run()
     {
         DB::table('organisations')->insert([
-            'name' => 'demo',
+            [
+                'id' => 0,
+                'name' => 'ghost',
+            ],
+            [
+                'id' => 1,
+                'name' => 'demo',
+            ]
         ]);
     }
 }
