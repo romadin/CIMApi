@@ -41,7 +41,7 @@ class CacheHandler
                 ->first();
             if ( $result === null ) {
                 $data = ['name' => $name, 'url' => $url];
-                return $this->makeCache($data);
+                return $this->createNewCache($data);
             }
         } catch (\Exception $e) {
             return \response('CacheHandler: There is something wrong with the database connection',500);
@@ -75,6 +75,7 @@ class CacheHandler
             $id = DB::table(self::TABLE)
                 ->insertGetId($values);
         } catch (\Exception $e) {
+            var_dump($e->getMessage());
             return \response('ChaptersHandler: There is something wrong with the database connection',500);
         }
 
