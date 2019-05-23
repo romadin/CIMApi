@@ -20,7 +20,7 @@ class UsersTable2DefaultUsersSeeder extends Seeder
             'password' => password_hash('admin', PASSWORD_DEFAULT),
             'role_id' => 1,
             'phoneNumber' => '0611111111',
-            'organisationId' => 1,
+            'organisationId' => 2,
             'company' => 'mainCompany'
         ]);
     }
