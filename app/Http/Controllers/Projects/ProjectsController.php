@@ -11,11 +11,14 @@ namespace App\Http\Controllers\Projects;
 
 use App\Http\Controllers\ApiController;
 use App\Http\Controllers\Templates\TemplatesController;
+use App\Http\Controllers\WorkFunctions\WorkFunctionsController;
 use App\Http\Handlers\ActionsHandler;
+use App\Http\Handlers\DocumentsHandler;
 use App\Http\Handlers\EventsHandler;
 use App\Http\Handlers\FoldersHandler;
 use App\Http\Handlers\ProjectsHandler;
 use App\Http\Handlers\UsersHandler;
+use App\Http\Handlers\WorkFunctionsHandler;
 use App\Models\Project\Project;
 use App\Models\Template\Template;
 use Illuminate\Http\Request;
@@ -57,6 +60,15 @@ class ProjectsController extends ApiController
     private $templateController;
 
     /**
+     * @var WorkFunctionsController
+     */
+    private $workFunctionsHandler;
+
+    /**
+     * @var DocumentsHandler
+     */
+    private $documentsHandler;
+    /**
      * ProjectsController constructor.
      * @param ProjectsHandler $projectsHandler
      * @param FoldersHandler $foldersHandler
@@ -64,6 +76,8 @@ class ProjectsController extends ApiController
      * @param ActionsHandler $actionHandlers
      * @param EventsHandler $eventsHandler
      * @param TemplatesController $templatesController
+     * @param WorkFunctionsHandler $workFunctionsHandler
+     * @param DocumentsHandler $documentsHandler
      */
     public function __construct(
         ProjectsHandler $projectsHandler,
@@ -71,7 +85,9 @@ class ProjectsController extends ApiController
         UsersHandler $usersHandlers,
         ActionsHandler $actionHandlers,
         EventsHandler $eventsHandler,
-        TemplatesController $templatesController)
+        TemplatesController $templatesController,
+        WorkFunctionsHandler $workFunctionsHandler,
+        DocumentsHandler $documentsHandler)
     {
         $this->projectsHandler = $projectsHandler;
         $this->foldersHandler = $foldersHandler;
@@ -79,6 +95,8 @@ class ProjectsController extends ApiController
         $this->actionHandler = $actionHandlers;
         $this->eventsHandler = $eventsHandler;
         $this->templateController = $templatesController;
+        $this->workFunctionsHandler = $workFunctionsHandler;
+        $this->documentsHandler = $documentsHandler;
     }
 
 
@@ -141,7 +159,22 @@ class ProjectsController extends ApiController
                 return $template;
             }
 
-            $this->foldersHandler->createFoldersWithTemplate($template->getWorkFunctions(), $template, $project);
+            foreach ($template->getWorkFunctions() as $workFunction) {
+                $postData = [
+                    'name' => $workFunction->getName(),
+                    'isMainFunction' => $workFunction->isMainFunction(),
+                    'projectId' => $project->getId()
+                ];
+
+                $workFunction = $this->workFunctionsHandler->postWorkFunction($postData);
+
+                if($workFunction->isMainFunction()) {
+                    $this->foldersHandler->createFoldersWithTemplateWorkFunction($workFunction->getHeadlines(), $template, $workFunction);
+                    $this->documentsHandler->createDocumentsWithTemplate($workFunction, $workFunction->getChapters(), WorkFunctionsHandler::MAIN_HAS_DOCUMENT_TABLE);
+                }
+
+
+            }
 
             return $this->getReturnValueObject($request, $project);
         }

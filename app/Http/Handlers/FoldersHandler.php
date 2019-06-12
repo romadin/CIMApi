@@ -109,20 +109,16 @@ class FoldersHandler
     }
 
     /**
-     * @param WorkFunction[]| Headline[] $items
+     * @param Headline[] $items
      * @param Template $template
-     * @param null|Project $project
-     * @param null|int $parentFolderId
+     * @param WorkFunction $workFunction
      */
-    public function createFoldersWithTemplate($items, Template $template, $project = null, $parentFolderId = null): void
+    public function createFoldersWithTemplateWorkFunction($items, Template $template, WorkFunction $workFunction): void
     {
         foreach ($items as $item) {
             $row = [
                 'name' => $item->getName(),
-                'projectId' => $project ? $project->getId() : null,
-                'mainFolder' => method_exists($item, 'isMainFunction') ? $item->isMainFunction(): false,
                 'fromTemplate' => true,
-                'order' => $item->getOrder()
             ];
 
             /**
@@ -130,14 +126,10 @@ class FoldersHandler
              */
             $newFolder = $this->postFolder($row);
 
-            if ($project === null) {
-                // if project id is null then its a link between folders, so folder gets a sub folder.
-                $this->insertLink($parentFolderId, $newFolder->getId(), $item->getOrder(), self::FOLDERS_LINK_TABLE,  'folderSubId');
+            $this->insertLink($workFunction->getId(), $newFolder->getId(), $item->getOrder(), WorkFunctionsHandler::MAIN_HAS_FOLDER_TABLE,  'folderId');
 
-                $this->documentsHandler->createDocumentsWithTemplate($newFolder, $item->getChapters());
-            } else if ( $parentFolderId === null && $item instanceof WorkFunction && $item->isMainFunction()) {
-                $this->setSubFolderFromProjectId($project, $template, $item);
-            }
+            /** Create documents from the template to add to the folder */
+            $this->documentsHandler->createDocumentsWithTemplate($newFolder, $item->getChapters(), DocumentsHandler::DOCUMENT_LINK_FOLDER_TABLE;);
         }
     }
 
@@ -256,19 +248,21 @@ class FoldersHandler
      */
     public function setSubFolderFromProjectId(Project $project, Template $template, WorkFunction $mainWorkFunction)
     {
-        try {
-            $result = DB::table(self::FOLDERS_TABLE)
-                ->where('projectId', $project->getId())
-                ->where('mainFolder', true)
-                ->first();
-            $folder = $this->makeFolder($result);
-        } catch (\Exception $e)
-        {
-            return response('FoldersHandler: There is something wrong with the database connection', 403);
-        }
+//        try {
+//            $result = DB::table(self::FOLDERS_TABLE)
+//                ->where('projectId', $project->getId())
+//                ->where('mainFolder', true)
+//                ->first();
+//            $folder = $this->makeFolder($result);
+//        } catch (\Exception $e)
+//        {
+//            return response('FoldersHandler: There is something wrong with the database connection', 403);
+//        }
 
-        $this->createFoldersWithTemplate($this->headlinesHandler->getHeadlinesByWorkFunction($mainWorkFunction), $template, null, $result->id);
-        $this->documentsHandler->createDocumentsWithTemplate($folder, $this->chaptersHandler->getChaptersByParentWorkFunction($mainWorkFunction));
+//        $this->createFoldersWithTemplateWorkFunction($this->headlinesHandler->getHeadlinesByWorkFunction($mainWorkFunction), $template, null, $result->id);
+//
+//
+//        $this->documentsHandler->createDocumentsWithTemplate($folder, $this->chaptersHandler->getChaptersByParentWorkFunction($mainWorkFunction));
         return true;
     }
 
@@ -294,18 +288,18 @@ class FoldersHandler
         return $folderId;
     }
 
-    public function insertLink(int $folderId, int $subItemId, int $order, string $table, string $subItemColumn)
+    public function insertLink(int $workFunctionId, int $subItemId, int $order, string $table, string $subItemColumn)
     {
         try {
             // check if link already exist
             $result = DB::table($table)
-                ->where('folderId', $folderId)
+                ->where('workFunctionId', $workFunctionId)
                 ->where($subItemColumn, $subItemId)
                 ->first();
 
             if ( $result === null ) {
                 DB::table($table)->insert([
-                    'folderId' => $folderId,
+                    'workFunctionId' => $workFunctionId,
                     $subItemColumn => $subItemId,
                     'order' => $order
                 ]);

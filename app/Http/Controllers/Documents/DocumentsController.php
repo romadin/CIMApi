@@ -13,6 +13,7 @@ use App\Http\Controllers\ApiController;
 use App\Http\Handlers\DocumentsHandler;
 use App\Http\Handlers\FoldersHandler;
 use App\Http\Handlers\TemplatesHandler;
+use App\Http\Handlers\WorkFunctionsHandler;
 use Illuminate\Http\Request;
 
 class DocumentsController extends ApiController
@@ -33,11 +34,17 @@ class DocumentsController extends ApiController
      */
     private $foldersHandler;
 
-    public function __construct(DocumentsHandler $documentsHandler, TemplatesHandler $templatesHandler, FoldersHandler $foldersHandler)
+    /**
+     * @var WorkFunctionsHandler
+     */
+    private $workFunctionsHandler;
+
+    public function __construct(DocumentsHandler $documentsHandler, TemplatesHandler $templatesHandler, FoldersHandler $foldersHandler, WorkFunctionsHandler $workFunctionsHandler)
     {
         $this->documentsHandler = $documentsHandler;
         $this->templateHandler = $templatesHandler;
         $this->foldersHandler = $foldersHandler;
+        $this->workFunctionsHandler = $workFunctionsHandler;
     }
 
     public function getDocuments(Request $request)
@@ -55,11 +62,19 @@ class DocumentsController extends ApiController
             return $this->editDocument($request, $id);
         }
 
-        if (!$request->input('folderId')) {
-            return response('parent folder id not given', 501);
+        if (!$request->input('folderId') || !$request->input('workFunctionId')) {
+            return response('parent id not given', 501);
         }
 
-        return $this->documentsHandler->postDocument($request->post(), $this->foldersHandler->getFolderById($request->input('folderId')));
+        if ($request->input('folderId')) {
+            $parentItem = $this->foldersHandler->getFolderById($request->input('folderId'));
+            $linkTable = DocumentsHandler::DOCUMENT_LINK_FOLDER_TABLE;
+        } else {
+            $parentItem = $this->workFunctionsHandler->getWorkFunction($request->input('workFunctionId'));
+            $linkTable = WorkFunctionsHandler::MAIN_HAS_DOCUMENT_TABLE;
+        }
+
+        return $this->documentsHandler->postDocument($request->post(), $parentItem, $linkTable);
     }
 
     public function deleteDocument($id)

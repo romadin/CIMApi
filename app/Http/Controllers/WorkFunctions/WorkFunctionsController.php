@@ -43,7 +43,7 @@ class WorkFunctionsController
             return response('template id is not given', 400);
         }
 
-        return $this->workFunctionsHandler->getWorkFunctions($request->input('templateId'));
+        return $this->workFunctionsHandler->getWorkFunctionsFromTemplateId($request->input('templateId'));
     }
 
     public function getWorkFunction($id)

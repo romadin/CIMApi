@@ -16,12 +16,7 @@ class CreateFoldersTable extends Migration
         Schema::create('folders', function (Blueprint $table) {
             $table->increments('id');
             $table->string('name');
-            $table->unsignedInteger('projectId')->nullable(true);
-            $table->foreign('projectId')->references('id')->on('projects');
-            $table->boolean('on')->default(1);
-            $table->boolean('mainFolder')->default(0);
             $table->boolean('fromTemplate')->default(0);
-            $table->unsignedInteger('order')->nullable(true);
             $table->timestamps();
         });
     }

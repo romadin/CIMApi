@@ -11,6 +11,7 @@ namespace App\Http\Handlers;
 use App\Models\Chapter\Chapter;
 use App\Models\Document\Document;
 use App\Models\Folder\Folder;
+use App\Models\WorkFunction\WorkFunction;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 
@@ -67,18 +68,25 @@ class DocumentsHandler
         return $this->makeDocument($documentResult);
     }
 
-    public function postDocument(array $postData, Folder $parentFolder, $order = null)
+    /**
+     * @param array $postData
+     * @param Folder|WorkFunction $parent
+     * @param string $linkTable
+     * @param null|int $order
+     * @return Document|\Illuminate\Http\Response|\Laravel\Lumen\Http\ResponseFactory
+     */
+    public function postDocument(array $postData, $parent, $linkTable, ?int $order = null)
     {
         try {
             $id = DB::table(self::DOCUMENT_TABLE)
                 ->insertGetId($postData);
 
             // insert the link folder has document en set order.
-            DB::table(self::DOCUMENT_LINK_FOLDER_TABLE)
+            DB::table($linkTable)
                 ->insert([
-                    'folderId' => $parentFolder->getId(),
+                    'folderId' => $parent->getId(),
                     'documentId' => $id,
-                    'order' => isset($order) ? $order : $this->getLatestOrderFromFolder($parentFolder->getId()) + 1,
+                    'order' => isset($order) ? $order : $this->getLatestOrderFromFolder($parent->getId()) + 1,
                 ]);
 
             $document = $this->getDocumentById($id);
@@ -90,11 +98,12 @@ class DocumentsHandler
 
     /**
      * Create document from an given template.
-     * @param Folder $folder
+     * @param Folder|WorkFunction $parentItem
      * @param Chapter[] $documents
+     * @param string $linkTable
      * @return Document[]
      */
-    public function createDocumentsWithTemplate(Folder $folder, $documents)
+    public function createDocumentsWithTemplate($parentItem, $documents, $linkTable)
     {
         foreach ($documents as $document) {
             $row = [
@@ -103,9 +112,9 @@ class DocumentsHandler
                 'content' => $document->getContent(),
                 'fromTemplate' => true,
             ];
-            $this->postDocument($row, $folder, $document->getOrder());
+            $this->postDocument($row, $parentItem, $linkTable, $document->getOrder());
         }
-        return $this->getDocumentsFromFolder($folder);
+        return $this->getDocumentsFromFolder($parentItem);
     }
 
     public function editDocument(array $postData, int $id)

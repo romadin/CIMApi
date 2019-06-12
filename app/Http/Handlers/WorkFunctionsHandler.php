@@ -21,6 +21,8 @@ class WorkFunctionsHandler
     const MAIN_TABLE = 'work_functions';
     const MAIN_HAS_HEADLINE_TABLE = 'work_function_has_headline';
     const MAIN_HAS_CHAPTER_TABLE = 'work_function_has_chapter';
+    const MAIN_HAS_FOLDER_TABLE = 'work_function_has_folder';
+    const MAIN_HAS_DOCUMENT_TABLE = 'work_function_has_document';
     /**
      * @var HeadlinesHandler
      */
@@ -36,11 +38,29 @@ class WorkFunctionsHandler
         $this->chaptersHandler = $chaptersHandler;
     }
 
-    public function getWorkFunctions(int $templateId)
+    public function getWorkFunctionsFromTemplateId(int $templateId)
     {
         try {
             $results = DB::table(self::MAIN_TABLE)
                 ->where('templateId', $templateId)
+                ->get();
+        } catch (\Exception $e) {
+            return \response('WorkFunctionsHandler: There is something wrong with the database connection',500);
+        }
+
+        $workFunctions = [];
+        foreach ($results as $result) {
+            array_push($workFunctions, $this->makeWorkFunction($result));
+        }
+
+        return $workFunctions;
+    }
+
+    public function getWorkFunctionsFromProjectId(int $projectId)
+    {
+        try {
+            $results = DB::table(self::MAIN_TABLE)
+                ->where('projectId', $projectId)
                 ->get();
         } catch (\Exception $e) {
             return \response('WorkFunctionsHandler: There is something wrong with the database connection',500);

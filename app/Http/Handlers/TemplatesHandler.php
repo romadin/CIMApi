@@ -193,7 +193,7 @@ class TemplatesHandler
         $template->setName($data->name);
         $template->setOrganisationId($data->organisationId);
         $template->setDefault($data->isDefault);
-        $template->setWorkFunctions($this->workFunctionsHandler->getWorkFunctions($template->getId()));
+        $template->setWorkFunctions($this->workFunctionsHandler->getWorkFunctionsFromTemplateId($template->getId()));
 
         return $template;
     }

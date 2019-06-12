@@ -36,9 +36,14 @@ class WorkFunction implements JsonSerializable
     private $order;
 
     /**
-     * @var int
+     * @var null | int
      */
-    private $templateId;
+    private $templateId = null;
+
+    /**
+     * @var null | int
+     */
+    private $projectId = null;
 
     /**
      * @var null | Headline[]
@@ -118,19 +123,35 @@ class WorkFunction implements JsonSerializable
     }
 
     /**
-     * @return int
+     * @return int|null
      */
-    public function getTemplateId(): int
+    public function getTemplateId(): ?int
     {
         return $this->templateId;
     }
 
     /**
-     * @param int $templateId
+     * @param int|null $templateId
      */
-    public function setTemplateId(int $templateId): void
+    public function setTemplateId(?int $templateId): void
     {
         $this->templateId = $templateId;
+    }
+
+    /**
+     * @return int|null
+     */
+    public function getProjectId(): ?int
+    {
+        return $this->projectId;
+    }
+
+    /**
+     * @param int|null $projectId
+     */
+    public function setProjectId(?int $projectId): void
+    {
+        $this->projectId = $projectId;
     }
 
     /**
@@ -173,7 +194,7 @@ class WorkFunction implements JsonSerializable
             'name' => $this->getName(),
             'isMainFunction' => $this->isMainFunction(),
             'order' => $this->getOrder(),
-            'templateId' => $this->getTemplateId(),
+            'parentId' => $this->getTemplateId() !== null ?: $this->getProjectId(),
         ];
     }
 }

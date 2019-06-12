@@ -18,8 +18,10 @@ class CreateWorkFunctionTable extends Migration
             $table->string('name');
             $table->boolean('isMainFunction')->default(false);
             $table->unsignedInteger('order');
-            $table->unsignedInteger('templateId');
+            $table->unsignedInteger('templateId')->nullable(true);
+            $table->unsignedInteger('projectId')->nullable(true);
             $table->foreign('templateId')->references('id')->on('templates');
+            $table->foreign('projectId')->references('id')->on('projects');
             $table->timestamps();
         });
     }

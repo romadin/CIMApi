@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateFoldersHasFolderTable extends Migration
+class CreateWorkFunctionHasFoldersTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,12 +13,12 @@ class CreateFoldersHasFolderTable extends Migration
      */
     public function up()
     {
-        Schema::create('folders_has_folders', function (Blueprint $table) {
+        Schema::create('work_function_has_folder', function (Blueprint $table) {
+            $table->unsignedInteger('workFunctionId');
+            $table->foreign('workFunctionId')->references('id')->on('work_functions');
             $table->unsignedInteger('folderId');
             $table->foreign('folderId')->references('id')->on('folders');
-            $table->unsignedInteger('folderSubId');
-            $table->foreign('folderSubId')->references('id')->on('folders');
-            $table->unsignedInteger('order')->default(0);
+            $table->unsignedInteger('order');
         });
     }
 
@@ -29,6 +29,6 @@ class CreateFoldersHasFolderTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('folders_has_folders');
+        Schema::dropIfExists('work_function_has_folders');
     }
 }
