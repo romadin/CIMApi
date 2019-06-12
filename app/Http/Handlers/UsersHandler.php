@@ -173,7 +173,7 @@ class UsersHandler
         try {
             $newId = DB::table(self::USERS_TABLE)->insertGetId([
                 'firstName' => $postData['firstName'],
-                'insertion' => $postData['insertion'],
+                'insertion' => isset($postData['insertion']) ? $postData['insertion'] : NULL,
                 'lastName' => $postData['lastName'],
                 'email' => $postData['email'],
                 'phoneNumber' => $postData['phoneNumber'],
@@ -183,8 +183,7 @@ class UsersHandler
                 'token' => bin2hex(random_bytes(64)),
                 'organisationId' => $organisationId,
             ]);
-        } catch (\Exception $e)
-        {
+        } catch (\Exception $e) {
             return response($e->getMessage());
         }
 

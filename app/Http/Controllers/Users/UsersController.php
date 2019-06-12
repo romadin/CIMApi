@@ -9,11 +9,11 @@
 namespace App\Http\Controllers\Users;
 
 use App\Http\Handlers\UsersHandler;
-use Validator;
 use Illuminate\Http\Request;
 use Illuminate\Contracts\Auth\Factory as Auth;
 
 use App\Http\Controllers\ApiController;
+use Illuminate\Support\Facades\Validator;
 
 class UsersController extends ApiController
 {
@@ -57,10 +57,14 @@ class UsersController extends ApiController
 
     public function createUser(Request $request)
     {
-        $this->setValidators($request->post());
-        $user = $this->usersHandler->postUser($request->post(), $request->file('image'), $request->input('organisationId'));
+        $validation = $this->setValidators($request->post());
 
-        return $this->getReturnValueObject($request, $user);
+        if($validation === true) {
+            $user = $this->usersHandler->postUser($request->post(), $request->file('image'), $request->input('organisationId'));
+            return $this->getReturnValueObject($request, $user);
+        } else {
+            return $validation;
+        }
     }
 
     public function editUser(Request $request, $id)
@@ -98,5 +102,7 @@ class UsersController extends ApiController
         if($validator->fails()) {
             return json_encode($validator->errors()->messages());
         }
+
+        return true;
     }
 }
