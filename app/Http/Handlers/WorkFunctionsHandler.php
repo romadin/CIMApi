@@ -134,7 +134,7 @@ class WorkFunctionsHandler
      */
     public function postWorkFunction(array $postData)
     {
-        $postData['order'] = $this->getHighestOrder($postData['templateId']) + 1;
+        $postData['order'] = $this->getHighestOrder(isset($postData['templateId']) ? $postData['templateId'] : $postData['projectId']) + 1;
         try {
             $id = DB::table(self::MAIN_TABLE)
                 ->insertGetId($postData);

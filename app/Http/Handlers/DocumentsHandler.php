@@ -50,6 +50,35 @@ class DocumentsHandler
         return $documents;
     }
 
+    /**
+     * @param WorkFunction $workFunction
+     * @return Document[]
+     */
+    public function getDocumentsFromWorkFunction(WorkFunction $workFunction)
+    {
+        $linkTable = WorkFunctionsHandler::MAIN_HAS_DOCUMENT_TABLE;
+        $documentsResult = DB::table($linkTable)
+            ->select([
+                self::DOCUMENT_TABLE.'.id', self::DOCUMENT_TABLE.'.originalName',
+                self::DOCUMENT_TABLE.'.name', self::DOCUMENT_TABLE.'.content',
+                self::DOCUMENT_TABLE.'.fromTemplate',
+                $linkTable.'.workFunctionId',
+                $linkTable. '.order',
+            ])
+            ->where($linkTable.'.workFunctionId', '=', $workFunction->getId())
+            ->join(self::DOCUMENT_TABLE, $linkTable. '.documentId', '=', self::DOCUMENT_TABLE. '.id'  )
+            ->get();
+
+        $documents = [];
+
+        forEach ( $documentsResult as $document ) {
+            $document->parentId = $workFunction->getId();
+            array_push($documents, $this->makeDocument($document));
+        }
+
+        return $documents;
+    }
+
     public function getDocumentById(int $id)
     {
         $documentResult = DB::table(self::DOCUMENT_LINK_FOLDER_TABLE)
@@ -77,6 +106,7 @@ class DocumentsHandler
      */
     public function postDocument(array $postData, $parent, $linkTable, ?int $order = null)
     {
+        $parentIdName = $parent instanceof Folder ? 'folderId' : 'workFunctionId';
         try {
             $id = DB::table(self::DOCUMENT_TABLE)
                 ->insertGetId($postData);
@@ -84,9 +114,9 @@ class DocumentsHandler
             // insert the link folder has document en set order.
             DB::table($linkTable)
                 ->insert([
-                    'folderId' => $parent->getId(),
+                    $parentIdName => $parent->getId(),
                     'documentId' => $id,
-                    'order' => isset($order) ? $order : $this->getLatestOrderFromFolder($parent->getId()) + 1,
+                    'order' => isset($order) ? $order : $this->getHighestOrderFromFolder($parent->getId()) + 1,
                 ]);
 
             $document = $this->getDocumentById($id);
@@ -114,7 +144,12 @@ class DocumentsHandler
             ];
             $this->postDocument($row, $parentItem, $linkTable, $document->getOrder());
         }
-        return $this->getDocumentsFromFolder($parentItem);
+
+        if($parentItem instanceof Folder) {
+            return $this->getDocumentsFromFolder($parentItem);
+        }
+
+        return $this->getDocumentsFromWorkFunction($parentItem);
     }
 
     public function editDocument(array $postData, int $id)
@@ -141,9 +176,9 @@ class DocumentsHandler
                     ->where('folderId', $folder->getId())
                     ->delete();
 
-                $document->setParentFolderIds(array_diff($document->getParentFolderIds(), [$folder->getId()]));
+                $document->setParentIds(array_diff($document->getParentIds(), [$folder->getId()]));
 
-                if ( empty($document->getParentFolderIds()) ) {
+                if ( empty($document->getParentIds()) ) {
                     DB::table(self::DOCUMENT_TABLE)->delete($document->getId());
                 }
             }
@@ -169,7 +204,7 @@ class DocumentsHandler
         return true;
     }
 
-    public function getLatestOrderFromFolder(int $folderId)
+    public function getHighestOrderFromFolder(int $folderId)
     {
         try {
             $query = DB::table(self::DOCUMENT_LINK_FOLDER_TABLE)
@@ -225,24 +260,18 @@ class DocumentsHandler
 
     private function makeDocument($data): Document
     {
-        $foldersId = is_array($data->folderId) ? $data->folderId : [$data->folderId];
-
         $document = new Document(
             $data->id,
             $data->originalName,
             $data->name,
             $data->content,
-            $foldersId,
             $data->order,
             $data->fromTemplate
         );
 
+        $document->setParentIds(is_array($data->parentId) ? $data->parentId : [$data->parentId]);
+
         return $document;
-    }
-
-    private function makeDocumentImage($data)
-    {
-
     }
 
     /**
@@ -262,7 +291,7 @@ class DocumentsHandler
             foreach ($foldersId as $item) {
                 array_push($idContainer, $item->folderId);
             }
-            $documentResult->folderId = $idContainer;
+            $documentResult->parentId = $idContainer;
         }
         return $documentResult;
     }

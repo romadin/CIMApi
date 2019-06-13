@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateWorkFunctionHasDocumentsTable extends Migration
+class CreateWorkFunctionHasDocumentTable extends Migration
 {
     /**
      * Run the migrations.
@@ -29,6 +29,6 @@ class CreateWorkFunctionHasDocumentsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('work_function_has_documents');
+        Schema::dropIfExists('work_function_has_document');
     }
 }

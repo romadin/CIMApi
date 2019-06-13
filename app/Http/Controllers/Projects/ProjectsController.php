@@ -11,7 +11,6 @@ namespace App\Http\Controllers\Projects;
 
 use App\Http\Controllers\ApiController;
 use App\Http\Controllers\Templates\TemplatesController;
-use App\Http\Controllers\WorkFunctions\WorkFunctionsController;
 use App\Http\Handlers\ActionsHandler;
 use App\Http\Handlers\DocumentsHandler;
 use App\Http\Handlers\EventsHandler;
@@ -21,6 +20,7 @@ use App\Http\Handlers\UsersHandler;
 use App\Http\Handlers\WorkFunctionsHandler;
 use App\Models\Project\Project;
 use App\Models\Template\Template;
+use App\Models\WorkFunction\WorkFunction;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
@@ -60,7 +60,7 @@ class ProjectsController extends ApiController
     private $templateController;
 
     /**
-     * @var WorkFunctionsController
+     * @var WorkFunctionsHandler
      */
     private $workFunctionsHandler;
 
@@ -169,11 +169,14 @@ class ProjectsController extends ApiController
                 $workFunction = $this->workFunctionsHandler->postWorkFunction($postData);
 
                 if($workFunction->isMainFunction()) {
-                    $this->foldersHandler->createFoldersWithTemplateWorkFunction($workFunction->getHeadlines(), $template, $workFunction);
-                    $this->documentsHandler->createDocumentsWithTemplate($workFunction, $workFunction->getChapters(), WorkFunctionsHandler::MAIN_HAS_DOCUMENT_TABLE);
+                    $mainWorkFunctionFromTemplate = array_filter($template->getWorkFunctions(), function(WorkFunction $workFunction) { return $workFunction->isMainFunction(); });
+                    if(!empty($mainWorkFunctionFromTemplate)) {
+                        /** @var WorkFunction $mainWorkFunctionFromTemplate */
+                        $mainWorkFunctionFromTemplate = $mainWorkFunctionFromTemplate[0];
+                        $this->foldersHandler->createFoldersWithTemplateWorkFunction($mainWorkFunctionFromTemplate->getHeadlines(), $template, $workFunction);
+                        $this->documentsHandler->createDocumentsWithTemplate($workFunction, $mainWorkFunctionFromTemplate->getChapters(), WorkFunctionsHandler::MAIN_HAS_DOCUMENT_TABLE);
+                    }
                 }
-
-
             }
 
             return $this->getReturnValueObject($request, $project);

@@ -28,19 +28,9 @@ class Folder implements JsonSerializable
     private $projectId;
 
     /**
-     * @var boolean
-     */
-    private $on;
-
-    /**
      * @var Folder[] | null
      */
     private $subFolders = null;
-
-    /**
-     * @var boolean
-     */
-    private $isMainFolder;
 
     /**
      * @var int
@@ -61,18 +51,14 @@ class Folder implements JsonSerializable
      * Folder constructor.
      * @param int $id
      * @param string $name
-     * @param bool $on
-     * @param bool $isMainFolder
      * @param int $order
      * @param boolean $fromTemplate
      * @param int | null $projectId
      */
-    public function __construct(int $id, string $name, bool $on, $isMainFolder, $order, $fromTemplate, $projectId = null)
+    public function __construct(int $id, string $name, $order, $fromTemplate, $projectId = null)
     {
         $this->id = $id;
         $this->name = $name;
-        $this->on = $on;
-        $this->isMainFolder = $isMainFolder;
         $this->order = $order;
         $this->projectId = $projectId;
         $this->fromTemplate = $fromTemplate;
@@ -127,22 +113,6 @@ class Folder implements JsonSerializable
     }
 
     /**
-     * @return bool
-     */
-    public function isOn(): bool
-    {
-        return $this->on;
-    }
-
-    /**
-     * @param bool $on
-     */
-    public function setOn(bool $on): void
-    {
-        $this->on = $on;
-    }
-
-    /**
      * @return int
      */
     public function getOrder(): int
@@ -172,22 +142,6 @@ class Folder implements JsonSerializable
     public function setSubFolders($subFolders): void
     {
         $this->subFolders = $subFolders;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isMainFolder(): bool
-    {
-        return $this->isMainFolder;
-    }
-
-    /**
-     * @param bool $isMainFolder
-     */
-    public function setIsMainFolder(bool $isMainFolder): void
-    {
-        $this->isMainFolder = $isMainFolder;
     }
 
     /**

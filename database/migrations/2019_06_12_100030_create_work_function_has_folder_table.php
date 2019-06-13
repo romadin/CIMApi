@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateWorkFunctionHasFoldersTable extends Migration
+class CreateWorkFunctionHasFolderTable extends Migration
 {
     /**
      * Run the migrations.
@@ -29,6 +29,6 @@ class CreateWorkFunctionHasFoldersTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('work_function_has_folders');
+        Schema::dropIfExists('work_function_has_folder');
     }
 }

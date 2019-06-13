@@ -10,7 +10,8 @@
         "illuminate/mail": "^5.7",
         "laravel/lumen-framework": "5.7.*",
         "phar-io/manifest": "^1.0",
-        "vlucas/phpdotenv": "~2.2"
+        "vlucas/phpdotenv": "~2.2",
+        "ext-json": "*"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",

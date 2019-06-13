@@ -11,9 +11,7 @@ namespace App\Http\Handlers;
 
 use App\Models\Folder\Folder;
 use App\Models\Headline\Headline;
-use App\Models\Project\Project;
 use App\Models\Template\Template;
-use App\Models\Template\TemplateItem;
 use App\Models\WorkFunction\WorkFunction;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
@@ -22,7 +20,6 @@ class FoldersHandler
 {
     const FOLDERS_TABLE = 'folders';
     const PROJECT_TABLE = 'projects';
-    const FOLDERS_LINK_TABLE = 'folders_has_folders';
 
     /**
      * @var DocumentsHandler
@@ -68,7 +65,7 @@ class FoldersHandler
         return $folders;
     }
 
-    public function getFolderById(int $id)
+    public function getFolderById(int $id, $parent)
     {
         try {
             $folder = DB::table(self::FOLDERS_TABLE)
@@ -81,31 +78,7 @@ class FoldersHandler
             return response('FoldersHandler: There is something wrong with the database connection', 403);
         }
 
-        return $this->makeFolder($folder);
-    }
-
-    public function getFolderByIdWithOrder(int $id, int $parentId)
-    {
-        try {
-            $folder = DB::table(self::FOLDERS_TABLE)
-                ->select([
-                    self::FOLDERS_TABLE. '.id',
-                    self::FOLDERS_TABLE. '.name',
-                    self::FOLDERS_TABLE. '.projectId',
-                    self::FOLDERS_TABLE. '.on',
-                    self::FOLDERS_TABLE. '.mainFolder',
-                    self::FOLDERS_LINK_TABLE. '.order',
-                    self::FOLDERS_TABLE. '.fromTemplate',
-                    self::FOLDERS_LINK_TABLE. '.folderId AS parentFolderId'])
-                ->join(self::FOLDERS_LINK_TABLE, self::FOLDERS_TABLE . '.id' , '=', self::FOLDERS_LINK_TABLE . '.folderSubId')
-                ->where(self::FOLDERS_LINK_TABLE.'.folderId', $parentId)
-                ->where(self::FOLDERS_LINK_TABLE.'.folderSubId', $id)
-                ->first();
-        } catch (\Exception $e) {
-            return response('FoldersHandler: There is something wrong with the database connection', 403);
-        }
-
-        return $this->makeFolder($folder);
+        return $this->makeFolder($folder, $parent);
     }
 
     /**
@@ -124,41 +97,38 @@ class FoldersHandler
             /**
              * @var Folder $newFolder
              */
-            $newFolder = $this->postFolder($row);
+            $newFolder = $this->postFolder($row, $workFunction, $item->getOrder());
 
             $this->insertLink($workFunction->getId(), $newFolder->getId(), $item->getOrder(), WorkFunctionsHandler::MAIN_HAS_FOLDER_TABLE,  'folderId');
 
             /** Create documents from the template to add to the folder */
-            $this->documentsHandler->createDocumentsWithTemplate($newFolder, $item->getChapters(), DocumentsHandler::DOCUMENT_LINK_FOLDER_TABLE;);
+            $this->documentsHandler->createDocumentsWithTemplate($newFolder, $item->getChapters(), DocumentsHandler::DOCUMENT_LINK_FOLDER_TABLE);
         }
     }
 
-    public function postFolder($data)
+    /**
+     * @param $data
+     * @param WorkFunction $parent
+     * @param int|null $order
+     * @return Folder|Response|\Laravel\Lumen\Http\ResponseFactory
+     */
+    public function postFolder($data, WorkFunction $parent, ?int $order = null)
     {
         try {
             $id = DB::table(self::FOLDERS_TABLE)
-                ->insertGetId([
-                    'name' => $data['name'],
-                    'projectId' => isset($data['projectId']) ? $data['projectId'] : null,
-                    'mainFolder' => isset($data['mainFolder']) ? $data['mainFolder'] : false,
-                    'fromTemplate' => isset($data['fromTemplate']) ? $data['fromTemplate'] : false,
-                    'order' => isset($data['order']) ? $data['order'] : null,
-                ]);
+                ->insertGetId($data);
 
-            if (isset($data['parentFolderId'])) {
-                $order = $this->documentsHandler->getLatestOrderFromFolder($data['parentFolderId']) + 1;
-                $this->insertLink($data['parentFolderId'], $id, $order, self::FOLDERS_LINK_TABLE, 'folderSubId');
+            $order = $order !== null ? $order : $this->getHighestOrderFromWorkFunction($parent->getId()) + 1;
+            $this->insertLink($parent->getId(), $id, $order, WorkFunctionsHandler::MAIN_HAS_FOLDER_TABLE, 'folderId');
 
-                return $this->getFolderByIdWithOrder($id, $data['parentFolderId']);
-            }
         } catch (\Exception $e) {
             return response('FoldersHandler: There is something wrong with the database connection', 403);
         }
 
-        return $this->getFolderById($id);
+        return $this->getFolderById($id, $parent);
     }
 
-    public function editFolder($data, int $id): Folder
+    public function editFolder($data, int $id, WorkFunction $workFunction): Folder
     {
         try {
             DB::table(self::FOLDERS_TABLE)
@@ -168,7 +138,7 @@ class FoldersHandler
             return response('FoldersHandler: There is something wrong with the database connection', 403);
         }
 
-        return $this->getFolderById($id);
+        return $this->getFolderById($id, $workFunction);
     }
 
     /**
@@ -187,9 +157,8 @@ class FoldersHandler
             try {
                 $this->documentsHandler->deleteDocumentsByFolderId($folder);
 
-                DB::table(self::FOLDERS_LINK_TABLE)
+                DB::table(WorkFunctionsHandler::MAIN_HAS_FOLDER_TABLE)
                     ->where('folderId', $folder->getId())
-                    ->orWhere('folderSubId', $folder->getId())
                     ->delete();
                 DB::table(self::FOLDERS_TABLE)->delete($folder->getId());
             }catch (\Exception $e) {
@@ -220,73 +189,6 @@ class FoldersHandler
         return $folders;
     }
 
-    /**
-     * Delete the subFolder link from the main folder.
-     * @param $folderId
-     * @param $subFolderId
-     * @return int
-     */
-    public function deleteSubFolderLink($folderId, $subFolderId): int
-    {
-        try {
-            DB::table(self::FOLDERS_LINK_TABLE)
-                ->where('folderId', $folderId)
-                ->where('folderSubId', $subFolderId)
-                ->delete();
-        } catch (\Exception $e) {
-            return response('FoldersHandler: There is something wrong with the database connection', 403);
-        }
-        return $folderId;
-    }
-
-    /**
-     * Set Sub Folders at the main folder by the given template.
-     * @param Project $project
-     * @param Template $template
-     * @param WorkFunction $mainWorkFunction
-     * @return bool | \Illuminate\Http\Response|\Laravel\Lumen\Http\ResponseFactory
-     */
-    public function setSubFolderFromProjectId(Project $project, Template $template, WorkFunction $mainWorkFunction)
-    {
-//        try {
-//            $result = DB::table(self::FOLDERS_TABLE)
-//                ->where('projectId', $project->getId())
-//                ->where('mainFolder', true)
-//                ->first();
-//            $folder = $this->makeFolder($result);
-//        } catch (\Exception $e)
-//        {
-//            return response('FoldersHandler: There is something wrong with the database connection', 403);
-//        }
-
-//        $this->createFoldersWithTemplateWorkFunction($this->headlinesHandler->getHeadlinesByWorkFunction($mainWorkFunction), $template, null, $result->id);
-//
-//
-//        $this->documentsHandler->createDocumentsWithTemplate($folder, $this->chaptersHandler->getChaptersByParentWorkFunction($mainWorkFunction));
-        return true;
-    }
-
-
-    /**
-     * Add an sub folder to an folder.
-     * @param int $folderId
-     * @param int[] $subFolderIds
-     * @param int | null $order
-     * @return int|Response|\Laravel\Lumen\Http\ResponseFactory
-     */
-    public function setLinkFolderHasSubFolder(int $folderId, $subFolderIds, $order = null)
-    {
-        foreach ($subFolderIds as $subFolderId) {
-            $order = $order !== null ? $order : 0;
-            $inserted = $this->insertLink($folderId, $subFolderId, $order, self::FOLDERS_LINK_TABLE, 'folderSubId');
-
-            if ( !$inserted ) {
-                return $inserted;
-            }
-        }
-
-        return $folderId;
-    }
 
     public function insertLink(int $workFunctionId, int $subItemId, int $order, string $table, string $subItemColumn)
     {
@@ -312,7 +214,25 @@ class FoldersHandler
         return true;
     }
 
-    private function makeFolder($data): Folder
+    /**
+     * @param Folder $folder
+     * @param int $workFunctionId
+     * @return int|Response|\Laravel\Lumen\Http\ResponseFactory
+     */
+    public function deleteLink(Folder $folder, int $workFunctionId)
+    {
+        try {
+            DB::table(WorkFunctionsHandler::MAIN_HAS_FOLDER_TABLE)
+                ->where('folderId', $folder->getId())
+                ->where('workFunctionId', $workFunctionId)
+                ->delete();
+        } catch (\Exception $e) {
+            return response('FoldersHandler: There is something wrong with the database connection', 403);
+        }
+        return $this->getFolderLinks($folder);
+    }
+
+    private function makeFolder($data, ?WorkFunction $parent = null): Folder
     {
         if (isset($this->folderCache[$data->id])) {
             return $this->folderCache[$data->id];
@@ -320,17 +240,11 @@ class FoldersHandler
         $folder = new Folder(
             $data->id,
             $data->name,
-            $data->on,
-            $data->mainFolder,
             isset($data->order) ? $data->order : 0,
-            $data->fromTemplate,
-            $data->projectId
+            $data->fromTemplate
         );
 
-        $folder->setSubFolders($this->getSubFolders($folder, 'folderId'));
-
-//        $folder->setParentFolders($this->getSubOrParentFolders($folder, 'folderSubId'));
-        $folder->setParentFoldersId($this->getParentFoldersId($folder));
+        $folder->setOrder($this->getOrder($folder, $parent));
 
         $this->folderCache[$folder->getId()] = $folder;
 
@@ -339,49 +253,59 @@ class FoldersHandler
 
     /**
      * @param Folder $folder
-     * @param string $type = folderId | folderSubId
-     * @return array
+     * @param WorkFunction $workFunction
+     * @return Response|\Laravel\Lumen\Http\ResponseFactory|int
      */
-    private function getSubFolders(Folder $folder, string $type) {
-        $subFolders = [];
-        $joinOn = $type === 'folderId' ? 'folderSubId' : 'folderId';
-        $subFoldersResult = DB::table(self::FOLDERS_LINK_TABLE)
-            ->select([
-                self::FOLDERS_TABLE. '.id',
-                self::FOLDERS_TABLE. '.name',
-                self::FOLDERS_TABLE. '.projectId',
-                self::FOLDERS_TABLE. '.on',
-                self::FOLDERS_TABLE. '.mainFolder',
-                self::FOLDERS_LINK_TABLE. '.order',
-                self::FOLDERS_TABLE. '.fromTemplate',
-                self::FOLDERS_LINK_TABLE. '.folderId AS parentFolderId'])
-                ->join(self::FOLDERS_TABLE, self::FOLDERS_LINK_TABLE . '.' . $joinOn , '=', self::FOLDERS_TABLE . '.id')
-                ->where(self::FOLDERS_LINK_TABLE. '.' . $type, '=', $folder->getId() )
-                ->get();
-
-        if (! empty($subFoldersResult)) {
-            foreach ($subFoldersResult as $result) {
-                array_push($subFolders, $this->makeFolder($result));
-            }
+    private function getOrder(Folder $folder, WorkFunction $workFunction)
+    {
+        try {
+            $result = DB::table(WorkFunctionsHandler::MAIN_HAS_FOLDER_TABLE)
+                ->select('order')
+                ->where('workFunctionId', $workFunction->getId())
+                ->where( 'folderId', $folder->getId())
+                ->first();
+        } catch (\Exception $e) {
+            return response('There is something wrong with the connection', 403);
         }
-        return $subFolders;
+
+        return $result ? $result->order : 0;
     }
 
-    private function getParentFoldersId(Folder $folder) {
+    private function getHighestOrderFromWorkFunction(int $workFunctionId)
+    {
+        try {
+            $query = DB::table(WorkFunctionsHandler::MAIN_HAS_DOCUMENT_TABLE)
+                ->select('order')
+                ->where('workFunctionId', $workFunctionId);
 
-        $parentFoldersId = [];
-        $parentFolders = DB::table(self::FOLDERS_LINK_TABLE)
-            ->select([self::FOLDERS_LINK_TABLE.'.folderId'])
-            ->join(self::FOLDERS_TABLE, self::FOLDERS_LINK_TABLE . '.folderId' , '=', self::FOLDERS_TABLE . '.id')
-            ->where(self::FOLDERS_LINK_TABLE. '.folderSubId', '=', $folder->getId() )
-            ->get();
-
-        if (! empty($parentFolders)) {
-            foreach ($parentFolders as $result) {
-                array_push($parentFoldersId, $result->folderId);
+            $result = DB::table(WorkFunctionsHandler::MAIN_HAS_FOLDER_TABLE)
+                ->select('order')
+                ->where('workFunctionId', $workFunctionId)
+                ->union($query)
+                ->orderByDesc('order')
+                ->first();
+            if ($result == null) {
+                return 0;
             }
+        } catch (\Exception $e) {
+            return response('There is something wrong with the connection', 403);
         }
-        return $parentFoldersId;
+
+        return $result->order;
+    }
+
+    private function getFolderLinks(Folder $folder): int
+    {
+        try {
+            $result = DB::table(WorkFunctionsHandler::MAIN_HAS_FOLDER_TABLE)
+                ->select('order')
+                ->where( 'folderId', $folder->getId())
+                ->get();
+        } catch (\Exception $e) {
+            return response('There is something wrong with the connection', 403);
+        }
+
+        return count($result);
     }
 
 }

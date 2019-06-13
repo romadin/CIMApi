@@ -52,7 +52,7 @@ $router->group(['middleware' => 'auth'], function () use ($router)
         $router->post('documents/{id}/image', 'Documents\DocumentsController@uploadImage');
 
         $router->post('folders', 'Folders\FoldersController@createFolder');
-        $router->post('folders/{id}', 'Folders\FoldersController@postFolders');
+        $router->post('folders/{id}', 'Folders\FoldersController@editFolder');
         $router->delete('folders[/{id}]', 'Folders\FoldersController@deleteFolders');
 
         $router->delete('folders/{folderId}/documents/{documentId}', 'FoldersLinkDocumentsController@deleteFoldersLinkDocuments');

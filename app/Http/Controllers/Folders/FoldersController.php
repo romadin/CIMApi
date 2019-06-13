@@ -11,8 +11,9 @@ namespace App\Http\Controllers\Folders;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use App\Http\Controllers\ApiController;
 use App\Http\Handlers\FoldersHandler;
+use App\Http\Controllers\ApiController;
+use App\Http\Handlers\WorkFunctionsHandler;
 use App\Http\Handlers\FoldersLinkDocumentsHandler;
 
 class FoldersController extends ApiController
@@ -27,10 +28,19 @@ class FoldersController extends ApiController
      */
     private $foldersLinkDocumentsHandler;
 
-    public function __construct(FoldersHandler $foldersHandler, FoldersLinkDocumentsHandler $foldersLinkDocumentsHandler)
+    /**
+     * @var WorkFunctionsHandler
+     */
+    private $workFunctionsHandler;
+
+    public function __construct(
+        FoldersHandler $foldersHandler,
+        FoldersLinkDocumentsHandler $foldersLinkDocumentsHandler,
+        WorkFunctionsHandler $workFunctionsHandler)
     {
         $this->foldersHandler = $foldersHandler;
         $this->foldersLinkDocumentsHandler = $foldersLinkDocumentsHandler;
+        $this->workFunctionsHandler = $workFunctionsHandler;
     }
 
     public function getFolders(Request $request)
@@ -44,32 +54,34 @@ class FoldersController extends ApiController
 
     public function getFolder(Request $request, $id)
     {
-        return $this->getReturnValueObject($request, $this->foldersHandler->getFolderById($id));
+        if (empty($request->input('workFunctionId'))) {
+            return response('no work function id given', 404);
+        }
+        $workFunction = $this->workFunctionsHandler->getWorkFunction($request->input('workFunctionId'));
+
+        return $this->getReturnValueObject($request, $this->foldersHandler->getFolderById($id, $workFunction));
     }
 
     public function createFolder(Request $request)
     {
-        if ($request->input('projectId') | $request->input('parentFolderId')) {
-            return $this->getReturnValueObject($request, $this->foldersHandler->postFolder($request->post()));
+        if (empty($request->input('workFunctionId'))) {
+            return response('no work function id given', 404);
         }
+        $workFunction = $this->workFunctionsHandler->getWorkFunction($request->input('workFunctionId'));
 
-        return response('The project id or parent folder id is missing ', 404);
+        return $this->getReturnValueObject($request, $this->foldersHandler->postFolder($request->post(), $workFunction));
+
     }
 
-    public function postFolders(Request $request, $id, $subItemId = null)
+    public function editFolder(Request $request, $id)
     {
-        $postData = $request->post();
-        if ($subItemId !== null ) {
-            return $this->updateLink($id, $subItemId, $postData);
+        if (empty($request->input('workFunctionId'))) {
+            return response('no work function id given', 404);
         }
 
-        if (isset($postData['subFolders'])) {
-            $failedResponse = $this->foldersHandler->setLinkFolderHasSubFolder($id,  $postData['subFolders']);
-            unset($postData['subFolders']);
-            if ($failedResponse instanceof Response) {
-                return $failedResponse;
-            }
-        }
+        $workFunction = $this->workFunctionsHandler->getWorkFunction($request->input('workFunctionId'));
+        $postData = $request->post();
+
         if (isset($postData['subDocuments'])) {
             $failedResponse = $this->foldersLinkDocumentsHandler->linkDocumentsToFolder($postData['subDocuments'], $id);
             unset($postData['subDocuments']);
@@ -80,53 +92,30 @@ class FoldersController extends ApiController
         }
 
         if (empty($postData)) {
-            return $this->getReturnValueObject($request, $this->foldersHandler->getFolderById($id));
+            return $this->getReturnValueObject($request, $this->foldersHandler->getFolderById($id, $workFunction));
         }
 
-        return $this->getReturnValueObject($request, $this->foldersHandler->editFolder($postData,$id));
+        return $this->getReturnValueObject($request, $this->foldersHandler->editFolder($postData,$id, $workFunction));
     }
 
     public function deleteFolders(Request $request, $id = null)
     {
+        if (empty($request->input('workFunctionId'))) {
+            return response('no work function id given', 404);
+        }
+        $workFunction = $this->workFunctionsHandler->getWorkFunction($request->input('workFunctionId'));
+
         if ( $id ) {
-            /** Check if we need to delete the links and not the main folder its self.  */
-            if ( !empty($request->input('subFolders')) || !empty($request->input('subDocuments')) || !empty($request->input('parentFolderId')) ) {
-                $subDocumentsId = ['subDocumentsId' => $request->input('subDocuments') ];
-                $subFoldersId = ['subFoldersId' => $request->input('subFolders') ];
-                $parentFolderId = ['parentFolderId' => $request->input('parentFolderId') ];
+            $folder = $this->foldersHandler->getFolderById($id, $workFunction);
+            $existingLinks = $this->foldersHandler->deleteLink($folder, $request->input('workFunctionId'));
 
-                $links = array_merge($subFoldersId, $subDocumentsId, $parentFolderId);
-                $this->deleteLinksFromFolder($id, $links);
-                return $this->getFolder($request, $id);
-            }
-
-            return $this->foldersHandler->deleteFolder($this->foldersHandler->getFolderById($id));
-        }
-        if ( ! empty($request->input('projectId'))) {
-            return $this->foldersHandler->deleteFolders($request->input('projectId'));
-        }
-        return 'Deleted';
-    }
-
-    /**
-     * Determine which link we need te delete.
-     * @param int $folderId
-     * @param int[] $links
-     */
-    private function deleteLinksFromFolder(int $folderId, $links) {
-        if (! empty($links['subFoldersId'])) {
-            foreach($links['subFoldersId'] as $subFolderId) {
-                $this->foldersHandler->deleteSubFolderLink($folderId, $subFolderId);
+            if($existingLinks === 0) {
+                return $this->foldersHandler->deleteFolder($folder);
+            }else {
+                return json_decode('link deleted');
             }
         }
-        if (! empty($links['subDocumentsId'])) {
-            foreach($links['subDocumentsId'] as $subDocumentId) {
-                $this->foldersLinkDocumentsHandler->deleteLink($folderId, $subDocumentId);
-            }
-        }
-        if (! empty($links['parentFolderId'])) {
-            $this->foldersHandler->deleteSubFolderLink($links['parentFolderId'], $folderId);
-        }
+        return json_decode('folder deleted');
     }
 
     private function updateLink(int $folderId, int $subItemId, $postData)

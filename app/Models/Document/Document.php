@@ -35,7 +35,7 @@ class Document implements JsonSerializable
     /**
      * @var int[]
      */
-    private $parentFolderIds;
+    private $parentIds;
 
     /**
      * @var int
@@ -53,17 +53,15 @@ class Document implements JsonSerializable
      * @param string $originalName
      * @param string | null $name
      * @param string | null $content
-     * @param int[] $parentFolderIds
      * @param int $order
      * @param boolean $fromTemplate
      */
-    public function __construct(int $id, string $originalName, $name, $content, $parentFolderIds, int $order, bool $fromTemplate)
+    public function __construct(int $id, string $originalName, $name, $content, int $order, bool $fromTemplate)
     {
         $this->id = $id;
         $this->originalName = $originalName;
         $this->name = $name;
         $this->content = $content;
-        $this->parentFolderIds = $parentFolderIds;
         $this->order = $order;
         $this->fromTemplate = $fromTemplate;
     }
@@ -135,17 +133,17 @@ class Document implements JsonSerializable
     /**
      * @return int[]
      */
-    public function getParentFolderIds(): array
+    public function getParentIds(): array
     {
-        return $this->parentFolderIds;
+        return $this->parentIds;
     }
 
     /**
-     * @param int[] $parentFolderIds
+     * @param int[] $parentIds
      */
-    public function setParentFolderIds(array $parentFolderIds): void
+    public function setParentIds(array $parentIds): void
     {
-        $this->parentFolderIds = $parentFolderIds;
+        $this->parentIds = $parentIds;
     }
 
     /**
@@ -188,7 +186,7 @@ class Document implements JsonSerializable
             'name' => $this->getName(),
             'content' => $this->getContent(),
             'order' => $this->getOrder(),
-            'foldersId' => $this->getParentFolderIds(),
+            'foldersId' => $this->getParentIds(),
             'fromTemplate' => $this->isfromTemplate(),
         ];
     }
