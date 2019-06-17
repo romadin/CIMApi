@@ -50,10 +50,13 @@ class DocumentsController extends ApiController
     public function getDocuments(Request $request)
     {
         if ( $request->input('folderId') ) {
-            $folder = $this->foldersHandler->getFolderById($request->input('folderId'));
-            return $this->getReturnValueArray($request, $this->documentsHandler->getDocumentsFromFolder($folder));
+            return $this->getReturnValueArray($request, $this->documentsHandler->getDocumentsFromFolder($request->input('folderId')));
+        } else if ( $request->input('workFunctionId') ){
+            $workFunction = $this->workFunctionsHandler->getWorkFunction($request->input('workFunctionId'));
+            return $this->documentsHandler->getDocumentsFromWorkFunction($workFunction);
         }
-        return response('Not implemented', 501);
+
+        return response('No parent id has been given', 501);
     }
 
     public function postDocuments(Request $request, $id = null)

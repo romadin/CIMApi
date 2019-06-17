@@ -39,11 +39,16 @@ class WorkFunctionsController
 
     public function getWorkFunctions(Request $request)
     {
-        if( !$request->input('templateId') ) {
-            return response('template id is not given', 400);
+        if($request->input('templateId')) {
+            $parentIdName = 'templateId';
+        }elseif ($request->input('projectId')) {
+            $parentIdName = 'projectId';
+        } else {
+            return response('parent id is not given', 400);
         }
+        $parentId = $request->input($parentIdName);
 
-        return $this->workFunctionsHandler->getWorkFunctionsFromTemplateId($request->input('templateId'));
+        return $this->workFunctionsHandler->getWorkFunctionsFromTemplateId($parentId, $parentIdName);
     }
 
     public function getWorkFunction($id)
@@ -53,11 +58,11 @@ class WorkFunctionsController
 
     public function postWorkFunction(Request $request)
     {
-        if( !$request->input('templateId') ) {
-            return response('template id is not given', 400);
+        if( !$request->input('templateId') && !$request->input('projectId')  ) {
+            return response('parent id is not given', 400);
         }
         if( !$request->input('name') ) {
-            return response('Headline name is not given', 400);
+            return response('work function name is not given', 400);
         }
 
         return $this->workFunctionsHandler->postWorkFunction($request->post());

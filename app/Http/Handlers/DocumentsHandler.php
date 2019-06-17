@@ -23,10 +23,10 @@ class DocumentsHandler
     const FOLDER_LINK_SUB_FOLDER_TABLE = 'folders_has_folders';
 
     /**
-     * @param Folder $folder
+     * @param int $folderId
      * @return Document[]
      */
-    public function getDocumentsFromFolder(Folder $folder)
+    public function getDocumentsFromFolder(int $folderId)
     {
         $documentsResult = DB::table(self::DOCUMENT_LINK_FOLDER_TABLE)
             ->select([
@@ -36,7 +36,7 @@ class DocumentsHandler
                 self::DOCUMENT_LINK_FOLDER_TABLE.'.folderId',
                 self::DOCUMENT_LINK_FOLDER_TABLE. '.order',
             ])
-            ->where(self::DOCUMENT_LINK_FOLDER_TABLE.'.folderId', '=', $folder->getId())
+            ->where(self::DOCUMENT_LINK_FOLDER_TABLE.'.folderId', '=', $folderId)
             ->join(self::DOCUMENT_TABLE, self::DOCUMENT_LINK_FOLDER_TABLE. '.documentId', '=', self::DOCUMENT_TABLE. '.id'  )
             ->get();
 
@@ -146,7 +146,7 @@ class DocumentsHandler
         }
 
         if($parentItem instanceof Folder) {
-            return $this->getDocumentsFromFolder($parentItem);
+            return $this->getDocumentsFromFolder($parentItem->getId());
         }
 
         return $this->getDocumentsFromWorkFunction($parentItem);
@@ -168,7 +168,7 @@ class DocumentsHandler
 
     public function deleteDocumentsByFolderId(Folder $folder)
     {
-        $documents = $this->getDocumentsFromFolder($folder);
+        $documents = $this->getDocumentsFromFolder($folder->getId());
         try {
             foreach ($documents as $document) {
                 DB::table(self::DOCUMENT_LINK_FOLDER_TABLE)

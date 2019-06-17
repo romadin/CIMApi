@@ -43,14 +43,21 @@ class FoldersHandler
         $this->chaptersHandler = $chaptersHandler;
     }
 
-    public function getFoldersByProjectId($projectId)
+    public function getFoldersByWorkFunction(WorkFunction $workFunction)
     {
         try {
             $result = DB::table(self::FOLDERS_TABLE)
-                ->where('projectId', $projectId)
+                ->select([
+                    self::FOLDERS_TABLE.'.id',
+                    self::FOLDERS_TABLE.'.name',
+                    self::FOLDERS_TABLE.'.fromTemplate',
+                    WorkFunctionsHandler::MAIN_HAS_FOLDER_TABLE. '.order',
+                ])
+                ->where(WorkFunctionsHandler::MAIN_HAS_FOLDER_TABLE. '.workFunctionId', $workFunction->getId())
+                ->join(WorkFunctionsHandler::MAIN_HAS_FOLDER_TABLE,self::FOLDERS_TABLE. '.id', '=', WorkFunctionsHandler::MAIN_HAS_FOLDER_TABLE. '.folderId'  )
                 ->get();
             if ( $result === null) {
-                return response('The project does not have folders', 400);
+                return [];
             }
         } catch (\Exception $e) {
             return response('FoldersHandler: There is something wrong with the database connection', 403);
@@ -59,7 +66,7 @@ class FoldersHandler
         $folders = [];
 
         foreach ($result as $folder) {
-            array_push($folders, $this->makeFolder($folder));
+            array_push($folders, $this->makeFolder($folder, $workFunction));
         }
 
         return $folders;
@@ -133,8 +140,9 @@ class FoldersHandler
         try {
             DB::table(self::FOLDERS_TABLE)
                 ->where('id', $id)
-                ->update(['on' => $data['turnOn']]);
+                ->update($data);
         } catch (\Exception $e) {
+            var_dump($e->getMessage());
             return response('FoldersHandler: There is something wrong with the database connection', 403);
         }
 

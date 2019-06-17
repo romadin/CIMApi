@@ -45,11 +45,12 @@ class FoldersController extends ApiController
 
     public function getFolders(Request $request)
     {
-        if ( $request->input('projectId') === null ) {
-            return response('The project id is missing', 404);
+        if ( $request->input('workFunctionId') === null ) {
+            return response('The workFunction id is missing', 404);
         }
+        $workFunction = $this->workFunctionsHandler->getWorkFunction($request->input('workFunctionId'));
 
-        return $this->getReturnValueArray($request, $this->foldersHandler->getFoldersByProjectId($request->input('projectId')));
+        return $this->getReturnValueArray($request, $this->foldersHandler->getFoldersByWorkFunction($workFunction));
     }
 
     public function getFolder(Request $request, $id)

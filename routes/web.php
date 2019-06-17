@@ -42,6 +42,17 @@ $router->group(['middleware' => 'auth'], function () use ($router)
 
     $router->get('mail/activate/{id}', 'Mail\MailController@sendUserActivation');
 
+    $router->get('workFunctions', 'WorkFunctions\WorkFunctionsController@getWorkFunctions');
+    $router->get('workFunctions/{id}', 'WorkFunctions\WorkFunctionsController@getWorkFunction');
+
+    $router->get('headlines', 'Headlines\HeadlinesController@getHeadlines');
+    $router->get('headlines/{id}', 'Headlines\HeadlinesController@getHeadline');
+
+    $router->get('chapters', 'Chapters\ChaptersController@getChapters');
+    $router->get('chapters/{id}', 'Chapters\ChaptersController@getChapter');
+
+    $router->get('cache[/{id}]', 'Cache\CacheController@getCache');
+
     $router->group(['middleware' => 'admin'], function() use ($router)
     {
         $router->post('projects[/{id}]', 'Projects\ProjectsController@createOrUpdateProject');
@@ -71,25 +82,18 @@ $router->group(['middleware' => 'auth'], function () use ($router)
         $router->post('templates/{id}', 'Templates\TemplatesController@updateTemplate');
         $router->delete('templates/{id}', 'Templates\TemplatesController@deleteTemplate');
 
-        $router->get('workFunctions', 'WorkFunctions\WorkFunctionsController@getWorkFunctions');
-        $router->get('workFunctions/{id}', 'WorkFunctions\WorkFunctionsController@getWorkFunction');
         $router->post('workFunctions', 'WorkFunctions\WorkFunctionsController@postWorkFunction');
         $router->post('workFunctions/{id}', 'WorkFunctions\WorkFunctionsController@editWorkFunction');
         $router->delete('workFunctions/{id}', 'WorkFunctions\WorkFunctionsController@deleteWorkFunction');
 
-        $router->get('headlines', 'Headlines\HeadlinesController@getHeadlines');
-        $router->get('headlines/{id}', 'Headlines\HeadlinesController@getHeadline');
         $router->post('headlines', 'Headlines\HeadlinesController@postHeadline');
         $router->post('headlines/{id}', 'Headlines\HeadlinesController@editHeadline');
         $router->delete('headlines/{id}', 'Headlines\HeadlinesController@deleteHeadline');
 
-        $router->get('chapters', 'Chapters\ChaptersController@getChapters');
-        $router->get('chapters/{id}', 'Chapters\ChaptersController@getChapter');
         $router->post('chapters', 'Chapters\ChaptersController@postChapter');
         $router->post('chapters/{id}', 'Chapters\ChaptersController@editChapter');
         $router->delete('chapters/{id}', 'Chapters\ChaptersController@deleteChapter');
 
-        $router->get('cache[/{id}]', 'Cache\CacheController@getCache');
         $router->post('cache/{id}', 'Cache\CacheController@updateCache');
         $router->post('cache', 'Cache\CacheController@postCache');
 

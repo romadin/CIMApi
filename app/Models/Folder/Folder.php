@@ -181,13 +181,9 @@ class Folder implements JsonSerializable
         return [
             'id' => $this->getId(),
             'name' => $this->getName(),
-            'projectId' => $this->getProjectId(),
-            'on' => $this->isOn(),
             'subFolders' => $this->getSubFolders(),
             'order' => $this->getOrder(),
-            'isMain' => $this->isMainFolder(),
             'fromTemplate' => $this->isfromTemplate(),
-            'parentFoldersId' => $this->getParentFoldersId(),
         ];
     }
 

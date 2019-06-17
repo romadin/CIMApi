@@ -22,6 +22,7 @@ class CreateWorkFunctionTable extends Migration
             $table->unsignedInteger('projectId')->nullable(true);
             $table->foreign('templateId')->references('id')->on('templates');
             $table->foreign('projectId')->references('id')->on('projects');
+            $table->boolean('on')->default(true);
             $table->timestamps();
         });
     }

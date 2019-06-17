@@ -193,7 +193,8 @@ class ProjectsController extends ApiController
      */
     public function deleteProject(Request $request, $id)
     {
-        $foldersDeleted = $this->foldersHandler->deleteFolders($this->foldersHandler->getFoldersByProjectId($id));
+        $workFunctions = $this->workFunctionsHandler->getWorkFunctionsFromProjectId($id);
+        $foldersDeleted = $this->foldersHandler->deleteFolders($this->foldersHandler->getFoldersByWorkFunction($id));
         $linkedUsers = $this->usersHandler->deleteProjectLink($id);
         $linkedActionsDeleted = $this->actionHandler->deleteActionByProjectId($id);
         $linkedEvents = $this->eventsHandler->deleteEventByProjectId($id);

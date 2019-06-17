@@ -38,11 +38,11 @@ class WorkFunctionsHandler
         $this->chaptersHandler = $chaptersHandler;
     }
 
-    public function getWorkFunctionsFromTemplateId(int $templateId)
+    public function getWorkFunctionsFromTemplateId(int $parentId, string $parentIdName)
     {
         try {
             $results = DB::table(self::MAIN_TABLE)
-                ->where('templateId', $templateId)
+                ->where($parentIdName, $parentId)
                 ->get();
         } catch (\Exception $e) {
             return \response('WorkFunctionsHandler: There is something wrong with the database connection',500);
@@ -429,6 +429,7 @@ class WorkFunctionsHandler
         $workFunction->setOrder($data->order);
         $workFunction->setHeadlines($this->headlinesHandler->getHeadlinesByWorkFunction($workFunction));
         $workFunction->setChapters($this->chaptersHandler->getChaptersByParentWorkFunction($workFunction));
+        $workFunction->setOn($data->on);
 
         return $workFunction;
     }
