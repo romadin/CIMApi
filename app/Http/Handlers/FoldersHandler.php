@@ -72,7 +72,12 @@ class FoldersHandler
         return $folders;
     }
 
-    public function getFolderById(int $id, $parent)
+    /**
+     * @param int $id
+     * @param WorkFunction|null $parent
+     * @return Folder|Response|\Laravel\Lumen\Http\ResponseFactory
+     */
+    public function getFolderById(int $id, ?WorkFunction $parent = null)
     {
         try {
             $folder = DB::table(self::FOLDERS_TABLE)
@@ -142,7 +147,6 @@ class FoldersHandler
                 ->where('id', $id)
                 ->update($data);
         } catch (\Exception $e) {
-            var_dump($e->getMessage());
             return response('FoldersHandler: There is something wrong with the database connection', 403);
         }
 
@@ -252,7 +256,9 @@ class FoldersHandler
             $data->fromTemplate
         );
 
-        $folder->setOrder($this->getOrder($folder, $parent));
+        if($parent) {
+            $folder->setOrder($this->getOrder($folder, $parent));
+        }
 
         $this->folderCache[$folder->getId()] = $folder;
 

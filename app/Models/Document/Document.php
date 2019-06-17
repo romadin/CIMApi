@@ -33,14 +33,9 @@ class Document implements JsonSerializable
     private $content;
 
     /**
-     * @var int[]
+     * @var int | null
      */
-    private $parentIds;
-
-    /**
-     * @var int
-     */
-    private $order;
+    private $order = null;
 
     /**
      * @var boolean
@@ -53,16 +48,14 @@ class Document implements JsonSerializable
      * @param string $originalName
      * @param string | null $name
      * @param string | null $content
-     * @param int $order
      * @param boolean $fromTemplate
      */
-    public function __construct(int $id, string $originalName, $name, $content, int $order, bool $fromTemplate)
+    public function __construct(int $id, string $originalName, $name, $content,  bool $fromTemplate)
     {
         $this->id = $id;
         $this->originalName = $originalName;
         $this->name = $name;
         $this->content = $content;
-        $this->order = $order;
         $this->fromTemplate = $fromTemplate;
     }
 
@@ -131,33 +124,17 @@ class Document implements JsonSerializable
     }
 
     /**
-     * @return int[]
+     * @return int|null
      */
-    public function getParentIds(): array
-    {
-        return $this->parentIds;
-    }
-
-    /**
-     * @param int[] $parentIds
-     */
-    public function setParentIds(array $parentIds): void
-    {
-        $this->parentIds = $parentIds;
-    }
-
-    /**
-     * @return int
-     */
-    public function getOrder(): int
+    public function getOrder(): ?int
     {
         return $this->order;
     }
 
     /**
-     * @param int $order
+     * @param int|null $order
      */
-    public function setOrder(int $order): void
+    public function setOrder(?int $order): void
     {
         $this->order = $order;
     }
@@ -186,7 +163,6 @@ class Document implements JsonSerializable
             'name' => $this->getName(),
             'content' => $this->getContent(),
             'order' => $this->getOrder(),
-            'foldersId' => $this->getParentIds(),
             'fromTemplate' => $this->isfromTemplate(),
         ];
     }

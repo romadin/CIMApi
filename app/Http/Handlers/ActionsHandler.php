@@ -63,7 +63,6 @@ class ActionsHandler
         try {
             $newActionId = DB::table(self::ACTION_TABLE)->insertGetId($postData);
         } catch (\Exception $e) {
-            var_dump($e->getMessage());
             return response('ActionsHandler: There is something wrong with the database connection', 403);
         }
         return $this->getActionById($newActionId);

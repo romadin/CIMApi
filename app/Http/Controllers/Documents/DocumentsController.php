@@ -50,7 +50,8 @@ class DocumentsController extends ApiController
     public function getDocuments(Request $request)
     {
         if ( $request->input('folderId') ) {
-            return $this->getReturnValueArray($request, $this->documentsHandler->getDocumentsFromFolder($request->input('folderId')));
+            $folder = $this->foldersHandler->getFolderById($request->input('folderId'));
+            return $this->getReturnValueArray($request, $this->documentsHandler->getDocumentsFromFolder($folder));
         } else if ( $request->input('workFunctionId') ){
             $workFunction = $this->workFunctionsHandler->getWorkFunction($request->input('workFunctionId'));
             return $this->documentsHandler->getDocumentsFromWorkFunction($workFunction);
@@ -77,6 +78,7 @@ class DocumentsController extends ApiController
             $parentItem = $this->workFunctionsHandler->getWorkFunction($request->input('workFunctionId'));
             $linkTable = WorkFunctionsHandler::MAIN_HAS_DOCUMENT_TABLE;
         }
+
 
         return $this->documentsHandler->postDocument($request->post(), $parentItem, $linkTable);
     }

@@ -22,10 +22,10 @@ class DocumentsHandler
     const DOCUMENT_LINK_FOLDER_TABLE = 'folders_has_documents';
 
     /**
-     * @param int $folderId
+     * @param Folder $folder
      * @return Document[]
      */
-    public function getDocumentsFromFolder(int $folderId)
+    public function getDocumentsFromFolder(Folder $folder)
     {
         $documentsResult = DB::table(self::DOCUMENT_LINK_FOLDER_TABLE)
             ->select([
@@ -35,7 +35,7 @@ class DocumentsHandler
                 self::DOCUMENT_LINK_FOLDER_TABLE.'.folderId',
                 self::DOCUMENT_LINK_FOLDER_TABLE. '.order',
             ])
-            ->where(self::DOCUMENT_LINK_FOLDER_TABLE.'.folderId', '=', $folderId)
+            ->where(self::DOCUMENT_LINK_FOLDER_TABLE.'.folderId', '=', $folder->getId())
             ->join(self::DOCUMENT_TABLE, self::DOCUMENT_LINK_FOLDER_TABLE. '.documentId', '=', self::DOCUMENT_TABLE. '.id'  )
             ->get();
 
@@ -43,7 +43,7 @@ class DocumentsHandler
 
         forEach ( $documentsResult as $document ) {
             $document = $this->setFoldersId($document);
-            array_push($documents, $this->makeDocument($document));
+            array_push($documents, $this->makeDocument($document, $folder));
         }
 
         return $documents;
@@ -72,28 +72,28 @@ class DocumentsHandler
 
         forEach ( $documentsResult as $document ) {
             $document->parentId = $workFunction->getId();
-            array_push($documents, $this->makeDocument($document));
+            array_push($documents, $this->makeDocument($document, $workFunction));
         }
 
         return $documents;
     }
 
-    public function getDocumentById(int $id)
+    /**
+     * @param int $id
+     * @param WorkFunction|Folder|null $parent
+     * @return Document|\Illuminate\Http\Response|\Laravel\Lumen\Http\ResponseFactory
+     *
+     */
+    public function getDocumentById(int $id, $parent = null)
     {
-        $documentResult = DB::table(self::DOCUMENT_LINK_FOLDER_TABLE)
-            ->select([
-                self::DOCUMENT_TABLE.'.id', self::DOCUMENT_TABLE.'.originalName',
-                self::DOCUMENT_TABLE.'.name', self::DOCUMENT_TABLE.'.content',
-                self::DOCUMENT_TABLE.'.fromTemplate',
-                self::DOCUMENT_LINK_FOLDER_TABLE.'.folderId',
-                self::DOCUMENT_LINK_FOLDER_TABLE. '.order',
-            ])
-            ->where(self::DOCUMENT_TABLE.'.id', '=', $id)
-            ->join(self::DOCUMENT_TABLE, self::DOCUMENT_LINK_FOLDER_TABLE. '.documentId', '=', self::DOCUMENT_TABLE. '.id'  )
-            ->first();
-
-        $this->setFoldersId($documentResult);
-        return $this->makeDocument($documentResult);
+        try {
+            $documentResult = DB::table(self::DOCUMENT_TABLE)
+                ->where(self::DOCUMENT_TABLE.'.id', '=', $id)
+                ->first();
+        } catch (\Exception $e) {
+            return response($e->getMessage(), 500);
+        }
+        return $this->makeDocument($documentResult, $parent);
     }
 
     /**
@@ -103,23 +103,24 @@ class DocumentsHandler
      * @param null|int $order
      * @return Document|\Illuminate\Http\Response|\Laravel\Lumen\Http\ResponseFactory
      */
-    public function postDocument(array $postData, $parent, $linkTable, ?int $order = null)
+    public function postDocument(array $postData, $parent, $linkTable, int $order = null)
     {
         $parentIdName = $parent instanceof Folder ? 'folderId' : 'workFunctionId';
         $postData['originalName'] = $postData['name'];
+
         try {
             $id = DB::table(self::DOCUMENT_TABLE)
                 ->insertGetId($postData);
 
-            // insert the link folder has document en set order.
+            // insert the link folder|workFunction has document en set order.
             DB::table($linkTable)
                 ->insert([
                     $parentIdName => $parent->getId(),
                     'documentId' => $id,
-                    'order' => isset($order) ? $order : $this->getHighestOrderFromFolder($parent->getId()) + 1,
+                    'order' => isset($order) ? $order : $this->getHighestOrderFromParent($parent->getId(), $linkTable, $parentIdName) + 1,
                 ]);
 
-            $document = $this->getDocumentById($id);
+            $document = $this->getDocumentById($id, $parent);
         } catch (\Exception $e) {
             return response($e->getMessage(), 500);
         }
@@ -146,7 +147,7 @@ class DocumentsHandler
         }
 
         if($parentItem instanceof Folder) {
-            return $this->getDocumentsFromFolder($parentItem->getId());
+            return $this->getDocumentsFromFolder($parentItem);
         }
 
         return $this->getDocumentsFromWorkFunction($parentItem);
@@ -168,7 +169,7 @@ class DocumentsHandler
 
     public function deleteDocumentsByFolderId(Folder $folder)
     {
-        $documents = $this->getDocumentsFromFolder($folder->getId());
+        $documents = $this->getDocumentsFromFolder($folder);
         try {
             foreach ($documents as $document) {
                 DB::table(self::DOCUMENT_LINK_FOLDER_TABLE)
@@ -204,12 +205,12 @@ class DocumentsHandler
         return true;
     }
 
-    public function getHighestOrderFromFolder(int $folderId)
+    public function getHighestOrderFromParent(int $parentId, string $table, string $parentIdName)
     {
         try {
-            $result = DB::table(self::DOCUMENT_LINK_FOLDER_TABLE)
+            $result = DB::table($table)
                 ->select('order')
-                ->where('folderId', $folderId)
+                ->where($parentIdName, $parentId)
                 ->orderByDesc('order')
                 ->first();
 
@@ -217,7 +218,6 @@ class DocumentsHandler
                 return 0;
             }
         } catch (\Exception $e) {
-            var_dump($e->getMessage());
             return response('There is something wrong with the connection', 403);
         }
 
@@ -255,20 +255,57 @@ class DocumentsHandler
 
     }
 
-    private function makeDocument($data): Document
+    /**
+     * @param $data
+     * @param WorkFunction|Folder|null $parent
+     * @return Document
+     */
+    private function makeDocument($data, $parent = null): Document
     {
         $document = new Document(
             $data->id,
             $data->originalName,
             $data->name,
             $data->content,
-            $data->order,
             $data->fromTemplate
         );
 
-        $document->setParentIds(is_array($data->parentId) ? $data->parentId : [$data->parentId]);
-
+        if($parent !== null) {
+            $document->setOrder($this->getOrderFromParent($document, $parent));
+        }
         return $document;
+    }
+
+    /**
+     * @param Document $document
+     * @param WorkFunction|Folder $parent
+     * @return int
+     */
+    private function getOrderFromParent(Document $document, $parent): int
+    {
+        if ($parent instanceof Folder) {
+            $parentIdName = 'folderId';
+            $table = self::DOCUMENT_LINK_FOLDER_TABLE;
+        } else {
+            $parentIdName = 'workFunctionId';
+            $table = WorkFunctionsHandler::MAIN_HAS_DOCUMENT_TABLE;
+        }
+
+        try {
+            $result = DB::table($table)
+                ->select('order')
+                ->where($parentIdName, $parent->getId())
+                ->where('documentId', $document->getId())
+                ->first();
+
+            if ($result == null) {
+                return 0;
+            }
+        } catch (\Exception $e) {
+            return response('There is something wrong with the connection', 403);
+        }
+
+        return $result->order;
     }
 
     /**
@@ -278,10 +315,14 @@ class DocumentsHandler
      */
     private function setFoldersId($documentResult)
     {
-        $foldersId = DB::table(self::DOCUMENT_LINK_FOLDER_TABLE)
-            ->select('folderId')
-            ->where('documentId', '=', $documentResult->id)
-            ->get();
+        try {
+            $foldersId = DB::table(self::DOCUMENT_LINK_FOLDER_TABLE)
+                ->select('folderId')
+                ->where('documentId', '=', $documentResult->id)
+                ->get();
+        } catch (\Exception $e) {
+            return response($e->getMessage(), 500);
+        }
 
         if( $foldersId->isNotEmpty() ) {
             $idContainer = [];
