@@ -20,7 +20,6 @@ class DocumentsHandler
     const DOCUMENT_TABLE = 'documents';
     const DOCUMENT_IMAGE_TABLE = 'document_image';
     const DOCUMENT_LINK_FOLDER_TABLE = 'folders_has_documents';
-    const FOLDER_LINK_SUB_FOLDER_TABLE = 'folders_has_folders';
 
     /**
      * @param int $folderId
@@ -107,6 +106,7 @@ class DocumentsHandler
     public function postDocument(array $postData, $parent, $linkTable, ?int $order = null)
     {
         $parentIdName = $parent instanceof Folder ? 'folderId' : 'workFunctionId';
+        $postData['originalName'] = $postData['name'];
         try {
             $id = DB::table(self::DOCUMENT_TABLE)
                 ->insertGetId($postData);
@@ -207,20 +207,17 @@ class DocumentsHandler
     public function getHighestOrderFromFolder(int $folderId)
     {
         try {
-            $query = DB::table(self::DOCUMENT_LINK_FOLDER_TABLE)
-                ->select('order')
-                ->where('folderId', $folderId);
-
-            $result = DB::table(self::FOLDER_LINK_SUB_FOLDER_TABLE)
+            $result = DB::table(self::DOCUMENT_LINK_FOLDER_TABLE)
                 ->select('order')
                 ->where('folderId', $folderId)
-                ->union($query)
                 ->orderByDesc('order')
                 ->first();
+
             if ($result == null) {
                 return 0;
             }
         } catch (\Exception $e) {
+            var_dump($e->getMessage());
             return response('There is something wrong with the connection', 403);
         }
 

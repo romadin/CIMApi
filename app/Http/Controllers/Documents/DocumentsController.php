@@ -65,12 +65,13 @@ class DocumentsController extends ApiController
             return $this->editDocument($request, $id);
         }
 
-        if (!$request->input('folderId') || !$request->input('workFunctionId')) {
-            return response('parent id not given', 501);
+        if (!$request->input('workFunctionId')) {
+            return response('work function id not given', 501);
         }
 
         if ($request->input('folderId')) {
-            $parentItem = $this->foldersHandler->getFolderById($request->input('folderId'));
+            $workFunction = $this->workFunctionsHandler->getWorkFunction($request->input('workFunctionId'));
+            $parentItem = $this->foldersHandler->getFolderById($request->input('folderId'), $workFunction);
             $linkTable = DocumentsHandler::DOCUMENT_LINK_FOLDER_TABLE;
         } else {
             $parentItem = $this->workFunctionsHandler->getWorkFunction($request->input('workFunctionId'));
