@@ -174,14 +174,9 @@ class DocumentsHandler
             foreach ($documents as $document) {
                 DB::table(self::DOCUMENT_LINK_FOLDER_TABLE)
                     ->where('documentId', $document->getId())
-                    ->where('folderId', $folder->getId())
                     ->delete();
 
-                $document->setParentIds(array_diff($document->getParentIds(), [$folder->getId()]));
-
-                if ( empty($document->getParentIds()) ) {
-                    DB::table(self::DOCUMENT_TABLE)->delete($document->getId());
-                }
+                DB::table(self::DOCUMENT_TABLE)->delete($document->getId());
             }
         } catch (\Exception $e) {
             return response('DocumentHandler: There is something wrong with the database connection', 500);

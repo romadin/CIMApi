@@ -87,8 +87,16 @@ class WorkFunctionsController
                 unset($postData['chapters']);
             }
             if (isset($postData['headlines'])) {
-                $this->workFunctionsHandler->addHeadlines($workFunction, $postData['headlines']);
+                $this->workFunctionsHandler->addChildItems($workFunction, $postData['headlines'], 'headlineId', WorkFunctionsHandler::MAIN_HAS_HEADLINE_TABLE);
                 unset($postData['headlines']);
+            }
+            if (isset($postData['documents'])) {
+                $this->workFunctionsHandler->addChildItems($workFunction, $postData['documents'], 'documentId', WorkFunctionsHandler::MAIN_HAS_DOCUMENT_TABLE);
+                unset($postData['documents']);
+            }
+            if (isset($postData['folders'])) {
+                $this->workFunctionsHandler->addChildItems($workFunction, $postData['folders'], 'folderId', WorkFunctionsHandler::MAIN_HAS_FOLDER_TABLE);
+                unset($postData['folders']);
             }
         } catch (Exception $e) {
             return \response($e->getMessage(),500);

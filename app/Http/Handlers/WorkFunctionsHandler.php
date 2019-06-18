@@ -192,25 +192,27 @@ class WorkFunctionsHandler
 
     /**
      * @param WorkFunction $workFunction
-     * @param int[] $headlinesId
+     * @param int[] $itemsId
+     * @param string $itemIdName
+     * @param string $linkTable
      * @throws Exception
      */
-    public function addHeadlines(WorkFunction $workFunction, $headlinesId): void
+    public function addChildItems(WorkFunction $workFunction, $itemsId, string $itemIdName, string $linkTable): void
     {
-        foreach ($headlinesId as $headlineId) {
+        foreach ($itemsId as $itemId) {
             $row = [
-                'headlineId' => $headlineId,
+                $itemIdName => $itemId,
                 'workFunctionId' => $workFunction->getId(),
-                'order' => $this->getHighestOrderOfChildItems($workFunction->getId()) + 1
+                'order' => $this->getHighestOrderOfChildItems($workFunction->getId(), $linkTable, $this->getLinkTableSibling($linkTable)) + 1
             ];
             try {
-                $isEmpty = DB::table(self::MAIN_HAS_HEADLINE_TABLE)
-                    ->where('headlineId', $headlineId)
+                $isEmpty = DB::table($linkTable)
+                    ->where($itemIdName, $itemId)
                     ->where('workFunctionId', $workFunction->getId())
                     ->get()->isEmpty();
 
                 if($isEmpty) {
-                    DB::table(self::MAIN_HAS_HEADLINE_TABLE)
+                    DB::table($linkTable)
                         ->insert($row);
                 }
             } catch (Exception $e) {
@@ -330,14 +332,14 @@ class WorkFunctionsHandler
      * @param int $workFunctionId
      * @return int
      */
-    public function getHighestOrderOfChildItems(int $workFunctionId): int
+    public function getHighestOrderOfChildItems(int $workFunctionId, string $linkTable, string $linkTableSibling): int
     {
         try {
-            $query = DB::table(self::MAIN_HAS_HEADLINE_TABLE)
+            $query = DB::table($linkTable)
                 ->select('order')
                 ->where('workFunctionId', $workFunctionId);
 
-            $result = DB::table(self::MAIN_HAS_CHAPTER_TABLE)
+            $result = DB::table($linkTableSibling)
                 ->select('order')
                 ->where('workFunctionId', $workFunctionId)
                 ->union($query)
@@ -432,6 +434,21 @@ class WorkFunctionsHandler
         $workFunction->setOn($data->on);
 
         return $workFunction;
+    }
+
+    static function getLinkTableSibling($linkTable): string {
+        switch ($linkTable) {
+            case (self::MAIN_HAS_FOLDER_TABLE):
+                return self::MAIN_HAS_DOCUMENT_TABLE;
+            case (self::MAIN_HAS_DOCUMENT_TABLE):
+                return self::MAIN_HAS_FOLDER_TABLE;
+            case (self::MAIN_HAS_HEADLINE_TABLE):
+                return self::MAIN_HAS_CHAPTER_TABLE;
+            case (self::MAIN_HAS_CHAPTER_TABLE):
+                return self::MAIN_HAS_HEADLINE_TABLE;
+        }
+
+        return self::MAIN_TABLE;
     }
 
 }
