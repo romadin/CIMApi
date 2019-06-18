@@ -59,6 +59,11 @@ class WorkFunction implements JsonSerializable
      */
     private $on = null;
 
+    /**
+     * @var null | boolean
+     */
+    private $fromTemplate = null;
+
     public function __construct()
     {
     }
@@ -207,6 +212,22 @@ class WorkFunction implements JsonSerializable
         $this->on = $on;
     }
 
+    /**
+     * @return bool|null
+     */
+    public function getFromTemplate(): ?bool
+    {
+        return $this->fromTemplate;
+    }
+
+    /**
+     * @param bool|null $fromTemplate
+     */
+    public function setFromTemplate(?bool $fromTemplate): void
+    {
+        $this->fromTemplate = $fromTemplate;
+    }
+
     public function jsonSerialize()
     {
         return [
@@ -216,6 +237,7 @@ class WorkFunction implements JsonSerializable
             'order' => $this->getOrder(),
             'parentId' => $this->getTemplateId() !== null ?: $this->getProjectId(),
             'on' => $this->getOn(),
+            'fromTemplate' => $this->getFromTemplate(),
         ];
     }
 }

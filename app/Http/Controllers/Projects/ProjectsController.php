@@ -140,18 +140,17 @@ class ProjectsController extends ApiController
         if ( $id ) {
             return $this->updateProject($request, $id);
         }
+        if ( !$request->input('templateId')) {
+            return response('No template was given', 400);
+        }
 
         $postData = [
             'name' => $request->input('name'),
             'organisationId' => $request->input('organisationId'),
         ];
-
         $project = $this->projectsHandler->postProject($postData);
 
         if ( $project ) {
-            if ( !$request->input('templateId')) {
-                return response('No template was given', 400);
-            }
 
             /** @var Template|Response $template */
             $template = $this->templateController->getTemplate($request->input('templateId'));
@@ -163,7 +162,8 @@ class ProjectsController extends ApiController
                 $postData = [
                     'name' => $workFunction->getName(),
                     'isMainFunction' => $workFunction->isMainFunction(),
-                    'projectId' => $project->getId()
+                    'projectId' => $project->getId(),
+                    'fromTemplate' => true
                 ];
 
                 $workFunction = $this->workFunctionsHandler->postWorkFunction($postData);

@@ -432,6 +432,7 @@ class WorkFunctionsHandler
         $workFunction->setHeadlines($this->headlinesHandler->getHeadlinesByWorkFunction($workFunction));
         $workFunction->setChapters($this->chaptersHandler->getChaptersByParentWorkFunction($workFunction));
         $workFunction->setOn($data->on);
+        $workFunction->setFromTemplate($data->fromTemplate);
 
         return $workFunction;
     }

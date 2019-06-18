@@ -106,7 +106,7 @@ class DocumentsHandler
     public function postDocument(array $postData, $parent, $linkTable, int $order = null)
     {
         $parentIdName = $parent instanceof Folder ? 'folderId' : 'workFunctionId';
-        $postData['originalName'] = $postData['name'];
+        $postData['originalName'] =  isset($postData['originalName']) ? $postData['originalName'] : $postData['name'];
 
         try {
             $id = DB::table(self::DOCUMENT_TABLE)
