@@ -192,6 +192,10 @@ class DocumentsHandler
                 ->where('documentId', $id)
                 ->delete();
 
+            DB::table(WorkFunctionsHandler::MAIN_HAS_DOCUMENT_TABLE)
+                ->where('documentId', $id)
+                ->delete();
+
             DB::table(self::DOCUMENT_TABLE)->delete($id);
         } catch (\Exception $e) {
             return response('DocumentHandler: There is something wrong with the database connection', 500);

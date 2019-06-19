@@ -191,15 +191,17 @@ class ProjectsController extends ApiController
      * @param $id
      * @return array|\Illuminate\Http\Response|\Laravel\Lumen\Http\ResponseFactory
      */
-    public function deleteProject(Request $request, $id)
+    public function deleteProject(Request $request, int $id)
     {
         $workFunctions = $this->workFunctionsHandler->getWorkFunctionsFromProjectId($id);
-        $foldersDeleted = $this->foldersHandler->deleteFolders($this->foldersHandler->getFoldersByWorkFunction($id));
+        foreach ($workFunctions as $workFunction) {
+            $this->workFunctionsHandler->deleteWorkFunction($workFunction);
+        }
         $linkedUsers = $this->usersHandler->deleteProjectLink($id);
         $linkedActionsDeleted = $this->actionHandler->deleteActionByProjectId($id);
         $linkedEvents = $this->eventsHandler->deleteEventByProjectId($id);
 
-        if( $foldersDeleted && $linkedUsers && $linkedActionsDeleted ) {
+        if( $linkedUsers && $linkedActionsDeleted && $linkedEvents) {
             $deletedId = DB::table(self::PROJECT_TABLE)->delete($id);
 
             if( $deletedId ) {

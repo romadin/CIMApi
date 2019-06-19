@@ -31,11 +31,25 @@ class WorkFunctionsHandler
      * @var ChaptersHandler
      */
     private $chaptersHandler;
+    /**
+     * @var DocumentsHandler
+     */
+    private $documentsHandler;
+    /**
+     * @var FoldersHandler
+     */
+    private $foldersHandler;
 
-    public function __construct(HeadlinesHandler $headlinesHandler, ChaptersHandler $chaptersHandler)
+    public function __construct(
+        HeadlinesHandler $headlinesHandler,
+        ChaptersHandler $chaptersHandler,
+        DocumentsHandler $documentsHandler,
+        FoldersHandler $foldersHandler)
     {
         $this->headlinesHandler = $headlinesHandler;
         $this->chaptersHandler = $chaptersHandler;
+        $this->documentsHandler = $documentsHandler;
+        $this->foldersHandler = $foldersHandler;
     }
 
     public function getWorkFunctionsFromTemplateId(int $parentId, string $parentIdName)
@@ -167,20 +181,21 @@ class WorkFunctionsHandler
      */
     public function addChapters(WorkFunction $workFunction, $chaptersId): void
     {
+        $linkTable = self::MAIN_HAS_CHAPTER_TABLE;
         foreach ($chaptersId as $chapterId) {
             $row = [
                 'chapterId' => $chapterId,
                 'workFunctionId' => $workFunction->getId(),
-                'order' => $this->getHighestOrderOfChildItems($workFunction->getId()) + 1
+                'order' => $this->getHighestOrderOfChildItems($workFunction->getId(), $linkTable, self::getLinkTableSibling($linkTable)) + 1
             ];
             try {
-                $isEmpty = DB::table(self::MAIN_HAS_CHAPTER_TABLE)
+                $isEmpty = DB::table($linkTable)
                     ->where('chapterId', $chapterId)
                     ->where('workFunctionId', $workFunction->getId())
                     ->get()->isEmpty();
 
                 if($isEmpty) {
-                    DB::table(self::MAIN_HAS_CHAPTER_TABLE)
+                    DB::table($linkTable)
                         ->insert($row);
                 }
 
@@ -265,12 +280,33 @@ class WorkFunctionsHandler
 
     public function deleteWorkFunction(WorkFunction $workFunction)
     {
+        $documents = $this->documentsHandler->getDocumentsFromWorkFunction($workFunction);
+        $folders = $this->foldersHandler->getFoldersByWorkFunction($workFunction);
+        try {
+            $this->deleteLinks($workFunction);
+        } catch (Exception $e) {
+            return response($e->getMessage(),500);
+        }
+
+        if ($workFunction->isMainFunction()) {
+            foreach ($workFunction->getChapters() as $chapter) {
+                $this->chaptersHandler->deleteChapterAndLink($chapter, $workFunction);
+            }
+            foreach ($workFunction->getHeadlines() as $headline) {
+                $this->headlinesHandler->deleteHeadline($headline, $workFunction);
+            }
+            foreach ($documents as $document) {
+                $this->documentsHandler->deleteDocument($document->getId());
+            }
+            $this->foldersHandler->deleteFolders($folders);
+        }
+
         try {
             DB::table(self::MAIN_TABLE)
                 ->where('id', $workFunction->getId())
                 ->delete();
         } catch (Exception $e) {
-            return \response($e->getMessage(),500);
+            return response($e->getMessage(),500);
         }
 
         return json_decode('WorkFunction deleted');
@@ -330,6 +366,8 @@ class WorkFunctionsHandler
     /**
      * Get the highest order of all the items in the workFunction
      * @param int $workFunctionId
+     * @param string $linkTable
+     * @param string $linkTableSibling
      * @return int
      */
     public function getHighestOrderOfChildItems(int $workFunctionId, string $linkTable, string $linkTableSibling): int
@@ -418,6 +456,31 @@ class WorkFunctionsHandler
         }
 
         return $result->order;
+    }
+
+    /**
+     * Delete all the links between child items and workFunction.
+     * @param WorkFunction $workFunction
+     * @throws Exception
+     */
+    private function deleteLinks(WorkFunction $workFunction): void
+    {
+        try {
+            DB::table(self::MAIN_HAS_DOCUMENT_TABLE)
+                ->where('workFunctionId', $workFunction->getId())
+                ->delete();
+            DB::table(self::MAIN_HAS_FOLDER_TABLE)
+                ->where('workFunctionId', $workFunction->getId())
+                ->delete();
+            DB::table(self::MAIN_HAS_CHAPTER_TABLE)
+                ->where('workFunctionId', $workFunction->getId())
+                ->delete();
+            DB::table(self::MAIN_HAS_HEADLINE_TABLE)
+                ->where('workFunctionId', $workFunction->getId())
+                ->delete();
+        } catch (\Exception $e) {
+            throw new Exception($e->getMessage(),500);
+        }
     }
 
     private function makeWorkFunction($data): WorkFunction
