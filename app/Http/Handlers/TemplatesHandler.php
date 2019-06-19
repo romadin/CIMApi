@@ -18,10 +18,6 @@ class TemplatesHandler
 {
     const TEMPLATE_TABLE = 'templates';
     /**
-     * @var TemplateItemsHandler
-     */
-    private $templateItemHandler;
-    /**
      * @var WorkFunctionsHandler
      */
     private $workFunctionsHandler;
@@ -30,9 +26,8 @@ class TemplatesHandler
      */
     private $chaptersHandler;
 
-    public function __construct(TemplateItemsHandler $templateItemsHandler, WorkFunctionsHandler $workFunctionsHandler, ChaptersHandler $chaptersHandler)
+    public function __construct(WorkFunctionsHandler $workFunctionsHandler, ChaptersHandler $chaptersHandler)
     {
-        $this->templateItemHandler = $templateItemsHandler;
         $this->workFunctionsHandler = $workFunctionsHandler;
         $this->chaptersHandler = $chaptersHandler;
     }

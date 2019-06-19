@@ -8,6 +8,7 @@
 
 namespace App\Models\Organisation;
 
+use App\Models\Module\Module;
 use JsonSerializable;
 
 class Organisation implements JsonSerializable
@@ -46,6 +47,11 @@ class Organisation implements JsonSerializable
      * @var null | int
      */
     private $templatesNumber = null;
+
+    /**
+     * @var null | Module[]
+     */
+    private $modules = null;
 
     public function __construct()
     {
@@ -163,6 +169,22 @@ class Organisation implements JsonSerializable
         $this->templatesNumber = $templatesNumber;
     }
 
+    /**
+     * @return Module[]|null
+     */
+    public function getModules(): ?array
+    {
+        return $this->modules;
+    }
+
+    /**
+     * @param Module[]|null $modules
+     */
+    public function setModules(?array $modules): void
+    {
+        $this->modules = $modules;
+    }
+
     public function jsonSerialize()
     {
         return [
@@ -172,6 +194,7 @@ class Organisation implements JsonSerializable
             'secondaryColor' => $this->getSecondaryColor(),
             'maxUsers' => $this->getMaxUsers(),
             'templatesNumber' => $this->getTemplatesNumber(),
+            'modules' => $this->getModules(),
             'hasLogo' => $this->getLogo() !== null,
         ];
     }

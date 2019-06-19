@@ -9,17 +9,27 @@
 namespace App\Http\Handlers;
 
 use App\Models\Organisation\Organisation;
+use Exception;
 use Illuminate\Support\Facades\DB;
 
 class OrganisationHandler
 {
     const table = 'organisations';
+    /**
+     * @var ModulesHandler
+     */
+    private $modulesHandler;
+
+    public function __construct(ModulesHandler $modulesHandler)
+    {
+        $this->modulesHandler = $modulesHandler;
+    }
 
     public function getOrganisationByName(string $name)
     {
         try {
             $result = DB::table(self::table)->where('name', $name)->first();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return json_encode($e->getMessage());
         }
 
@@ -37,7 +47,11 @@ class OrganisationHandler
         return $this->makeOrganisation($result);
     }
 
-    private function makeOrganisation($data): Organisation
+    /**
+     * @param $data
+     * @return Organisation|\Illuminate\Http\Response|\Laravel\Lumen\Http\ResponseFactory
+     */
+    private function makeOrganisation($data)
     {
         $organisation = new Organisation();
 
@@ -49,6 +63,13 @@ class OrganisationHandler
                 }
             }
         }
+        try {
+            $modules = $this->modulesHandler->getModulesByOrganisation($organisation);
+        }catch (Exception $e) {
+            return response($e->getMessage(), 500);
+        }
+
+        $organisation->setModules($modules);
         return $organisation;
     }
 

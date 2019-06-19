@@ -20,5 +20,7 @@ class DatabaseSeeder extends Seeder
         $this->call('WorkFunctionHasHeadlineTableSeeder');
         $this->call('ChapterTableSeeder');
         $this->call('WorkFunctionHasChapterTableSeeder');
+        $this->call('ModulesTableSeeder');
+        $this->call('OrganisationHasModuleTableSeeder');
     }
 }
