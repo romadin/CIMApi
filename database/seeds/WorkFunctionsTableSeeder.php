@@ -17,19 +17,19 @@ class WorkFunctionsTableSeeder extends Seeder
                 'name' => 'BIM-Uitvoeringsplan',
                 'isMainFunction' => true,
                 'order' => 1,
-                'templateId' => 1,
+                'projectId' => 1,
             ],
             [
                 'name' => 'BIM-Modelleur',
                 'isMainFunction' => false,
                 'order' => 2,
-                'templateId' => 1,
+                'projectId' => 1,
             ],
             [
                 'name' => 'BIM-Coördinator',
                 'isMainFunction' => false,
                 'order' => 3,
-                'templateId' => 1,
+                'projectId' => 1,
             ],
             [
                 'name' => 'BIM Regisseur',

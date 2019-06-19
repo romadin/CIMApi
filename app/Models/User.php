@@ -9,6 +9,7 @@
 namespace App\Models;
 
 
+use App\Models\Company\Company;
 use JsonSerializable;
 
 class User implements JsonSerializable
@@ -79,7 +80,7 @@ class User implements JsonSerializable
     private $organisationId = null;
 
     /**
-     * @var null | string
+     * @var null | Company
      */
     private $company = null;
 
@@ -320,17 +321,17 @@ class User implements JsonSerializable
     }
 
     /**
-     * @return null|string
+     * @return null|Company
      */
-    public function getCompany(): ?string
+    public function getCompany(): ?Company
     {
         return $this->company;
     }
 
     /**
-     * @param null|string $company
+     * @param null|Company $company
      */
-    public function setCompany(?string $company): void
+    public function setCompany(?Company $company): void
     {
         $this->company = $company;
     }

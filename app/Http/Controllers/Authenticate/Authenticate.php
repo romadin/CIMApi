@@ -9,6 +9,7 @@
 namespace App\Http\Controllers\Authenticate;
 
 use App\Http\Handlers\UsersHandler;
+use Exception;
 use Illuminate\Contracts\Auth\Factory as Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
@@ -57,7 +58,11 @@ class Authenticate extends Controller
             return json_encode(['token' => $_SESSION['api_token']['token'], 'user_id' => $_SESSION['api_token']['user_id']]);
         }
 
-        $user = $this->usersHandler->getUserByEmail($email, $request->input('organisationId'));
+        try {
+            $user = $this->usersHandler->getUserByEmail($email, $request->input('organisationId'));
+        } catch (Exception $e) {
+            return response($e->getMessage(), 404);
+        }
 
         // clear old sessions
         unset($_SESSION['api_token']);

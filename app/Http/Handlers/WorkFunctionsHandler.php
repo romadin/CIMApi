@@ -510,6 +510,7 @@ class WorkFunctionsHandler
         $workFunction->setName($data->name);
         $workFunction->setMainFunction($data->isMainFunction);
         $workFunction->setTemplateId($data->templateId);
+        $workFunction->setProjectId($data->projectId);
         $workFunction->setOrder($data->order);
         $workFunction->setHeadlines($this->headlinesHandler->getHeadlinesByWorkFunction($workFunction));
         $workFunction->setChapters($this->chaptersHandler->getChaptersByParentWorkFunction($workFunction));

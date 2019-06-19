@@ -9,6 +9,7 @@
 namespace App\Models\Project;
 
 
+use App\Models\Company\Company;
 use JsonSerializable;
 
 class Project implements JsonSerializable
@@ -27,6 +28,11 @@ class Project implements JsonSerializable
      * @var int
      */
     private $organisationId;
+
+    /**
+     * @var Company[]|null
+     */
+    private $companies = null;
 
 
     public function __construct(int $id, string $name, int $organisationId)
@@ -84,12 +90,29 @@ class Project implements JsonSerializable
         $this->organisationId = $organisationId;
     }
 
+    /**
+     * @return Company[]|null
+     */
+    public function getCompanies(): ?array
+    {
+        return $this->companies;
+    }
+
+    /**
+     * @param Company[]|null $companies
+     */
+    public function setCompanies(?array $companies): void
+    {
+        $this->companies = $companies;
+    }
+
     public function jsonSerialize()
     {
         return [
             'id' => $this->getId(),
             'name' => $this->getName(),
             'organisationId' => $this->getOrganisationId(),
+            'companies' => $this->getCompanies(),
         ];
     }
 

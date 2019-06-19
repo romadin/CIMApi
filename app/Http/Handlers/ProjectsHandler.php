@@ -18,6 +18,16 @@ class ProjectsHandler
     const PROJECT_TABLE = 'projects';
 
     /**
+     * @var CompaniesHandler
+     */
+    private $companiesHandler;
+
+    public function __construct(CompaniesHandler $companiesHandler)
+    {
+        $this->companiesHandler = $companiesHandler;
+    }
+
+    /**
      * @param int $id
      * @return Project | Response
      */
@@ -35,7 +45,27 @@ class ProjectsHandler
         }
 
         return $this->makeProject($result);
+    }
 
+    public function getProjectsByOrganisation(int $organisationId)
+    {
+        try {
+            $results = DB::table(self::PROJECT_TABLE)->where('organisationId', $organisationId)->get();
+
+            if ( $results === null ) {
+                return response('Item does not exist', 404);
+            }
+        } catch (\Exception $e) {
+            return \response('ProjectHandler: There is something wrong with the database connection',500);
+        }
+
+        $projects = [];
+
+        foreach ($results as $result) {
+            array_push($projects, $this->makeProject($result));
+        }
+
+        return $projects;
     }
 
     /**
@@ -69,6 +99,14 @@ class ProjectsHandler
             $data->name,
             $data->organisationId
         );
+
+        try {
+            $companies = $this->companiesHandler->getCompaniesByWorkFunction($project);
+        } catch (\Exception $e) {
+            return response($e->getMessage());
+        }
+
+        $project->setCompanies($companies);
 
         return $project;
     }

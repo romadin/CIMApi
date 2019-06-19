@@ -11,6 +11,7 @@ namespace App\Http\Handlers;
 
 use App\Models\Role;
 use App\Models\User;
+use Exception;
 use Illuminate\Support\Facades\DB;
 
 class UsersHandler
@@ -33,9 +34,19 @@ class UsersHandler
         self::USERS_TABLE.'.image',
         self::USERS_TABLE.'.token',
         self::USERS_TABLE.'.organisationId',
-        self::USERS_TABLE.'.company',
+        self::USERS_TABLE.'.companyId',
         self::ROLES_TABLE.'.name as roleName',
     ];
+
+    /**
+     * @var CompaniesHandler
+     */
+    private $companiesHandler;
+
+    public function __construct(CompaniesHandler $companiesHandler)
+    {
+        $this->companiesHandler = $companiesHandler;
+    }
 
     /**
      * @return User[]
@@ -91,6 +102,12 @@ class UsersHandler
         return $users;
     }
 
+    /**
+     * @param string $email
+     * @param $organisationId
+     * @return User|\Illuminate\Http\Response|\Laravel\Lumen\Http\ResponseFactory
+     * @throws \Exception
+     */
     public function getUserByEmail(string $email, $organisationId)
     {
         try {
@@ -103,8 +120,8 @@ class UsersHandler
             if ( $result === null) {
                 return response('Wrong credentials.', 502);
             }
-        } catch (\Exception $e) {
-            return response('There is something wrong with the connection', 403);
+        } catch (Exception $e) {
+            throw new Exception($e->getMessage(), 403);
         }
 
         return $this->makeUser($result);
@@ -361,7 +378,13 @@ class UsersHandler
 
         $user->setProjectsId($this->getProjectsIdFromUser($user));
         $user->setOrganisationId($data->organisationId);
-        $user->setCompany($data->company);
+        try {
+            $company = $this->companiesHandler->getCompanyById($data->companyId);
+        } catch (Exception $e) {
+            return response($e->getMessage(), 404);
+        }
+
+        $user->setCompany($company);
 
         return $user;
     }

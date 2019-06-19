@@ -27,8 +27,6 @@ use Illuminate\Support\Facades\DB;
 
 class ProjectsController extends ApiController
 {
-    const PROJECT_TABLE = 'projects';
-
     /**
      * @var ProjectsHandler
      */
@@ -107,15 +105,11 @@ class ProjectsController extends ApiController
      */
     public function getProjects(Request $request)
     {
-        $results = DB::table(self::PROJECT_TABLE)->where('organisationId', $request->input('organisationId'))->get();
-
-        $projects = [];
-
-        foreach ($results as $result) {
-            array_push($projects, $this->projectsHandler->makeProject($result));
+        if(!$request->input('organisationId')) {
+            return response('organisation id is not given', 404);
         }
 
-        return $this->getReturnValueArray($request, $projects);
+        return $this->getReturnValueArray($request, $this->projectsHandler->getProjectsByOrganisation($request->input('organisationId')));
     }
 
     /**
@@ -202,7 +196,7 @@ class ProjectsController extends ApiController
         $linkedEvents = $this->eventsHandler->deleteEventByProjectId($id);
 
         if( $linkedUsers && $linkedActionsDeleted && $linkedEvents) {
-            $deletedId = DB::table(self::PROJECT_TABLE)->delete($id);
+            $deletedId = DB::table(ProjectsHandler::PROJECT_TABLE)->delete($id);
 
             if( $deletedId ) {
                 return $this->getProjects($request);
@@ -221,11 +215,11 @@ class ProjectsController extends ApiController
      */
     private function updateProject(Request $request, $id)
     {
-        DB::table(self::PROJECT_TABLE)
+        DB::table(ProjectsHandler::PROJECT_TABLE)
             ->where('id','=', $id)
             ->update($request->post());
 
-        $result = DB::table(self::PROJECT_TABLE)->where('id', $id)->first();
+        $result = DB::table(ProjectsHandler::PROJECT_TABLE)->where('id', $id)->first();
 
         return $this->projectsHandler->makeProject($result);
     }

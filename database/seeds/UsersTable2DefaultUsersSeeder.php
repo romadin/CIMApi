@@ -21,7 +21,7 @@ class UsersTable2DefaultUsersSeeder extends Seeder
             'role_id' => 1,
             'phoneNumber' => '0611111111',
             'organisationId' => 2,
-            'company' => 'mainCompany'
+            'companyId' => 1
         ]);
     }
 }

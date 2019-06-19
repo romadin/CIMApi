@@ -51,6 +51,8 @@ $router->group(['middleware' => 'auth'], function () use ($router)
     $router->get('chapters', 'Chapters\ChaptersController@getChapters');
     $router->get('chapters/{id}', 'Chapters\ChaptersController@getChapter');
 
+    $router->get('companies', 'Companies\CompaniesController@getCompanies');
+
     $router->get('cache[/{id}]', 'Cache\CacheController@getCache');
 
     $router->group(['middleware' => 'admin'], function() use ($router)
@@ -93,6 +95,12 @@ $router->group(['middleware' => 'auth'], function () use ($router)
         $router->post('chapters', 'Chapters\ChaptersController@postChapter');
         $router->post('chapters/{id}', 'Chapters\ChaptersController@editChapter');
         $router->delete('chapters/{id}', 'Chapters\ChaptersController@deleteChapter');
+
+        $router->post('companies', 'Companies\CompaniesController@postCompany');
+        $router->post('companies/{id}', 'Companies\CompaniesController@editCompany');
+        $router->delete('companies', 'Companies\CompaniesController@deleteCompany');
+
+
 
         $router->post('cache/{id}', 'Cache\CacheController@updateCache');
         $router->post('cache', 'Cache\CacheController@postCache');
