@@ -14,19 +14,7 @@ class CompaniesTableSeeder extends Seeder
     {
         DB::table('companies')->insert([
             [
-                'name' => 'Default Company',
-            ],
-            [
-                'name' => 'Sixpaths',
-            ],
-            [
-                'name' => 'De wil ik niet terug zien',
-            ],
-            [
-                'name' => 'Bedrijf 4',
-            ],
-            [
-                'name' => 'Bedrijf 5',
+                'name' => 'Demo',
             ],
         ]);
     }

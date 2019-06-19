@@ -49,9 +49,11 @@ class CompaniesController
             } catch (Exception $e) {
                 return response($e->getMessage(), 500);
             }
-        }elseif ($request->input(''))
+        } else if ($request->input('projectsId')) {
+            return $this->companiesHandler->getCompaniesByProjects($request->input('projectsId'));
+        }
 
-        return false;
+            return response('no project ids or work function id given', 404);
     }
 
     public function postCompanies(Request $request)
