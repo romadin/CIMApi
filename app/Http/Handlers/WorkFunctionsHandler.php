@@ -288,17 +288,17 @@ class WorkFunctionsHandler
             return response($e->getMessage(),500);
         }
 
-        if ($workFunction->isMainFunction()) {
-            foreach ($workFunction->getChapters() as $chapter) {
-                $this->chaptersHandler->deleteChapterAndLink($chapter, $workFunction);
-            }
-            foreach ($workFunction->getHeadlines() as $headline) {
-                $this->headlinesHandler->deleteHeadline($headline, $workFunction);
-            }
+        if ($workFunction->isMainFunction() && $workFunction->getProjectId() !== null) {
             foreach ($documents as $document) {
                 $this->documentsHandler->deleteDocument($document->getId());
             }
             $this->foldersHandler->deleteFolders($folders);
+        } else {
+            try {
+                $this->deleteChaptersAndHeadline($workFunction);
+            } catch (Exception $e) {
+                return response($e->getMessage(),500);
+            }
         }
 
         try {
@@ -479,6 +479,25 @@ class WorkFunctionsHandler
                 ->where('workFunctionId', $workFunction->getId())
                 ->delete();
         } catch (\Exception $e) {
+            throw new Exception($e->getMessage(),500);
+        }
+    }
+
+    /**
+     * Delete the chapters and the headline
+     * @param WorkFunction $workFunction
+     * @throws Exception
+     */
+    private function deleteChaptersAndHeadline(WorkFunction $workFunction): void
+    {
+        try {
+            foreach ($workFunction->getChapters() as $chapter) {
+                $this->chaptersHandler->deleteChapterAndLink($chapter, $workFunction);
+            }
+            foreach ($workFunction->getHeadlines() as $headline) {
+                $this->headlinesHandler->deleteHeadline($headline, $workFunction);
+            }
+        } catch (Exception $e) {
             throw new Exception($e->getMessage(),500);
         }
     }

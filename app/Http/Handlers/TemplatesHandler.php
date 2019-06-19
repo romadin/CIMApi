@@ -138,7 +138,8 @@ class TemplatesHandler
         $templateDefault = $this->getTemplateById(1);
         $postData = [
             'name' => 'Standaard template',
-            'organisationId' => $organisationId
+            'organisationId' => $organisationId,
+            'isDefault' => true,
         ];
         $newTemplate = $this->createNewTemplate($postData);
 

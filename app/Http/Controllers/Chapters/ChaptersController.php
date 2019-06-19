@@ -70,10 +70,17 @@ class ChaptersController
 
         $postData = $request->post();
         if ($request->input('workFunctionId')) {
+            $linkTable = WorkFunctionsHandler::MAIN_HAS_CHAPTER_TABLE;
             $workFunction = $this->workFunctionsHandler->getWorkFunction($request->input('workFunctionId'));
-            $newOrder = $this->workFunctionsHandler->getHighestOrderOfChildItems($workFunction->getId()) + 1;
+            $newOrder = $this->workFunctionsHandler->getHighestOrderOfChildItems($workFunction->getId(), $linkTable, WorkFunctionsHandler::getLinkTableSibling($linkTable)) + 1;
             $newChapter = $this->chaptersHandler->postChapter($postData, $request->input('workFunctionId'));
-            $this->workFunctionsHandler->createWorkFunctionHasChapters($workFunction, [$newChapter], [$newOrder]);
+
+            try {
+                $this->workFunctionsHandler->createWorkFunctionHasChapters($workFunction, [$newChapter], [$newOrder]);
+            }catch (\Exception $e) {
+                return response($e->getMessage());
+            }
+
             $newChapter->setOrder($newOrder);
         } else if(!$request->input('order')) {
             $order = $this->chaptersHandler->getHighestOrderInHeadline($request->input('headlineId')) + 1;

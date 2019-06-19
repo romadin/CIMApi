@@ -146,21 +146,22 @@ class HeadlinesHandler
     }
 
     /**
-     * Delete headline only if the work function is the main function otherwise delete the link between headline and work function.
+     * Delete headline only if the headline has no more links otherwise only delete the link between headline and work function.
      * @param Headline $headline
      * @param WorkFunction $workFunction
      * @return \Illuminate\Http\Response|\Laravel\Lumen\Http\ResponseFactory|mixed
      */
     public function deleteHeadline(Headline $headline, WorkFunction $workFunction)
     {
-        $links = DB::table(WorkFunctionsHandler::MAIN_HAS_HEADLINE_TABLE)
-            ->where('headlineId', $headline->getId())
-            ->get();
-        foreach ($links as $link) {
-            $this->deleteWorkFunctionHasHeadline($headline->getId(), $link->workFunctionId);
+        $this->deleteWorkFunctionHasHeadline($headline->getId(), $workFunction->getId());
+
+        try {
+            $amountOfLinks = $this->getHeadlineLinksAmount($headline);
+        }catch (Exception $e) {
+            return response($e->getMessage(), 500);
         }
 
-        if ($workFunction->isMainFunction()) {
+        if ($amountOfLinks === 0) {
             foreach ($this->chaptersHandler->getChaptersByParentHeadline($headline) as $chapter) {
                 $this->chaptersHandler->deleteChapterAndLink($chapter);
             }
@@ -194,6 +195,18 @@ class HeadlinesHandler
             return \response($e->getMessage(),500);
         }
         return json_decode('Headline link deleted');
+    }
+
+    private function getHeadlineLinksAmount(Headline $headline)
+    {
+        try {
+            $result = count(DB::table(WorkFunctionsHandler::MAIN_HAS_HEADLINE_TABLE)
+                ->where('headlineId', $headline->getId())
+                ->get()->toArray());
+        } catch (Exception $e) {
+            return \response($e->getMessage(),500);
+        }
+        return $result;
     }
 
     /**

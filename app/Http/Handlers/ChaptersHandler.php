@@ -182,13 +182,7 @@ class ChaptersHandler
     {
         if ($workFunction) {
             $this->deleteWorkFunctionHasChapter($chapter->getId(), $workFunction->getId());
-            if ($workFunction->isMainFunction()) {
-                $links = DB::table(WorkFunctionsHandler::MAIN_HAS_CHAPTER_TABLE)
-                    ->where('chapterId', $chapter->getId())
-                    ->get();
-                foreach ($links as $link) {
-                    $this->deleteWorkFunctionHasChapter($chapter->getId(), $link->chapterId);
-                }
+            if ($this->getChaptersLinks($chapter->getId()) === 0) {
                 return $this->deleteChapter($chapter);
             }
             return json_decode('Chapter link deleted');
@@ -249,6 +243,18 @@ class ChaptersHandler
             return \response($e->getMessage(),500);
         }
         return json_decode('Chapter link deleted');
+    }
+
+    private function getChaptersLinks(int $chapterId)
+    {
+        try {
+            $result = count(DB::table(WorkFunctionsHandler::MAIN_HAS_CHAPTER_TABLE)
+                ->where('chapterId', $chapterId)
+                ->get()->toArray());
+        } catch (Exception $e) {
+            return \response($e->getMessage(),500);
+        }
+        return $result;
     }
     /**
      * @param Chapter $headline

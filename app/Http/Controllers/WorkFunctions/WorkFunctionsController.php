@@ -114,20 +114,6 @@ class WorkFunctionsController
             return response('Can not delete work function because this is the main function', 400);
         }
 
-        $headlines = $this->headlinesHandler->getHeadlinesByWorkFunction($workFunction);
-        if(!empty($headlines)) {
-            foreach ($headlines as $headline) {
-                $this->headlinesHandler->deleteHeadline($headline, $workFunction);
-            }
-        }
-
-        $chapters = $this->chaptersHandler->getChaptersByParentWorkFunction($workFunction);
-        if(!empty($chapters)) {
-            foreach ($chapters as $chapter) {
-                $this->chaptersHandler->deleteChapterAndLink($chapter, $workFunction);
-            }
-        }
-
         return $this->workFunctionsHandler->deleteWorkFunction($workFunction);
     }
 

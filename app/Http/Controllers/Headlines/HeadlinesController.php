@@ -69,8 +69,13 @@ class HeadlinesController
         $headline = $this->headlinesHandler->postHeadline($request->post(), $workFunctionId);
 
         if ($headline instanceof Headline) {
-            $newOrder = $this->workFunctionsHandler->getHighestOrderOfChildItems($workFunctionId) + 1;
-            $this->workFunctionsHandler->createWorkFunctionHasHeadlines($this->workFunctionsHandler->getWorkFunction($workFunctionId), [$headline], [$newOrder]);
+            $linkTable = WorkFunctionsHandler::MAIN_HAS_HEADLINE_TABLE;
+            $newOrder = $this->workFunctionsHandler->getHighestOrderOfChildItems($workFunctionId, $linkTable, WorkFunctionsHandler::getLinkTableSibling($linkTable)) + 1;
+            try {
+                $this->workFunctionsHandler->createWorkFunctionHasHeadlines($this->workFunctionsHandler->getWorkFunction($workFunctionId), [$headline], [$newOrder]);
+            } catch (\Exception $e) {
+                return response($e->getMessage(), 500);
+            }
 
             $headline->setOrder($newOrder);
         }
