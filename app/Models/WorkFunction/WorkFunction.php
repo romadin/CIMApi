@@ -9,6 +9,7 @@
 namespace App\Models\WorkFunction;
 
 
+use App\Models\Company\Company;
 use JsonSerializable;
 use App\Models\Chapter\Chapter;
 use App\Models\Headline\Headline;
@@ -63,6 +64,11 @@ class WorkFunction implements JsonSerializable
      * @var null | boolean
      */
     private $fromTemplate = null;
+
+    /**
+     * @var null | Company[]
+     */
+    private $companies = null;
 
     public function __construct()
     {
@@ -228,6 +234,22 @@ class WorkFunction implements JsonSerializable
         $this->fromTemplate = $fromTemplate;
     }
 
+    /**
+     * @return Company[]|null
+     */
+    public function getCompanies(): ?array
+    {
+        return $this->companies;
+    }
+
+    /**
+     * @param Company[]|null $companies
+     */
+    public function setCompanies(?array $companies): void
+    {
+        $this->companies = $companies;
+    }
+
     public function jsonSerialize()
     {
         return [
@@ -238,6 +260,7 @@ class WorkFunction implements JsonSerializable
             'parentId' => $this->getTemplateId() !== null ?: $this->getProjectId(),
             'on' => $this->getOn(),
             'fromTemplate' => $this->getFromTemplate(),
+            'companies' => $this->getCompanies(),
         ];
     }
 }

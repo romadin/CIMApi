@@ -39,17 +39,23 @@ class WorkFunctionsHandler
      * @var FoldersHandler
      */
     private $foldersHandler;
+    /**
+     * @var CompaniesHandler
+     */
+    private $companiesHandler;
 
     public function __construct(
         HeadlinesHandler $headlinesHandler,
         ChaptersHandler $chaptersHandler,
         DocumentsHandler $documentsHandler,
-        FoldersHandler $foldersHandler)
+        FoldersHandler $foldersHandler,
+        CompaniesHandler $companiesHandler)
     {
         $this->headlinesHandler = $headlinesHandler;
         $this->chaptersHandler = $chaptersHandler;
         $this->documentsHandler = $documentsHandler;
         $this->foldersHandler = $foldersHandler;
+        $this->companiesHandler = $companiesHandler;
     }
 
     public function getWorkFunctionsFromTemplateId(int $parentId, string $parentIdName)
@@ -506,6 +512,11 @@ class WorkFunctionsHandler
         }
     }
 
+    /**
+     * @param $data
+     * @return WorkFunction
+     * @throws Exception
+     */
     private function makeWorkFunction($data): WorkFunction
     {
         $workFunction = new WorkFunction();
@@ -520,6 +531,14 @@ class WorkFunctionsHandler
         $workFunction->setChapters($this->chaptersHandler->getChaptersByParentWorkFunction($workFunction));
         $workFunction->setOn($data->on);
         $workFunction->setFromTemplate($data->fromTemplate);
+
+        try {
+            $companies = $this->companiesHandler->getCompaniesByWorkFunction($workFunction);
+        } catch (Exception $e) {
+            throw new Exception($e->getMessage(), 404);
+        }
+        $workFunction->setCompanies($companies);
+
 
         return $workFunction;
     }

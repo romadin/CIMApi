@@ -100,14 +100,6 @@ class ProjectsHandler
             $data->organisationId
         );
 
-        try {
-            $companies = $this->companiesHandler->getCompaniesByWorkFunction($project);
-        } catch (\Exception $e) {
-            return response($e->getMessage());
-        }
-
-        $project->setCompanies($companies);
-
         return $project;
     }
 

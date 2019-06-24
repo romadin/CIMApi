@@ -10,7 +10,6 @@ namespace App\Http\Handlers;
 
 
 use App\Models\Company\Company;
-use App\Models\Project\Project;
 use App\Models\WorkFunction\WorkFunction;
 use Exception;
 use Illuminate\Database\Query\Builder;
@@ -22,16 +21,6 @@ class CompaniesHandler
     const TABLE_LINK_WORK_FUNCTION = WorkFunctionsHandler::MAIN_TABLE.'_has_'.self::TABLE_COMPANIES;
 
     /**
-     * @var WorkFunctionsHandler
-     */
-    private $workFunctionsHandler;
-
-    public function __construct(WorkFunctionsHandler $workFunctionsHandler)
-    {
-        $this->workFunctionsHandler = $workFunctionsHandler;
-    }
-
-    /**
      * @param WorkFunction $workFunction
      * @return array
      * @throws Exception
@@ -39,10 +28,10 @@ class CompaniesHandler
     public function getCompaniesByWorkFunction(WorkFunction $workFunction)
     {
         try {
-            $results = $this->baseQueryForGettingCompaniesFromUserAndWorkFunction()
-                ->where(WorkFunctionsHandler::MAIN_TABLE.'.projectId', $workFunction->getProjectId())
-                ->orWhere(UsersHandler::PROJECT_LINK_TABLE.'.projectId', $workFunction->getProjectId())
-                ->groupBy(self::TABLE_COMPANIES.'.id')
+            $results = DB::table(self::TABLE_COMPANIES)
+                ->select(self::TABLE_COMPANIES.'.id', self::TABLE_COMPANIES.'.name')
+                ->join(self::TABLE_LINK_WORK_FUNCTION, self::TABLE_COMPANIES.'.id', '=', self::TABLE_LINK_WORK_FUNCTION.'.companyId')
+                ->where(self::TABLE_LINK_WORK_FUNCTION.'.workFunctionId', $workFunction->getId())
                 ->get();
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage(), 500);
@@ -65,7 +54,7 @@ class CompaniesHandler
     {
         try {
             $results = $this->baseQueryForGettingCompaniesFromUserAndWorkFunction()
-                ->whereIn(WorkFunctionsHandler::MAIN_TABLE.'.projectId', $projectsId)
+                ->where(WorkFunctionsHandler::MAIN_TABLE.'.projectId', '=', 4)
                 ->orWhereIn(UsersHandler::PROJECT_LINK_TABLE.'.projectId', $projectsId)
                 ->groupBy(self::TABLE_COMPANIES.'.id')
                 ->get();
@@ -192,9 +181,9 @@ class CompaniesHandler
     {
         return DB::table(WorkFunctionsHandler::MAIN_TABLE)
             ->select(self::TABLE_COMPANIES.'.id', self::TABLE_COMPANIES.'.name')
-            ->join(self::TABLE_LINK_WORK_FUNCTION, WorkFunctionsHandler::MAIN_TABLE.'.id', '=', self::TABLE_LINK_WORK_FUNCTION.'.workFunctionId')
-            ->join(UsersHandler::PROJECT_LINK_TABLE, WorkFunctionsHandler::MAIN_TABLE.'.projectId', '=', UsersHandler::PROJECT_LINK_TABLE.'.projectId')
-            ->join(UsersHandler::USERS_TABLE, UsersHandler::PROJECT_LINK_TABLE.'.userId', '=', UsersHandler::USERS_TABLE.'.id')
+            ->rightJoin(self::TABLE_LINK_WORK_FUNCTION, WorkFunctionsHandler::MAIN_TABLE.'.id', '=', self::TABLE_LINK_WORK_FUNCTION.'.workFunctionId')
+            ->leftJoin(UsersHandler::PROJECT_LINK_TABLE, WorkFunctionsHandler::MAIN_TABLE.'.projectId', '=', UsersHandler::PROJECT_LINK_TABLE.'.projectId')
+            ->leftJoin(UsersHandler::USERS_TABLE, UsersHandler::PROJECT_LINK_TABLE.'.userId', '=', UsersHandler::USERS_TABLE.'.id')
             ->join(self::TABLE_COMPANIES, function($join) {
                 $join->on(UsersHandler::USERS_TABLE.'.companyId', '=', self::TABLE_COMPANIES.'.id')
                     ->orOn(self::TABLE_LINK_WORK_FUNCTION.'.companyId', '=', self::TABLE_COMPANIES.'.id');
