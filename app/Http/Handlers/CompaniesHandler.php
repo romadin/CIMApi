@@ -85,7 +85,7 @@ class CompaniesHandler
      * @return Company
      * @throws Exception
      */
-    public function getCompanyById(int $id): Company{
+    public function getCompanyById(int $id): Company {
         try {
             $result = DB::table(self::TABLE_COMPANIES)
                 ->where('id', $id)
@@ -95,6 +95,58 @@ class CompaniesHandler
         }
 
         return $this->makeCompany($result);
+    }
+
+    /**
+     * @param array $postData
+     * @return Company
+     * @throws Exception
+     */
+    public function createCompany($postData): Company
+    {
+        try {
+            $id = DB::table(self::TABLE_COMPANIES)
+                ->insertGetId($postData);
+            $company = $this->getCompanyById($id);
+        }catch (Exception $e) {
+            throw new Exception($e->getMessage(), 404);
+        }
+
+        return $company;
+    }
+
+    /**
+     * @param Company $company
+     * @return Company
+     * @throws Exception
+     */
+    public function editCompany(Company $company): Company
+    {
+        try {
+            DB::table(self::TABLE_COMPANIES)
+                ->where('id', $company->getId())
+                ->update($company->jsonSerialize());
+        }catch (Exception $e) {
+            throw new Exception($e->getMessage(), 404);
+        }
+
+        return $company;
+    }
+
+    public function deleteCompany(int $id)
+    {
+        try {
+            if($this->checkForNoConnections($id)) {
+                DB::table(self::TABLE_COMPANIES)
+                    ->where('id', $id)
+                    ->delete();
+            }else {
+                return response('Can not delete company there are still connections', 200);
+            }
+        } catch (Exception $e) {
+            return response($e->getMessage(), 200);
+        }
+        return json_decode('Company deleted');
     }
 
     private function makeCompany($data): Company
@@ -109,6 +161,31 @@ class CompaniesHandler
             }
         }
         return $company;
+    }
+
+    /**
+     * @param int $id
+     * @return bool
+     * @throws Exception
+     */
+    private function checkForNoConnections(int $id): bool
+    {
+        try {
+            $query = DB::table(UsersHandler::USERS_TABLE)
+                ->select(UsersHandler::USERS_TABLE.'.companyId', DB::raw('count(*) as total'))
+                ->where(UsersHandler::USERS_TABLE.'.companyId', $id)
+                ->groupBy(UsersHandler::USERS_TABLE.'.companyId');
+            $hasNoConnections = DB::table(self::TABLE_LINK_WORK_FUNCTION)
+                ->select(self::TABLE_LINK_WORK_FUNCTION.'.companyId', DB::raw('count(*) as total'))
+                ->union($query)
+                ->where(self::TABLE_LINK_WORK_FUNCTION.'.companyId', $id)
+                ->groupBy('companyId')
+                ->get()->isEmpty();
+        } catch (Exception $e) {
+            throw new Exception($e->getMessage(), 500);
+        }
+
+        return $hasNoConnections;
     }
 
     private function baseQueryForGettingCompaniesFromUserAndWorkFunction(): Builder

@@ -166,7 +166,7 @@ class UsersHandler
         foreach ($postData as $key => $value) {
             if ($key === 'password') {
                 $data[$key] = password_hash($postData['password'], PASSWORD_DEFAULT);
-            } elseif ($key === 'projectsId'){
+            } elseif ($key === 'projectsId') {
                 // insert the link for the user to the projects.
                 $this->linkUserHasProjects(json_decode($postData['projectsId']), $id);
             } else {

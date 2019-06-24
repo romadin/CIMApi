@@ -210,16 +210,20 @@ class WorkFunctionsHandler
      * @param int[] $itemsId
      * @param string $itemIdName
      * @param string $linkTable
+     * @param boolean $noOrder
      * @throws Exception
      */
-    public function addChildItems(WorkFunction $workFunction, $itemsId, string $itemIdName, string $linkTable): void
+    public function addChildItems(WorkFunction $workFunction, $itemsId, string $itemIdName, string $linkTable, $noOrder = false): void
     {
         foreach ($itemsId as $itemId) {
             $row = [
                 $itemIdName => $itemId,
                 'workFunctionId' => $workFunction->getId(),
-                'order' => $this->getHighestOrderOfChildItems($workFunction->getId(), $linkTable, $this->getLinkTableSibling($linkTable)) + 1
             ];
+            if (!$noOrder) {
+                $row['order'] = $this->getHighestOrderOfChildItems($workFunction->getId(), $linkTable, $this->getLinkTableSibling($linkTable)) + 1;
+            }
+
             try {
                 $isEmpty = DB::table($linkTable)
                     ->where($itemIdName, $itemId)

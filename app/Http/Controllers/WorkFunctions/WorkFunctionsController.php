@@ -10,6 +10,7 @@ namespace App\Http\Controllers\WorkFunctions;
 
 
 use App\Http\Handlers\ChaptersHandler;
+use App\Http\Handlers\CompaniesHandler;
 use App\Http\Handlers\HeadlinesHandler;
 use App\Http\Handlers\WorkFunctionsHandler;
 use Exception;
@@ -97,6 +98,10 @@ class WorkFunctionsController
             if (isset($postData['folders'])) {
                 $this->workFunctionsHandler->addChildItems($workFunction, $postData['folders'], 'folderId', WorkFunctionsHandler::MAIN_HAS_FOLDER_TABLE);
                 unset($postData['folders']);
+            }
+            if (isset($postData['companies'])) {
+                $this->workFunctionsHandler->addChildItems($workFunction, $postData['companies'], 'companyId', CompaniesHandler::TABLE_LINK_WORK_FUNCTION, true);
+                unset($postData['companies']);
             }
         } catch (Exception $e) {
             return \response($e->getMessage(),500);

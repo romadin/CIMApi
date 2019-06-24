@@ -53,18 +53,48 @@ class CompaniesController
             return $this->companiesHandler->getCompaniesByProjects($request->input('projectsId'));
         }
 
-            return response('no project ids or work function id given', 404);
+        return response('no project ids or work function id given', 404);
     }
 
-    public function postCompanies(Request $request)
+    public function getCompany(int $id)
     {
-        if (!$request->input('projectId') || !$request->input('workFunctionId')) {
-            return response('no project id or work function id given', 404);
+        try {
+            return $this->companiesHandler->getCompanyById($id);
+        } catch (Exception $e) {
+            return response($e->getMessage(), 500);
         }
+    }
 
+    public function postCompany(Request $request)
+    {
         if (!$request->input('name')) {
             return response('no name given', 404);
         }
+        try {
+            return $this->companiesHandler->createCompany($request->post());
+        } catch (Exception $e) {
+            return response($e->getMessage(), 500);
+        }
+    }
+
+    public function editCompany(Request $request, int $id)
+    {
+        $company = $this->getCompany($id);
+        try {
+            if ($request->input('name')) {
+                $company->setName($request->input('name'));
+                $this->companiesHandler->editCompany($company);
+            }
+        } catch (Exception $e) {
+            return response($e->getMessage(), 500);
+        }
+
+        return $company;
+    }
+
+    public function deleteCompany(int $id)
+    {
+        return $this->companiesHandler->deleteCompany($id);
     }
 
 }
