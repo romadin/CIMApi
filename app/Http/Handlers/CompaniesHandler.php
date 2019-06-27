@@ -56,7 +56,7 @@ class CompaniesHandler
     {
         try {
             $results = $this->baseQueryForGettingCompaniesFromUserAndWorkFunction()
-                ->where(WorkFunctionsHandler::MAIN_TABLE.'.projectId', '=', 4)
+                ->whereIn(WorkFunctionsHandler::MAIN_TABLE.'.projectId', $projectsId)
                 ->orWhereIn(UsersHandler::PROJECT_LINK_TABLE.'.projectId', $projectsId)
                 ->groupBy(self::TABLE_COMPANIES.'.id')
                 ->get();
@@ -183,10 +183,10 @@ class CompaniesHandler
     {
         return DB::table(WorkFunctionsHandler::MAIN_TABLE)
             ->select(self::TABLE_COMPANIES.'.id', self::TABLE_COMPANIES.'.name')
-            ->rightJoin(self::TABLE_LINK_WORK_FUNCTION, WorkFunctionsHandler::MAIN_TABLE.'.id', '=', self::TABLE_LINK_WORK_FUNCTION.'.workFunctionId')
+            ->leftJoin(self::TABLE_LINK_WORK_FUNCTION, WorkFunctionsHandler::MAIN_TABLE.'.id', '=', self::TABLE_LINK_WORK_FUNCTION.'.workFunctionId')
             ->leftJoin(UsersHandler::PROJECT_LINK_TABLE, WorkFunctionsHandler::MAIN_TABLE.'.projectId', '=', UsersHandler::PROJECT_LINK_TABLE.'.projectId')
             ->leftJoin(UsersHandler::USERS_TABLE, UsersHandler::PROJECT_LINK_TABLE.'.userId', '=', UsersHandler::USERS_TABLE.'.id')
-            ->join(self::TABLE_COMPANIES, function($join) {
+            ->rightJoin(self::TABLE_COMPANIES, function($join) {
                 $join->on(UsersHandler::USERS_TABLE.'.companyId', '=', self::TABLE_COMPANIES.'.id')
                     ->orOn(self::TABLE_LINK_WORK_FUNCTION.'.companyId', '=', self::TABLE_COMPANIES.'.id');
             });
