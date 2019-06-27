@@ -114,29 +114,33 @@ class FoldersController extends ApiController
         return $this->getReturnValueObject($request, $this->foldersHandler->editFolder($postData,$id, $workFunction));
     }
 
-    public function deleteFolders(Request $request, $id = null)
+    public function deleteFolders(Request $request, $id)
     {
-        if (empty($request->input('workFunctionId'))) {
-            return response('no work function id given', 404);
+        if ($request->input('workFunctionId') && $request->input('companyId')) {
+            return response('no parent id given', 404);
         }
-        $workFunction = $this->workFunctionsHandler->getWorkFunction($request->input('workFunctionId'));
 
-        if ( $id ) {
-            $folder = $this->foldersHandler->getFolderById($id, $workFunction);
-            $existingLinks = $this->foldersHandler->deleteLink($folder, $request->input('workFunctionId'));
+        $parentIdName = $request->input('workFunctionId') ? 'workFunctionId' : 'companyId';
+        $parentId = $request->input($parentIdName);
+        try {
+            if ($request->input('workFunctionId')) {
+                $parent = $this->workFunctionsHandler->getWorkFunction($parentId);
+                $linkTable = WorkFunctionsHandler::MAIN_HAS_FOLDER_TABLE;
+            } else {
+                $parent = $this->companiesHandler->getCompanyById($parentId);
+                $linkTable = CompaniesHandler::TABLE_LINK_FOLDER;
+            }
 
-            if($existingLinks === 0) {
+            $folder = $this->foldersHandler->getFolderById($id, $parent);
+            $this->foldersHandler->deleteLink($linkTable, $parentIdName, $parentId, $folder->getId() );
+
+            if ($this->foldersHandler->checkForNoConnections($folder)) {
                 return $this->foldersHandler->deleteFolder($folder);
             }else {
                 return json_decode('link deleted');
             }
+        }catch (\Exception $e) {
+            return response($e->getMessage(), 400);
         }
-        return json_decode('folder deleted');
-    }
-
-    private function updateLink(int $folderId, int $subItemId, $postData)
-    {
-        // update the link between folder and sub folder or sub documents.
-        // @todo still need to implement the function.
     }
 }

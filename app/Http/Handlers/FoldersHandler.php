@@ -14,6 +14,7 @@ use App\Models\Folder\Folder;
 use App\Models\Headline\Headline;
 use App\Models\Template\Template;
 use App\Models\WorkFunction\WorkFunction;
+use Exception;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 
@@ -229,6 +230,30 @@ class FoldersHandler
         return $folders;
     }
 
+    /**
+     * @param Folder $folder
+     * @return bool
+     * @throws Exception
+     */
+    public function checkForNoConnections(Folder $folder): bool
+    {
+        try {
+            $query = DB::table(WorkFunctionsHandler::MAIN_HAS_FOLDER_TABLE)
+                ->select(WorkFunctionsHandler::MAIN_HAS_FOLDER_TABLE.'.folderId', DB::raw('count(*) as total'))
+                ->where(WorkFunctionsHandler::MAIN_HAS_FOLDER_TABLE.'.folderId', $folder->getId())
+                ->groupBy(WorkFunctionsHandler::MAIN_HAS_FOLDER_TABLE.'.folderId');
+            $hasNoConnections = DB::table(CompaniesHandler::TABLE_LINK_FOLDER)
+                ->select(CompaniesHandler::TABLE_LINK_FOLDER.'.folderId', DB::raw('count(*) as total'))
+                ->union($query)
+                ->where(CompaniesHandler::TABLE_LINK_FOLDER.'.folderId', $folder->getId())
+                ->groupBy(CompaniesHandler::TABLE_LINK_FOLDER.'.folderId')
+                ->get()->isEmpty();
+        } catch (Exception $e) {
+            throw new Exception($e->getMessage(), 500);
+        }
+
+        return $hasNoConnections;
+    }
 
     public function insertLink(int $workFunctionId, int $subItemId, int $order, string $table, string $subItemColumn)
     {
@@ -255,21 +280,24 @@ class FoldersHandler
     }
 
     /**
-     * @param Folder $folder
-     * @param int $workFunctionId
-     * @return int|Response|\Laravel\Lumen\Http\ResponseFactory
+     * @param string $linkTable
+     * @param string $linkIdName
+     * @param int $linkId
+     * @param int $folderId
+     * @return Response|\Laravel\Lumen\Http\ResponseFactory|mixed
      */
-    public function deleteLink(Folder $folder, int $workFunctionId)
+    public function deleteLink(string $linkTable, string $linkIdName, int $linkId, int $folderId)
     {
         try {
-            DB::table(WorkFunctionsHandler::MAIN_HAS_FOLDER_TABLE)
-                ->where('folderId', $folder->getId())
-                ->where('workFunctionId', $workFunctionId)
+            DB::table($linkTable)
+                ->where($linkIdName, $linkId)
+                ->where('folderId', $folderId)
                 ->delete();
         } catch (\Exception $e) {
-            return response('FoldersHandler: There is something wrong with the database connection', 403);
+            return response('FoldersHandler: There is something wrong with the database connection', 500);
         }
-        return $this->getFolderLinks($folder);
+
+        return json_decode('Folder link deleted');
     }
 
     /**
