@@ -9,6 +9,7 @@
 namespace App\Http\Handlers;
 
 
+use App\Models\Company\Company;
 use App\Models\Folder\Folder;
 use App\Models\Headline\Headline;
 use App\Models\Template\Template;
@@ -67,6 +68,35 @@ class FoldersHandler
 
         foreach ($result as $folder) {
             array_push($folders, $this->makeFolder($folder, $workFunction));
+        }
+
+        return $folders;
+    }
+
+    public function getFoldersByCompany(Company $company)
+    {
+        try {
+            $result = DB::table(self::FOLDERS_TABLE)
+                ->select([
+                    self::FOLDERS_TABLE.'.id',
+                    self::FOLDERS_TABLE.'.name',
+                    self::FOLDERS_TABLE.'.fromTemplate',
+                    CompaniesHandler::TABLE_LINK_FOLDER. '.order',
+                ])
+                ->where(CompaniesHandler::TABLE_LINK_FOLDER. '.companyId', $company->getId())
+                ->join(CompaniesHandler::TABLE_LINK_FOLDER,self::FOLDERS_TABLE. '.id', '=', CompaniesHandler::TABLE_LINK_FOLDER. '.folderId')
+                ->get();
+            if ( $result === null) {
+                return [];
+            }
+        } catch (\Exception $e) {
+            return response('FoldersHandler: There is something wrong with the database connection', 403);
+        }
+
+        $folders = [];
+
+        foreach ($result as $folder) {
+            array_push($folders, $this->makeFolder($folder, $company));
         }
 
         return $folders;
@@ -244,7 +274,12 @@ class FoldersHandler
         return $this->getFolderLinks($folder);
     }
 
-    private function makeFolder($data, ?WorkFunction $parent = null): Folder
+    /**
+     * @param $data
+     * @param WorkFunction|Company|null $parent
+     * @return Folder
+     */
+    private function makeFolder($data, $parent = null): Folder
     {
         if (isset($this->folderCache[$data->id])) {
             return $this->folderCache[$data->id];
@@ -267,15 +302,23 @@ class FoldersHandler
 
     /**
      * @param Folder $folder
-     * @param WorkFunction $workFunction
+     * @param WorkFunction|Company $parent
      * @return Response|\Laravel\Lumen\Http\ResponseFactory|int
      */
-    private function getOrder(Folder $folder, WorkFunction $workFunction)
+    private function getOrder(Folder $folder, $parent)
     {
+        if ($parent instanceof WorkFunction) {
+            $parentIdName = 'workFunctionId';
+            $table = WorkFunctionsHandler::MAIN_HAS_FOLDER_TABLE;
+        } else {
+            $parentIdName = 'companyId';
+            $table = CompaniesHandler::TABLE_LINK_FOLDER;
+        }
+
         try {
-            $result = DB::table(WorkFunctionsHandler::MAIN_HAS_FOLDER_TABLE)
-                ->select('order')
-                ->where('workFunctionId', $workFunction->getId())
+            $result = DB::table($table)
+                ->select($table.'.order')
+                ->where($parentIdName, $parent->getId())
                 ->where( 'folderId', $folder->getId())
                 ->first();
         } catch (\Exception $e) {

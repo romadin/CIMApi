@@ -10,6 +10,7 @@ namespace App\Http\Controllers\Documents;
 
 
 use App\Http\Controllers\ApiController;
+use App\Http\Handlers\CompaniesHandler;
 use App\Http\Handlers\DocumentsHandler;
 use App\Http\Handlers\FoldersHandler;
 use App\Http\Handlers\TemplatesHandler;
@@ -39,12 +40,18 @@ class DocumentsController extends ApiController
      */
     private $workFunctionsHandler;
 
-    public function __construct(DocumentsHandler $documentsHandler, TemplatesHandler $templatesHandler, FoldersHandler $foldersHandler, WorkFunctionsHandler $workFunctionsHandler)
+    /**
+     * @var CompaniesHandler
+     */
+    private $companiesHandler;
+
+    public function __construct(DocumentsHandler $documentsHandler, TemplatesHandler $templatesHandler, FoldersHandler $foldersHandler, WorkFunctionsHandler $workFunctionsHandler, CompaniesHandler $companiesHandler)
     {
         $this->documentsHandler = $documentsHandler;
         $this->templateHandler = $templatesHandler;
         $this->foldersHandler = $foldersHandler;
         $this->workFunctionsHandler = $workFunctionsHandler;
+        $this->companiesHandler = $companiesHandler;
     }
 
     public function getDocuments(Request $request)
@@ -55,6 +62,13 @@ class DocumentsController extends ApiController
         } else if ( $request->input('workFunctionId') ){
             $workFunction = $this->workFunctionsHandler->getWorkFunction($request->input('workFunctionId'));
             return $this->documentsHandler->getDocumentsFromWorkFunction($workFunction);
+        } else if ( $request->input('companyId') ) {
+            try {
+                $company = $this->companiesHandler->getCompanyById($request->input('companyId'));
+            } catch (\Exception $e) {
+                return response($e->getMessage(), 400);
+            }
+            return $this->documentsHandler->getDocumentsFromCompany($company);
         }
 
         return response('No parent id has been given', 501);

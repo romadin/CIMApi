@@ -9,6 +9,7 @@
 namespace App\Http\Handlers;
 
 use App\Models\Chapter\Chapter;
+use App\Models\Company\Company;
 use App\Models\Document\Document;
 use App\Models\Folder\Folder;
 use App\Models\WorkFunction\WorkFunction;
@@ -73,6 +74,31 @@ class DocumentsHandler
         forEach ( $documentsResult as $document ) {
             $document->parentId = $workFunction->getId();
             array_push($documents, $this->makeDocument($document, $workFunction));
+        }
+
+        return $documents;
+    }
+
+    public function getDocumentsFromCompany(Company $company)
+    {
+        $linkTable = CompaniesHandler::TABLE_LINK_DOCUMENT;
+        $documentsResult = DB::table($linkTable)
+            ->select([
+                self::DOCUMENT_TABLE.'.id', self::DOCUMENT_TABLE.'.originalName',
+                self::DOCUMENT_TABLE.'.name', self::DOCUMENT_TABLE.'.content',
+                self::DOCUMENT_TABLE.'.fromTemplate',
+                $linkTable.'.companyId',
+                $linkTable. '.order',
+            ])
+            ->where($linkTable.'.companyId', '=', $company->getId())
+            ->join(self::DOCUMENT_TABLE, $linkTable. '.documentId', '=', self::DOCUMENT_TABLE. '.id')
+            ->get();
+
+        $documents = [];
+
+        forEach ( $documentsResult as $document ) {
+            $document->parentId = $company->getId();
+            array_push($documents, $this->makeDocument($document, $company));
         }
 
         return $documents;
@@ -277,7 +303,7 @@ class DocumentsHandler
 
     /**
      * @param Document $document
-     * @param WorkFunction|Folder $parent
+     * @param WorkFunction|Folder|Company $parent
      * @return int
      */
     private function getOrderFromParent(Document $document, $parent): int
@@ -285,9 +311,12 @@ class DocumentsHandler
         if ($parent instanceof Folder) {
             $parentIdName = 'folderId';
             $table = self::DOCUMENT_LINK_FOLDER_TABLE;
-        } else {
+        } elseif($parent instanceof WorkFunction) {
             $parentIdName = 'workFunctionId';
             $table = WorkFunctionsHandler::MAIN_HAS_DOCUMENT_TABLE;
+        } else {
+            $parentIdName = 'companyId';
+            $table = CompaniesHandler::TABLE_LINK_DOCUMENT;
         }
 
         try {

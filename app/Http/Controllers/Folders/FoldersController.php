@@ -9,6 +9,7 @@
 namespace App\Http\Controllers\Folders;
 
 
+use App\Http\Handlers\CompaniesHandler;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use App\Http\Handlers\FoldersHandler;
@@ -33,24 +34,38 @@ class FoldersController extends ApiController
      */
     private $workFunctionsHandler;
 
+    /**
+     * @var CompaniesHandler
+     */
+    private $companiesHandler;
+
     public function __construct(
         FoldersHandler $foldersHandler,
         FoldersLinkDocumentsHandler $foldersLinkDocumentsHandler,
-        WorkFunctionsHandler $workFunctionsHandler)
+        WorkFunctionsHandler $workFunctionsHandler,
+        CompaniesHandler $companiesHandler)
     {
         $this->foldersHandler = $foldersHandler;
         $this->foldersLinkDocumentsHandler = $foldersLinkDocumentsHandler;
         $this->workFunctionsHandler = $workFunctionsHandler;
+        $this->companiesHandler = $companiesHandler;
     }
 
     public function getFolders(Request $request)
     {
-        if ( $request->input('workFunctionId') === null ) {
-            return response('The workFunction id is missing', 404);
+        if ( $request->input('workFunctionId')) {
+            $workFunction = $this->workFunctionsHandler->getWorkFunction($request->input('workFunctionId'));
+            return $this->getReturnValueArray($request, $this->foldersHandler->getFoldersByWorkFunction($workFunction));
+        } else if ($request->input('companyId')) {
+            try {
+                $company = $this->companiesHandler->getCompanyById($request->input('companyId'));
+            } catch (\Exception $e) {
+                return response($e->getMessage(), 400);
+            }
+            return $this->foldersHandler->getFoldersByCompany($company);
         }
-        $workFunction = $this->workFunctionsHandler->getWorkFunction($request->input('workFunctionId'));
 
-        return $this->getReturnValueArray($request, $this->foldersHandler->getFoldersByWorkFunction($workFunction));
+        return response('No parent id is given', 404);
     }
 
     public function getFolder(Request $request, $id)
