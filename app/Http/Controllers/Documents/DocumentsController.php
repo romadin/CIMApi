@@ -15,13 +15,10 @@ use App\Http\Handlers\DocumentsHandler;
 use App\Http\Handlers\FoldersHandler;
 use App\Http\Handlers\TemplatesHandler;
 use App\Http\Handlers\WorkFunctionsHandler;
-use App\Models\Company\Company;
-use App\Models\WorkFunction\WorkFunction;
 use Illuminate\Http\Request;
 
 class DocumentsController extends ApiController
 {
-
     /**
      * @var DocumentsHandler
      */
@@ -97,8 +94,15 @@ class DocumentsController extends ApiController
         return $this->documentsHandler->postDocument($request->post(), $parentItem, $linkTable);
     }
 
-    public function deleteDocument($id)
+    public function deleteDocument(Request $request, int $id)
     {
+        if ($request->input('workFunctionId')) {
+            return $this->documentsHandler->deleteDocumentLink(WorkFunctionsHandler::MAIN_HAS_DOCUMENT_TABLE, 'workFunctionId', $request->input('workFunctionId'), $id);
+        } else if ($request->input('companyId')) {
+            return $this->documentsHandler->deleteDocumentLink(CompaniesHandler::TABLE_LINK_DOCUMENT, 'companyId', $request->input('companyId'), $id);
+        } else if ($request->input('folderId')) {
+            return $this->documentsHandler->deleteDocumentLink(DocumentsHandler::DOCUMENT_LINK_FOLDER_TABLE, 'folderId', $request->input('folderId'), $id);
+        }
         $done = $this->documentsHandler->deleteDocument($id);
         if ($done) {
             return json_encode('document Deleted');

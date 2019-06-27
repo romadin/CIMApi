@@ -211,6 +211,20 @@ class DocumentsHandler
         return true;
     }
 
+    public function deleteDocumentLink(string $linkTable, string $linkIdName, int $linkId, int $documentId)
+    {
+        try {
+            DB::table($linkTable)
+                ->where($linkIdName, $linkId)
+                ->where('documentId', $documentId)
+                ->delete();
+        } catch (\Exception $e) {
+            return response('DocumentHandler: There is something wrong with the database connection', 500);
+        }
+
+        return json_decode('Document link deleted');
+    }
+
     public function deleteDocument(int $id)
     {
         try {
