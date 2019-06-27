@@ -15,6 +15,8 @@ use App\Http\Handlers\DocumentsHandler;
 use App\Http\Handlers\FoldersHandler;
 use App\Http\Handlers\TemplatesHandler;
 use App\Http\Handlers\WorkFunctionsHandler;
+use App\Models\Company\Company;
+use App\Models\WorkFunction\WorkFunction;
 use Illuminate\Http\Request;
 
 class DocumentsController extends ApiController
@@ -79,7 +81,6 @@ class DocumentsController extends ApiController
         if ( $id !== null ) {
             return $this->editDocument($request, $id);
         }
-
         if (!$request->input('workFunctionId')) {
             return response('work function id not given', 501);
         }
@@ -92,7 +93,6 @@ class DocumentsController extends ApiController
             $parentItem = $this->workFunctionsHandler->getWorkFunction($request->input('workFunctionId'));
             $linkTable = WorkFunctionsHandler::MAIN_HAS_DOCUMENT_TABLE;
         }
-
 
         return $this->documentsHandler->postDocument($request->post(), $parentItem, $linkTable);
     }

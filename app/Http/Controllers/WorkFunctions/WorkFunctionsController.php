@@ -84,7 +84,7 @@ class WorkFunctionsController
         try {
             // add connections
             if (isset($postData['chapters'])) {
-                $this->workFunctionsHandler->addChapters($workFunction, $postData['chapters']);
+                $this->workFunctionsHandler->addChildItems($workFunction, $postData['chapters'], 'chapterId', WorkFunctionsHandler::MAIN_HAS_CHAPTER_TABLE);
                 unset($postData['chapters']);
             }
             if (isset($postData['headlines'])) {

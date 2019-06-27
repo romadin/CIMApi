@@ -104,10 +104,10 @@ class FoldersHandler
 
     /**
      * @param int $id
-     * @param WorkFunction|null $parent
+     * @param WorkFunction|Company|null $parent
      * @return Folder|Response|\Laravel\Lumen\Http\ResponseFactory
      */
-    public function getFolderById(int $id, ?WorkFunction $parent = null)
+    public function getFolderById(int $id, $parent = null)
     {
         try {
             $folder = DB::table(self::FOLDERS_TABLE)
@@ -136,9 +136,7 @@ class FoldersHandler
                 'fromTemplate' => true,
             ];
 
-            /**
-             * @var Folder $newFolder
-             */
+            /** @var Folder $newFolder */
             $newFolder = $this->postFolder($row, $workFunction, $item->getOrder());
 
             $this->insertLink($workFunction->getId(), $newFolder->getId(), $item->getOrder(), WorkFunctionsHandler::MAIN_HAS_FOLDER_TABLE,  'folderId');

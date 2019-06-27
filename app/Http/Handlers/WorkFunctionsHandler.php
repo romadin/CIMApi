@@ -182,37 +182,6 @@ class WorkFunctionsHandler
 
     /**
      * @param WorkFunction $workFunction
-     * @param int[] $chaptersId
-     * @throws Exception
-     */
-    public function addChapters(WorkFunction $workFunction, $chaptersId): void
-    {
-        $linkTable = self::MAIN_HAS_CHAPTER_TABLE;
-        foreach ($chaptersId as $chapterId) {
-            $row = [
-                'chapterId' => $chapterId,
-                'workFunctionId' => $workFunction->getId(),
-                'order' => $this->getHighestOrderOfChildItems($workFunction->getId(), $linkTable, self::getLinkTableSibling($linkTable)) + 1
-            ];
-            try {
-                $isEmpty = DB::table($linkTable)
-                    ->where('chapterId', $chapterId)
-                    ->where('workFunctionId', $workFunction->getId())
-                    ->get()->isEmpty();
-
-                if($isEmpty) {
-                    DB::table($linkTable)
-                        ->insert($row);
-                }
-
-            } catch (Exception $e) {
-                throw new Exception($e->getMessage(),500);
-            }
-        }
-    }
-
-    /**
-     * @param WorkFunction $workFunction
      * @param int[] $itemsId
      * @param string $itemIdName
      * @param string $linkTable

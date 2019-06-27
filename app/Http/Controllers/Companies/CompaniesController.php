@@ -80,9 +80,19 @@ class CompaniesController
     public function editCompany(Request $request, int $id)
     {
         $company = $this->getCompany($id);
+        $postData = $request->post();
+
         try {
-            if ($request->input('name')) {
-                $company->setName($request->input('name'));
+            if (isset($postData['documents'])) {
+                $this->companiesHandler->addChildItems($company, $postData['documents'], 'documentId', CompaniesHandler::TABLE_LINK_DOCUMENT);
+                unset($postData['documents']);
+            }
+            if (isset($postData['folders'])) {
+                $this->companiesHandler->addChildItems($company, $postData['folders'], 'folderId', CompaniesHandler::TABLE_LINK_FOLDER);
+                unset($postData['folders']);
+            }
+            if (isset($postData['name'])) {
+                $company->setName($postData['name']);
                 $this->companiesHandler->editCompany($company);
             }
         } catch (Exception $e) {

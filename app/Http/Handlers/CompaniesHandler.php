@@ -140,6 +140,72 @@ class CompaniesHandler
         return json_decode('Company deleted');
     }
 
+    /**
+     * Set the link between company and folder or document.
+     * @param Company $company
+     * @param int[] $itemsId
+     * @param string $itemIdName
+     * @param string $linkTable
+     * @param bool $noOrder
+     * @throws Exception
+     */
+    public function addChildItems(Company $company, $itemsId, string $itemIdName, string $linkTable, $noOrder = false): void
+    {
+        foreach ($itemsId as $itemId) {
+            $row = [
+                $itemIdName => $itemId,
+                'companyId' => $company->getId(),
+            ];
+
+            try {
+                if (!$noOrder) {
+                    $row['order'] = $this->getHighestOrderOfChildItems($company->getId(), $linkTable, $this->getLinkTableSibling($linkTable)) + 1;
+                }
+
+                $isEmpty = DB::table($linkTable)
+                    ->where($itemIdName, $itemId)
+                    ->where('companyId', $company->getId())
+                    ->get()->isEmpty();
+
+                if($isEmpty) {
+                    DB::table($linkTable)
+                        ->insert($row);
+                }
+            } catch (Exception $e) {
+                throw new Exception($e->getMessage(),500);
+            }
+        }
+    }
+
+    /**
+     * @param int $companyId
+     * @param string $linkTable
+     * @param string $linkTableSibling
+     * @return int
+     * @throws Exception
+     */
+    private function getHighestOrderOfChildItems(int $companyId, string $linkTable, string $linkTableSibling): int
+    {
+        try {
+            $query = DB::table($linkTable)
+                ->select('order')
+                ->where('companyId', $companyId);
+
+            $result = DB::table($linkTableSibling)
+                ->select('order')
+                ->where('companyId', $companyId)
+                ->union($query)
+                ->orderByDesc('order')
+                ->first();
+            if ($result == null) {
+                return 0;
+            }
+        } catch (\Exception $e) {
+            throw new Exception($e->getMessage(), 403);
+        }
+
+        return $result->order;
+    }
     private function makeCompany($data): Company
     {
         $company = new Company();
@@ -190,6 +256,17 @@ class CompaniesHandler
                 $join->on(UsersHandler::USERS_TABLE.'.companyId', '=', self::TABLE_COMPANIES.'.id')
                     ->orOn(self::TABLE_LINK_WORK_FUNCTION.'.companyId', '=', self::TABLE_COMPANIES.'.id');
             });
+    }
+
+    private function getLinkTableSibling($linkTable): string {
+        switch ($linkTable) {
+            case (self::TABLE_LINK_DOCUMENT):
+                return self::TABLE_LINK_FOLDER;
+            case (self::TABLE_LINK_FOLDER):
+                return self::TABLE_LINK_DOCUMENT;
+        }
+
+        return self::TABLE_COMPANIES;
     }
 
 }
