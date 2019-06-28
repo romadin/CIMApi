@@ -102,8 +102,12 @@ class CompaniesController
         return $company;
     }
 
-    public function deleteCompany(int $id)
+    public function deleteCompany(Request $request, int $id)
     {
+        if ($request->input('workFunctionId')) {
+            return $this->companiesHandler->deleteCompanyLink(CompaniesHandler::TABLE_LINK_WORK_FUNCTION, 'workFunctionId', $request->input('workFunctionId'), $id);
+        }
+
         return $this->companiesHandler->deleteCompany($id);
     }
 

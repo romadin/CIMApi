@@ -124,6 +124,23 @@ class CompaniesHandler
         return $company;
     }
 
+    public function deleteCompanyLink(string $linkTable, string $linkIdName, int $linkId, int $companyId)
+    {
+        try {
+            DB::table($linkTable)
+                ->where($linkIdName, $linkId)
+                ->where('companyId', $companyId)
+                ->delete();
+            if ($this->checkForNoConnections($companyId)) {
+                return $this->deleteCompany($companyId);
+            }
+        } catch (\Exception $e) {
+            return response('CompaniesHandler: There is something wrong with the database connection', 500);
+        }
+
+        return json_decode('Company link deleted');
+    }
+
     public function deleteCompany(int $id)
     {
         try {
