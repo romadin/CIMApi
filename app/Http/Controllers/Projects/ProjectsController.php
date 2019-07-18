@@ -21,6 +21,7 @@ use App\Http\Handlers\WorkFunctionsHandler;
 use App\Models\Project\Project;
 use App\Models\Template\Template;
 use App\Models\WorkFunction\WorkFunction;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
@@ -196,15 +197,16 @@ class ProjectsController extends ApiController
         $linkedEvents = $this->eventsHandler->deleteEventByProjectId($id);
 
         if( $linkedUsers && $linkedActionsDeleted && $linkedEvents) {
-            $deletedId = DB::table(ProjectsHandler::PROJECT_TABLE)->delete($id);
-
-            if( $deletedId ) {
+            try {
+                DB::table(ProjectsHandler::PROJECT_TABLE)->delete($id);
                 return $this->getProjects($request);
+            } catch (Exception $e) {
+                return response($e->getMessage(), 200);
+//                return response('Delete item went wrong', 400);
             }
-            return response('Delete item went wrong', 400);
         }
 
-        return response('Delete folders or linked users went wrong', 400);
+        return response('Deleting the linked items went wrong', 400);
     }
 
     /**
