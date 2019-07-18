@@ -457,6 +457,9 @@ class WorkFunctionsHandler
             DB::table(self::MAIN_HAS_HEADLINE_TABLE)
                 ->where('workFunctionId', $workFunction->getId())
                 ->delete();
+            DB::table(CompaniesHandler::TABLE_LINK_WORK_FUNCTION)
+                ->where('workFunctionId', $workFunction->getId())
+                ->delete();
         } catch (\Exception $e) {
             throw new Exception($e->getMessage(),500);
         }
