@@ -40,7 +40,11 @@ class UsersController extends ApiController
         if($request->input('projectId')) {
             return $this->getReturnValueArray($request, $this->usersHandler->getUsersByProjectId((int)$request->input('projectId')));
         }
-        return $this->getReturnValueArray($request, $this->usersHandler->getUsers());
+        if ($request->input('organisationId')) {
+            return $this->getReturnValueArray($request, $this->usersHandler->getUsers($request->input('organisationId')));
+        }
+
+        return response('No organisation is has been given', 200);
     }
 
     public function getUser(Request $request, $id)

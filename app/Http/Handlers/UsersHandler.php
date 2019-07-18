@@ -49,14 +49,16 @@ class UsersHandler
     }
 
     /**
+     * @param int $organisationId
      * @return User[]
      */
-    public function getUsers()
+    public function getUsers(int $organisationId)
     {
         try {
             $result = DB::table(self::USERS_TABLE)
                 ->select($this->defaultSelect)
                 ->join(self::ROLES_TABLE, self::USERS_TABLE.'.role_id', '=', self::ROLES_TABLE.'.id')
+                ->where(self::USERS_TABLE.'.organisationId', $organisationId)
                 ->get();
             if ( $result === null) {
                 return response('Users does not exist', 400);
