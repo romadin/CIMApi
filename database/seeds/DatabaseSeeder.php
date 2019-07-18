@@ -12,6 +12,7 @@ class DatabaseSeeder extends Seeder
     public function run()
     {
         $this->call('OrganisationTableSeeder');
+        $this->call('CompaniesTableSeeder');
         $this->call('RolesTableDefaultRolesSeeder');
         $this->call('UsersTable2DefaultUsersSeeder');
         $this->call('TemplatesTableSeeder');
@@ -22,6 +23,5 @@ class DatabaseSeeder extends Seeder
         $this->call('WorkFunctionHasChapterTableSeeder');
         $this->call('ModulesTableSeeder');
         $this->call('OrganisationHasModuleTableSeeder');
-        $this->call('CompaniesTableSeeder');
     }
 }
