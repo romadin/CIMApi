@@ -30,4 +30,18 @@ class OrganisationController extends ApiController
         return $this->getReturnValueObject($request, $this->organisationHandler->getOrganisationByName($request->input('name')));
     }
 
+    public function getOrganisationImage(int $id)
+    {
+        return $this->organisationHandler->getImage($id);
+    }
+
+    public function updateOrganisation(Request $request, int $id)
+    {
+        if ($request->input('name')) {
+            return response('Update name not permitted', 200);
+        }
+
+        return $this->getReturnValueObject($request, $this->organisationHandler->updateOrganisation($request->post(), $id, $request->file('logo')));
+    }
+
 }

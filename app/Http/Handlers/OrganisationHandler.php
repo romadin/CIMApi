@@ -47,6 +47,35 @@ class OrganisationHandler
         return $this->makeOrganisation($result);
     }
 
+    public function getImage(int $id)
+    {
+        try {
+            $logo = DB::table(self::table)
+                ->select('logo')
+                ->where('id', $id)
+                ->first();
+        } catch (Exception $e) {
+            return json_encode($e->getMessage());
+        }
+
+        return $logo->logo;
+    }
+
+    public function updateOrganisation($postData, int $id, $logo)
+    {
+        $logo ? $postData['logo'] = $logo->openFile()->fread($logo->getSize()) : null;
+
+        try {
+            DB::table(self::table)
+                ->where('id', $id)
+                ->update($postData);
+        } catch (\Exception $e) {
+            return response($e->getMessage());
+        }
+
+        return $this->getOrganisationById($id);
+    }
+
     /**
      * @param $data
      * @return Organisation|\Illuminate\Http\Response|\Laravel\Lumen\Http\ResponseFactory

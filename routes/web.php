@@ -14,6 +14,7 @@
 $router->group(['middleware' => 'appToken'], function () use ($router) {
     $router->post('authenticate', 'Authenticate\Authenticate@login');
     $router->get('organisations', 'Organisation\OrganisationController@getOrganisation');
+
 });
 
 $router->group(['middleware' => 'auth'], function () use ($router)
@@ -21,6 +22,8 @@ $router->group(['middleware' => 'auth'], function () use ($router)
     $router->get('/', function () use ($router) {
         return $router->app->version();
     });
+    $router->get('organisations/{id}/image', 'Organisation\OrganisationController@getOrganisationImage');
+
     $router->get('projects', 'Projects\ProjectsController@getProjects');
     $router->get('projects/{id}', 'Projects\ProjectsController@getProject');
     $router->get('documents', 'Documents\DocumentsController@getDocuments');
@@ -58,6 +61,8 @@ $router->group(['middleware' => 'auth'], function () use ($router)
 
     $router->group(['middleware' => 'admin'], function() use ($router)
     {
+        $router->post('organisations/{id}', 'Organisation\OrganisationController@updateOrganisation');
+
         $router->post('projects[/{id}]', 'Projects\ProjectsController@createOrUpdateProject');
         $router->delete('projects/{id}', 'Projects\ProjectsController@deleteProject');
 
