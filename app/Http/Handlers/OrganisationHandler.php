@@ -58,7 +58,7 @@ class OrganisationHandler
             return json_encode($e->getMessage());
         }
 
-        return $logo->logo;
+        return $logo->logo ?: json_encode(null);
     }
 
     public function updateOrganisation($postData, int $id, $logo)
