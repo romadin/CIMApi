@@ -17,7 +17,7 @@ class CreateDocumentsTable extends Migration
             $table->increments('id');
             $table->string('originalName');
             $table->string('name')->nullable(true);
-            $table->text('content')->nullable(true);
+            $table->longText('content')->nullable(true);
             $table->boolean('fromTemplate')->default(0);
         });
     }

@@ -176,12 +176,14 @@ class UsersHandler
             }
         }
 
-        try {
-            DB::table(self::USERS_TABLE)
-                ->where('id', $id)
-                ->update($data);
-        } catch (\Exception $e) {
-            return response($e->getMessage());
+        if(!empty($data)) {
+            try {
+                DB::table(self::USERS_TABLE)
+                    ->where('id', $id)
+                    ->update($data);
+            } catch (\Exception $e) {
+                return response($e->getMessage());
+            }
         }
 
         return $this->getUserById($id);

@@ -96,9 +96,17 @@ class CompaniesHandler
     public function createCompany($postData): Company
     {
         try {
-            $id = DB::table(self::TABLE_COMPANIES)
-                ->insertGetId($postData);
-            $company = $this->getCompanyById($id);
+            $result = DB::table(self::TABLE_COMPANIES)
+                ->where('name', $postData['name'])
+                ->first();
+
+            if($result === null) {
+                $id = DB::table(self::TABLE_COMPANIES)
+                    ->insertGetId($postData);
+                $company = $this->getCompanyById($id);
+            } else {
+                $company = $this->makeCompany($result);
+            }
         }catch (Exception $e) {
             throw new Exception($e->getMessage(), 404);
         }

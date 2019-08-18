@@ -188,7 +188,8 @@ class DocumentsHandler
 
             $document = $this->getDocumentById($id);
         } catch (\Exception $e) {
-            return response('DocumentHandler: There is something wrong with the database connection', 500);
+//            return response('DocumentHandler: There is something wrong with the database connection', 500);
+            return response($e->getMessage(), 500);
         }
         return $document;
     }

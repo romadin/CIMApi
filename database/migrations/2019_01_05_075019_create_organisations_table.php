@@ -19,8 +19,8 @@ class CreateOrganisationsTable extends Migration
         Schema::create('organisations', function (Blueprint $table) {
             $table->increments('id');
             $table->string('name')->unique();
-            $table->string('primaryColor')->default('#F5F5F5');
-            $table->string('secondaryColor')->default('#000');
+            $table->string('primaryColor')->default('#002060');
+            $table->string('secondaryColor')->default('#ffc000');
             $table->unsignedInteger('maxUsers')->default(5);
             $table->unsignedInteger('templatesNumber')->default(1);
             $table->binary('logo')->nullable(true);
