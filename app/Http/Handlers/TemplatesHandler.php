@@ -123,7 +123,7 @@ class TemplatesHandler
                 ->where('id', $id)
                 ->delete();
         } catch (\Exception $e) {
-            return response('There is something wrong with the connection', 403);
+            return response($e->getMessage(), 403);
         }
         return json_encode('Template deleted');
     }
