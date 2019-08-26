@@ -12,6 +12,7 @@ namespace App\Http\Handlers;
 use App\Http\Controllers\Templates\TemplateDefault;
 use App\Models\Chapter\Chapter;
 use App\Models\Template\Template;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 
 class TemplatesHandler
@@ -118,6 +119,15 @@ class TemplatesHandler
         if ($id === 1) {
             return response('Forbidden to delete default template', 403);
         }
+        $template = $this->getTemplateById($id);
+
+        foreach ($template->getWorkFunctions() as $workFunction) {
+            $done = $this->workFunctionsHandler->deleteWorkFunction($workFunction);
+            if( $done instanceof Response ) {
+                return $done;
+            }
+        }
+
         try {
             DB::table(self::TEMPLATE_TABLE)
                 ->where('id', $id)

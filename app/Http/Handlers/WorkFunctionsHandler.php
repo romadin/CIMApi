@@ -257,6 +257,10 @@ class WorkFunctionsHandler
         return $workFunction;
     }
 
+    /**
+     * @param WorkFunction $workFunction
+     * @return \Illuminate\Http\Response|\Laravel\Lumen\Http\ResponseFactory|mixed
+     */
     public function deleteWorkFunction(WorkFunction $workFunction)
     {
         $documents = $this->documentsHandler->getDocumentsFromWorkFunction($workFunction);
