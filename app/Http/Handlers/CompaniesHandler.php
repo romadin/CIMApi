@@ -175,6 +175,11 @@ class CompaniesHandler
                 ->where($linkIdName, $linkId)
                 ->where('companyId', $companyId)
                 ->delete();
+
+            DB::table(DocumentsHandler::DOCUMENT_LINK_COMPANY_WORK_FUNCTION)
+                ->where($linkIdName, $linkId)
+                ->where('companyId', $companyId)
+                ->delete();
             if ($this->checkForNoConnections($companyId)) {
                 return $this->deleteCompany($companyId);
             }
