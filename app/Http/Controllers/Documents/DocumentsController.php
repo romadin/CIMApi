@@ -58,16 +58,17 @@ class DocumentsController extends ApiController
         if ( $request->input('folderId') ) {
             $folder = $this->foldersHandler->getFolderById($request->input('folderId'));
             return $this->getReturnValueArray($request, $this->documentsHandler->getDocumentsFromFolder($folder));
-        } else if ( $request->input('workFunctionId') ){
-            $workFunction = $this->workFunctionsHandler->getWorkFunction($request->input('workFunctionId'));
-            return $this->documentsHandler->getDocumentsFromWorkFunction($workFunction);
-        } else if ( $request->input('companyId') ) {
+        } else if ( $request->input('companyId') && $request->input('workFunctionId')) {
             try {
                 $company = $this->companiesHandler->getCompanyById($request->input('companyId'));
+                $workFunction = $this->workFunctionsHandler->getWorkFunction($request->input('workFunctionId'));
             } catch (\Exception $e) {
                 return response($e->getMessage(), 400);
             }
-            return $this->documentsHandler->getDocumentsFromCompany($company);
+            return $this->documentsHandler->getDocumentsFromCompany($company, $workFunction);
+        } else if ( $request->input('workFunctionId') ){
+            $workFunction = $this->workFunctionsHandler->getWorkFunction($request->input('workFunctionId'));
+            return $this->documentsHandler->getDocumentsFromWorkFunction($workFunction);
         }
 
         return response('No parent id has been given', 501);
@@ -96,13 +97,18 @@ class DocumentsController extends ApiController
 
     public function deleteDocument(Request $request, int $id)
     {
-        if ($request->input('workFunctionId')) {
-            return $this->documentsHandler->deleteDocumentLink(WorkFunctionsHandler::MAIN_HAS_DOCUMENT_TABLE, 'workFunctionId', $request->input('workFunctionId'), $id);
-        } else if ($request->input('companyId')) {
-            return $this->documentsHandler->deleteDocumentLink(CompaniesHandler::TABLE_LINK_DOCUMENT, 'companyId', $request->input('companyId'), $id);
-        } else if ($request->input('folderId')) {
-            return $this->documentsHandler->deleteDocumentLink(DocumentsHandler::DOCUMENT_LINK_FOLDER_TABLE, 'folderId', $request->input('folderId'), $id);
+        if ($request->input('companyId') && $request->input('workFunctionId')) {
+            $whereStatement = [
+                ['workFunctionId', '=', $request->input('workFunctionId')],
+                ['companyId', '=', $request->input('companyId')]
+            ];
+
+            return $this->documentsHandler->deleteDocumentLink(DocumentsHandler::DOCUMENT_LINK_COMPANY_WORK_FUNCTION, $whereStatement, $id);
+        } else if ($request->input('workFunctionId')) {
+            $whereStatement = [['workFunctionId', '=', $request->input('workFunctionId')]];
+            return $this->documentsHandler->deleteDocumentLink(WorkFunctionsHandler::MAIN_HAS_DOCUMENT_TABLE, $whereStatement, $id);
         }
+
         $done = $this->documentsHandler->deleteDocument($id);
         if ($done) {
             return json_encode('document Deleted');

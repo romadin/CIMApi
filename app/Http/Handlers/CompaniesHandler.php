@@ -132,6 +132,42 @@ class CompaniesHandler
         return $company;
     }
 
+    /**
+     * Set the link between work function, company and document.
+     * @param Company $company
+     * @param WorkFunction $workFunction
+     * @param int[] $itemsId
+     * @throws Exception
+     */
+    public function addDocuments(Company $company, WorkFunction $workFunction, $itemsId): void
+    {
+        $linkTable = DocumentsHandler::DOCUMENT_LINK_COMPANY_WORK_FUNCTION;
+        foreach ($itemsId as $documentId) {
+            $row = [
+                'workFunctionId' => $workFunction->getId(),
+                'companyId' => $company->getId(),
+                'documentId' => $documentId,
+            ];
+
+            try {
+                $row['order'] = $this->getHighestOrder($company->getId(), $workFunction->getId()) + 1;
+
+                $isEmpty = DB::table($linkTable)
+                    ->where('workFunctionId', $workFunction->getId())
+                    ->where('companyId', $company->getId())
+                    ->where('documentId', $documentId)
+                    ->get()->isEmpty();
+
+                if($isEmpty) {
+                    DB::table($linkTable)
+                        ->insert($row);
+                }
+            } catch (Exception $e) {
+                throw new Exception($e->getMessage(),500);
+            }
+        }
+    }
+
     public function deleteCompanyLink(string $linkTable, string $linkIdName, int $linkId, int $companyId)
     {
         try {
@@ -163,43 +199,6 @@ class CompaniesHandler
             return response($e->getMessage(), 200);
         }
         return json_decode('Company deleted');
-    }
-
-    /**
-     * Set the link between company and folder or document.
-     * @param Company $company
-     * @param int[] $itemsId
-     * @param string $itemIdName
-     * @param string $linkTable
-     * @param bool $noOrder
-     * @throws Exception
-     */
-    public function addChildItems(Company $company, $itemsId, string $itemIdName, string $linkTable, $noOrder = false): void
-    {
-        foreach ($itemsId as $itemId) {
-            $row = [
-                $itemIdName => $itemId,
-                'companyId' => $company->getId(),
-            ];
-
-            try {
-                if (!$noOrder) {
-                    $row['order'] = $this->getHighestOrderOfChildItems($company->getId(), $linkTable, $this->getLinkTableSibling($linkTable)) + 1;
-                }
-
-                $isEmpty = DB::table($linkTable)
-                    ->where($itemIdName, $itemId)
-                    ->where('companyId', $company->getId())
-                    ->get()->isEmpty();
-
-                if($isEmpty) {
-                    DB::table($linkTable)
-                        ->insert($row);
-                }
-            } catch (Exception $e) {
-                throw new Exception($e->getMessage(),500);
-            }
-        }
     }
 
     /**
@@ -281,6 +280,27 @@ class CompaniesHandler
                 $join->on(UsersHandler::USERS_TABLE.'.companyId', '=', self::TABLE_COMPANIES.'.id')
                     ->orOn(self::TABLE_LINK_WORK_FUNCTION.'.companyId', '=', self::TABLE_COMPANIES.'.id');
             });
+    }
+
+    /**
+     * Get the highest order from document link table with companies and work function.
+     * @param int $companyId
+     * @param int $workFunctionId
+     * @return int
+     */
+    private function getHighestOrder(int $companyId, int $workFunctionId): int
+    {
+        $result = DB::table(DocumentsHandler::DOCUMENT_LINK_COMPANY_WORK_FUNCTION)
+            ->select('order')
+            ->where('companyId', $companyId)
+            ->where('workFunctionId', $workFunctionId)
+            ->orderByDesc('order')
+            ->first();
+        if ($result == null) {
+            return 0;
+        }
+
+        return $result->order;
     }
 
     private function getLinkTableSibling($linkTable): string {

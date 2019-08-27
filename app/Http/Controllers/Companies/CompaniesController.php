@@ -83,13 +83,12 @@ class CompaniesController
         $postData = $request->post();
 
         try {
-            if (isset($postData['documents'])) {
-                $this->companiesHandler->addChildItems($company, $postData['documents'], 'documentId', CompaniesHandler::TABLE_LINK_DOCUMENT);
+            if (isset($postData['documents']) && $request->input('workFunctionId')) {
+                $workFunction = $this->workFunctionsHandler->getWorkFunction($request->input('workFunctionId'));
+                $this->companiesHandler->addDocuments($company, $workFunction,  $postData['documents']);
                 unset($postData['documents']);
-            }
-            if (isset($postData['folders'])) {
-                $this->companiesHandler->addChildItems($company, $postData['folders'], 'folderId', CompaniesHandler::TABLE_LINK_FOLDER);
-                unset($postData['folders']);
+            } else  {
+                return response('no work function id given', 404);
             }
             if (isset($postData['name'])) {
                 $company->setName($postData['name']);

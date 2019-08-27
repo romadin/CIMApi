@@ -154,7 +154,8 @@ class WorkFunctionsHandler
      */
     public function postWorkFunction(array $postData)
     {
-        $postData['order'] = $this->getHighestOrder(isset($postData['templateId']) ? $postData['templateId'] : $postData['projectId']) + 1;
+        $id = isset($postData['templateId']) ? $postData['templateId'] : $postData['projectId'];
+        $postData['order'] = $this->getHighestOrder(self::MAIN_TABLE, 'templateId', $id) + 1;
         try {
             $id = DB::table(self::MAIN_TABLE)
                 ->insertGetId($postData);
@@ -185,19 +186,19 @@ class WorkFunctionsHandler
      * @param int[] $itemsId
      * @param string $itemIdName
      * @param string $linkTable
-     * @param boolean $noOrder
      * @throws Exception
      */
-    public function addChildItems(WorkFunction $workFunction, $itemsId, string $itemIdName, string $linkTable, $noOrder = false): void
+    public function addChildItems(WorkFunction $workFunction, $itemsId, string $itemIdName, string $linkTable): void
     {
         foreach ($itemsId as $itemId) {
             $row = [
                 $itemIdName => $itemId,
                 'workFunctionId' => $workFunction->getId(),
             ];
-            if (!$noOrder) {
-                $row['order'] = $this->getHighestOrderOfChildItems($workFunction->getId(), $linkTable, $this->getLinkTableSibling($linkTable)) + 1;
-            }
+            $linkTableSibling = $this->getLinkTableSibling($linkTable);
+            $row['order'] = $linkTableSibling === '' ?
+                $this->getHighestOrder(CompaniesHandler::TABLE_LINK_WORK_FUNCTION,'workFunctionId', $workFunction->getId()) + 1 :
+                $this->getHighestOrderOfChildItems($workFunction->getId(), $linkTable, $linkTableSibling) + 1;
 
             try {
                 $isEmpty = DB::table($linkTable)
@@ -424,14 +425,16 @@ class WorkFunctionsHandler
 
     /**
      * Get the highest order from the work_functions table
-     * @param int $templateId
+     * @param string $table
+     * @param string $idName
+     * @param int $parentId
      * @return int
      */
-    private function getHighestOrder(int $templateId): int
+    private function getHighestOrder(string $table, string $idName, int $parentId): int
     {
-        $result = DB::table(self::MAIN_TABLE)
+        $result = DB::table($table)
             ->select('order')
-            ->where('templateId', $templateId)
+            ->where($idName, $parentId)
             ->orderByDesc('order')
             ->first();
         if ($result == null) {
@@ -531,7 +534,7 @@ class WorkFunctionsHandler
                 return self::MAIN_HAS_HEADLINE_TABLE;
         }
 
-        return self::MAIN_TABLE;
+        return '';
     }
 
 }

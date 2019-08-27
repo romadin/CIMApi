@@ -100,7 +100,7 @@ class WorkFunctionsController
                 unset($postData['folders']);
             }
             if (isset($postData['companies'])) {
-                $this->workFunctionsHandler->addChildItems($workFunction, $postData['companies'], 'companyId', CompaniesHandler::TABLE_LINK_WORK_FUNCTION, true);
+                $this->workFunctionsHandler->addChildItems($workFunction, $postData['companies'], 'companyId', CompaniesHandler::TABLE_LINK_WORK_FUNCTION);
                 unset($postData['companies']);
             }
         } catch (Exception $e) {

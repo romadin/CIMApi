@@ -21,6 +21,7 @@ class DocumentsHandler
     const DOCUMENT_TABLE = 'documents';
     const DOCUMENT_IMAGE_TABLE = 'document_image';
     const DOCUMENT_LINK_FOLDER_TABLE = 'folders_has_documents';
+    const DOCUMENT_LINK_COMPANY_WORK_FUNCTION = 'work_function_has_companies_has_documents';
 
     /**
      * @param Folder $folder
@@ -79,19 +80,19 @@ class DocumentsHandler
         return $documents;
     }
 
-    public function getDocumentsFromCompany(Company $company)
+    public function getDocumentsFromCompany(Company $company, WorkFunction $workFunction)
     {
-        $linkTable = CompaniesHandler::TABLE_LINK_DOCUMENT;
-        $documentsResult = DB::table($linkTable)
+        $linkTable = self::DOCUMENT_LINK_COMPANY_WORK_FUNCTION;
+        $documentsResult = DB::table(self::DOCUMENT_TABLE)
             ->select([
                 self::DOCUMENT_TABLE.'.id', self::DOCUMENT_TABLE.'.originalName',
                 self::DOCUMENT_TABLE.'.name', self::DOCUMENT_TABLE.'.content',
                 self::DOCUMENT_TABLE.'.fromTemplate',
-                $linkTable.'.companyId',
-                $linkTable. '.order',
+                $linkTable.'.order',
             ])
             ->where($linkTable.'.companyId', '=', $company->getId())
-            ->join(self::DOCUMENT_TABLE, $linkTable. '.documentId', '=', self::DOCUMENT_TABLE. '.id')
+            ->where($linkTable.'.workFunctionId', '=', $workFunction->getId())
+            ->join($linkTable, $linkTable. '.documentId', '=', self::DOCUMENT_TABLE. '.id')
             ->get();
 
         $documents = [];
@@ -212,11 +213,11 @@ class DocumentsHandler
         return true;
     }
 
-    public function deleteDocumentLink(string $linkTable, string $linkIdName, int $linkId, int $documentId)
+    public function deleteDocumentLink(string $linkTable, array $where, int $documentId)
     {
         try {
             DB::table($linkTable)
-                ->where($linkIdName, $linkId)
+                ->where($where)
                 ->where('documentId', $documentId)
                 ->delete();
         } catch (\Exception $e) {
@@ -310,8 +311,9 @@ class DocumentsHandler
             $data->fromTemplate
         );
 
+        $document->setOrder($data->order);
         if($parent !== null) {
-            $document->setOrder($this->getOrderFromParent($document, $parent));
+//            $document->setOrder($this->getOrderFromParent($document, $parent));
         }
         return $document;
     }
