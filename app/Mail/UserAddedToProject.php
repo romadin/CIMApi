@@ -9,14 +9,14 @@
 namespace App\Mail;
 
 
+use App\Models\Project\Project;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
-use App\Http\Handlers\OrganisationHandler;
 use App\Models\Organisation\Organisation;
 use App\Models\User;
 
-class UserActivation extends Mailable
+class UserAddedToProject extends Mailable
 {
     use Queueable, SerializesModels;
 
@@ -28,33 +28,38 @@ class UserActivation extends Mailable
     protected $user;
 
     /**
-     * @var OrganisationHandler
+     * @var Organisation
      */
     private $organisation;
 
-    public function __construct(User $user, Organisation $organisation)
+    /**
+     * @var Project
+     */
+    private $project;
+
+    public function __construct(User $user, Organisation $organisation, Project $project)
     {
         $this->user = $user;
         $this->organisation = $organisation;
+        $this->project = $project;
     }
 
     public function build()
     {
         $username = $this->user->getFirstName() . ' ';
         $username .= $this->user->getInsertion() ? $this->user->getInsertion() . ' ' . $this->user->getLastName() : $this->user->getLastName();
-
-        return $this->view('emails.userActivationView')
+        return $this->view('emails.userAddedToProject')
             ->with([
                 'userName' => $username,
-                'email' => $this->user->getEmail(),
+                'projectName' => $this->project->getName(),
                 'link' => $this->getLink()
             ])
-            ->subject('Gebruiker activatie mail voor de BIM uitvoering app');
+            ->subject('Nieuw project');
     }
 
     private function getLink():string
     {
-        return 'http://' . $this->organisation->getName() .'.'. env('APP_URL') . '/gebruikers/activate/' . $this->user->getToken();
+        return 'http://' . $this->organisation->getName() .'.'. env('APP_URL') . '/login';
     }
 
 }

@@ -9,6 +9,8 @@
 namespace App\Http\Controllers\Mail;
 
 
+use App\Http\Handlers\ProjectsHandler;
+use App\Mail\UserAddedToProject;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Http\Request;
 use App\Http\Handlers\OrganisationHandler;
@@ -28,10 +30,16 @@ class MailController extends ApiController
      */
     private $organisationHandler;
 
-    public function __construct(UsersHandler $usersHandler, OrganisationHandler $organisationHandler)
+    /**
+     * @var ProjectsHandler
+     */
+    private $projectsHandler;
+
+    public function __construct(UsersHandler $usersHandler, OrganisationHandler $organisationHandler, ProjectsHandler $projectsHandler)
     {
         $this->userHandler = $usersHandler;
         $this->organisationHandler = $organisationHandler;
+        $this->projectsHandler = $projectsHandler;
     }
 
     public function sendUserActivation($id)
@@ -42,6 +50,19 @@ class MailController extends ApiController
         // sendMail
         Mail::to($user->getEmail())
             ->send(new UserActivation($user, $organisation));
+
+        return json_encode('success');
+    }
+
+    public function sendUserAddedToProject($id, $projectId)
+    {
+        $user = $this->userHandler->getUserById($id);
+        $project = $this->projectsHandler->getProject($projectId);
+        $organisation = $this->organisationHandler->getOrganisationById($user->getOrganisationId());
+
+        // sendMail
+        Mail::to($user->getEmail())
+            ->send(new UserAddedToProject($user, $organisation, $project));
 
         return json_encode('success');
     }

@@ -44,6 +44,7 @@ $router->group(['middleware' => 'auth'], function () use ($router)
     $router->get('events', 'Events\EventsController@getEvents');
 
     $router->get('mail/activate/{id}', 'Mail\MailController@sendUserActivation');
+    $router->get('mail/user/{id}/project/{projectId}', 'Mail\MailController@sendUserAddedToProject');
 
     $router->get('workFunctions', 'WorkFunctions\WorkFunctionsController@getWorkFunctions');
     $router->get('workFunctions/{id}', 'WorkFunctions\WorkFunctionsController@getWorkFunction');
