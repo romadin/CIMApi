@@ -31,52 +31,57 @@ class DocumentsHandler
      */
     public function getDocumentsFromFolder(Folder $folder)
     {
-        $documentsResult = DB::table(self::DOCUMENT_LINK_DOCUMENT_TABLE)
-            ->select([
-                self::DOCUMENT_TABLE.'.id', self::DOCUMENT_TABLE.'.originalName',
-                self::DOCUMENT_TABLE.'.name', self::DOCUMENT_TABLE.'.content',
-                self::DOCUMENT_TABLE.'.fromTemplate',
-                self::DOCUMENT_LINK_DOCUMENT_TABLE.'.folderId',
-                self::DOCUMENT_LINK_DOCUMENT_TABLE. '.order',
-            ])
-            ->where(self::DOCUMENT_LINK_DOCUMENT_TABLE.'.folderId', '=', $folder->getId())
-            ->join(self::DOCUMENT_TABLE, self::DOCUMENT_LINK_DOCUMENT_TABLE. '.documentId', '=', self::DOCUMENT_TABLE. '.id'  )
-            ->get();
-
-        $documents = [];
-
-        forEach ( $documentsResult as $document ) {
-            $document = $this->setFoldersId($document);
-            array_push($documents, $this->makeDocument($document, $folder));
-        }
-
-        return $documents;
+//        $documentsResult = DB::table(self::DOCUMENT_LINK_DOCUMENT_TABLE)
+//            ->select([
+//                self::DOCUMENT_TABLE.'.id', self::DOCUMENT_TABLE.'.originalName',
+//                self::DOCUMENT_TABLE.'.name', self::DOCUMENT_TABLE.'.content',
+//                self::DOCUMENT_TABLE.'.fromTemplate',
+//                self::DOCUMENT_LINK_DOCUMENT_TABLE.'.folderId',
+//                self::DOCUMENT_LINK_DOCUMENT_TABLE. '.order',
+//            ])
+//            ->where(self::DOCUMENT_LINK_DOCUMENT_TABLE.'.folderId', '=', $folder->getId())
+//            ->join(self::DOCUMENT_TABLE, self::DOCUMENT_LINK_DOCUMENT_TABLE. '.documentId', '=', self::DOCUMENT_TABLE. '.id'  )
+//            ->get();
+//
+//        $documents = [];
+//
+//        forEach ( $documentsResult as $document ) {
+//            $document = $this->setFoldersId($document);
+//            array_push($documents, $this->makeDocument($document, $folder));
+//        }
+//
+//        return $documents;
     }
 
     /**
      * @param WorkFunction $workFunction
      * @return Document[]
+     * @throws Exception
      */
     public function getDocumentsFromWorkFunction(WorkFunction $workFunction)
     {
-        $linkTable = WorkFunctionsHandler::MAIN_HAS_DOCUMENT_TABLE;
-        $documentsResult = DB::table($linkTable)
-            ->select([
-                self::DOCUMENT_TABLE.'.id', self::DOCUMENT_TABLE.'.originalName',
-                self::DOCUMENT_TABLE.'.name', self::DOCUMENT_TABLE.'.content',
-                self::DOCUMENT_TABLE.'.fromTemplate',
-                $linkTable.'.workFunctionId',
-                $linkTable. '.order',
-            ])
-            ->where($linkTable.'.workFunctionId', '=', $workFunction->getId())
-            ->join(self::DOCUMENT_TABLE, $linkTable. '.documentId', '=', self::DOCUMENT_TABLE. '.id'  )
-            ->get();
+        try {
+            $linkTable = WorkFunctionsHandler::MAIN_HAS_DOCUMENT_TABLE;
+            $documentsResult = DB::table($linkTable)
+                ->select([
+                    self::DOCUMENT_TABLE.'.id', self::DOCUMENT_TABLE.'.originalName',
+                    self::DOCUMENT_TABLE.'.name', self::DOCUMENT_TABLE.'.content',
+                    self::DOCUMENT_TABLE.'.fromTemplate',
+                    $linkTable.'.workFunctionId',
+                    $linkTable. '.order',
+                ])
+                ->where($linkTable.'.workFunctionId', '=', $workFunction->getId())
+                ->join(self::DOCUMENT_TABLE, $linkTable. '.documentId', '=', self::DOCUMENT_TABLE. '.id'  )
+                ->get();
 
-        $documents = [];
+            $documents = [];
 
-        forEach ( $documentsResult as $document ) {
-            $document->parentId = $workFunction->getId();
-            array_push($documents, $this->makeDocument($document));
+            forEach ( $documentsResult as $document ) {
+                $document->parentId = $workFunction->getId();
+                array_push($documents, $this->makeDocument($document, $workFunction));
+            }
+        } catch (Exception $e) {
+            throw new Exception($e->getMessage(),500);
         }
 
         return $documents;
@@ -101,7 +106,7 @@ class DocumentsHandler
 
         forEach ( $documentsResult as $document ) {
             $document->parentId = $company->getId();
-            array_push($documents, $this->makeDocument($document));
+            array_push($documents, $this->makeDocument($document, ['company' => $company, 'workFunction' => $workFunction]));
         }
 
         return $documents;
@@ -122,14 +127,14 @@ class DocumentsHandler
                 ->where($linkTable.'.documentId', '=', $document->getId())
                 ->join($linkTable, $linkTable. '.subDocumentId', '=', self::DOCUMENT_TABLE. '.id')
                 ->get();
-        } catch (\Exception $e) {
+
+            $documents = [];
+
+            forEach ( $documentsResult as $subDocument ) {
+                array_push($documents, $this->makeDocument($subDocument, $document, true));
+            }
+        } catch (Exception $e) {
             throw new Exception($e->getMessage(),500);
-        }
-
-        $documents = [];
-
-        forEach ( $documentsResult as $document ) {
-            array_push($documents, $this->makeDocument($document, true));
         }
 
         return $documents;
@@ -251,7 +256,6 @@ class DocumentsHandler
 
             $document = $this->getDocumentById($id);
         } catch (\Exception $e) {
-//            return response('DocumentHandler: There is something wrong with the database connection', 500);
             return response($e->getMessage(), 500);
         }
         return $document;
@@ -360,11 +364,12 @@ class DocumentsHandler
 
     /**
      * @param $data
+     * @param Document|WorkFunction|array $parent
      * @param bool $isSub
      * @return Document
      * @throws Exception
      */
-    private function makeDocument($data, $isSub = false): Document
+    private function makeDocument($data, $parent, $isSub = false): Document
     {
         $document = new Document();
 
@@ -377,6 +382,7 @@ class DocumentsHandler
                     }
                 }
             }
+            $document->setOrder(is_array($parent) ? $this->getOrderFromCompanyAndWorkFunction($parent, $document) : $this->getOrderFromParent($document, $parent));
             if (!$isSub) {
                 $document->setSubDocuments($this->getSubDocuments($document));
             }
@@ -389,20 +395,17 @@ class DocumentsHandler
 
     /**
      * @param Document $document
-     * @param WorkFunction|Folder|Company $parent
+     * @param WorkFunction|Document $parent
      * @return int
      */
     private function getOrderFromParent(Document $document, $parent): int
     {
-        if ($parent instanceof Folder) {
-            $parentIdName = 'folderId';
+        if ($parent instanceof Document) {
+            $parentIdName = 'documentId';
             $table = self::DOCUMENT_LINK_DOCUMENT_TABLE;
-        } elseif($parent instanceof WorkFunction) {
+        } else {
             $parentIdName = 'workFunctionId';
             $table = WorkFunctionsHandler::MAIN_HAS_DOCUMENT_TABLE;
-        } else {
-            $parentIdName = 'companyId';
-            $table = CompaniesHandler::TABLE_LINK_DOCUMENT;
         }
 
         try {
@@ -417,6 +420,34 @@ class DocumentsHandler
             }
         } catch (\Exception $e) {
             return response('There is something wrong with the connection', 403);
+        }
+
+        return $result->order;
+    }
+
+    /**
+     * @param array $parentContainer
+     * @param Document $document
+     * @return int
+     * @throws Exception
+     */
+    private function getOrderFromCompanyAndWorkFunction(array $parentContainer, Document $document): int
+    {
+        $company = $parentContainer['company'];
+        $workFunction = $parentContainer['workFunction'];
+        try {
+            $result = DB::table(self::DOCUMENT_LINK_COMPANY_WORK_FUNCTION)
+                ->select('order')
+                ->where('companyId', $company->getId())
+                ->where('workFunctionId', $workFunction->getId())
+                ->where('documentId', $document->getId())
+                ->first();
+
+            if ($result == null) {
+                return 0;
+            }
+        } catch (Exception $e) {
+            throw new Exception($e->getMessage(),500);
         }
 
         return $result->order;

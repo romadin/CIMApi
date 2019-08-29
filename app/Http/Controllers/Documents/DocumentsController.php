@@ -56,29 +56,42 @@ class DocumentsController extends ApiController
 
     public function getDocuments(Request $request)
     {
-        if ( $request->input('folderId') ) {
-            $folder = $this->foldersHandler->getFolderById($request->input('folderId'));
-            return $this->getReturnValueArray($request, $this->documentsHandler->getDocumentsFromFolder($folder));
-        } else if ( $request->input('companyId') && $request->input('workFunctionId')) {
-            try {
-                $company = $this->companiesHandler->getCompanyById($request->input('companyId'));
+        try {
+            if ( $request->input('folderId') ) {
+                $folder = $this->foldersHandler->getFolderById($request->input('folderId'));
+                return $this->getReturnValueArray($request, $this->documentsHandler->getDocumentsFromFolder($folder));
+            } else if ( $request->input('companyId') && $request->input('workFunctionId')) {
+                try {
+                    $company = $this->companiesHandler->getCompanyById($request->input('companyId'));
+                    $workFunction = $this->workFunctionsHandler->getWorkFunction($request->input('workFunctionId'));
+                } catch (\Exception $e) {
+                    return response($e->getMessage(), 400);
+                }
+                return $this->documentsHandler->getDocumentsFromCompany($company, $workFunction);
+            } else if ( $request->input('workFunctionId') ){
                 $workFunction = $this->workFunctionsHandler->getWorkFunction($request->input('workFunctionId'));
-            } catch (\Exception $e) {
-                return response($e->getMessage(), 400);
+                return $this->documentsHandler->getDocumentsFromWorkFunction($workFunction);
             }
-            return $this->documentsHandler->getDocumentsFromCompany($company, $workFunction);
-        } else if ( $request->input('workFunctionId') ){
-            $workFunction = $this->workFunctionsHandler->getWorkFunction($request->input('workFunctionId'));
-            return $this->documentsHandler->getDocumentsFromWorkFunction($workFunction);
+        } catch (Exception $e) {
+            return response($e->getMessage(), 500);
         }
 
         return response('No parent id has been given', 501);
     }
 
-    public function getDocument($id)
+    public function getDocument(Request $request, $id)
     {
         try {
-            $document = $this->documentsHandler->getDocumentById($id);
+            if ($request->input('workFunctionId')) {
+                $parent = $this->workFunctionsHandler->getWorkFunction($request->input('workFunctionId'));
+            } else if ($request->input('documentId')) {
+                $parent = $this->documentsHandler->getDocumentById($request->input('documentId'));
+            } else {
+                return response('No parent id has been given', 501);
+            }
+
+
+            $document = $this->documentsHandler->getDocumentById($id, $parent);
         } catch (Exception $e) {
             return response($e->getMessage(), 500);
         }
@@ -102,7 +115,6 @@ class DocumentsController extends ApiController
                 $this->documentsHandler->setDocumentLink($parent, $child, WorkFunctionsHandler::MAIN_HAS_DOCUMENT_TABLE);
             } else if ($request->input('documentId')) {
                 $parentDocument = $this->documentsHandler->getDocumentById($request->input('documentId'));
-                // we give the parameters reverse because in the function we have hardcoded documentId as column name
                 $parent = ['name' => 'documentId', 'id' => $parentDocument->getId()];
                 $child['name'] = 'subDocumentId';
                 $this->documentsHandler->setDocumentLink($parent, $child, DocumentsHandler::DOCUMENT_LINK_DOCUMENT_TABLE);
