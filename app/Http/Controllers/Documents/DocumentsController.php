@@ -90,7 +90,6 @@ class DocumentsController extends ApiController
                 return response('No parent id has been given', 501);
             }
 
-
             $document = $this->documentsHandler->getDocumentById($id, $parent);
         } catch (Exception $e) {
             return response($e->getMessage(), 500);

@@ -369,7 +369,7 @@ class DocumentsHandler
      * @return Document
      * @throws Exception
      */
-    private function makeDocument($data, $parent, $isSub = false): Document
+    private function makeDocument($data, $parent = null, $isSub = false): Document
     {
         $document = new Document();
 
@@ -382,7 +382,9 @@ class DocumentsHandler
                     }
                 }
             }
-            $document->setOrder(is_array($parent) ? $this->getOrderFromCompanyAndWorkFunction($parent, $document) : $this->getOrderFromParent($document, $parent));
+            if ($parent) {
+                $document->setOrder(is_array($parent) ? $this->getOrderFromCompanyAndWorkFunction($parent, $document) : $this->getOrderFromParent($document, $parent));
+            }
             if (!$isSub) {
                 $document->setSubDocuments($this->getSubDocuments($document));
             }
