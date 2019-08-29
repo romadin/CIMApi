@@ -8,7 +8,6 @@
 
 namespace App\Models\Document;
 
-use App\Models\WorkFunction\WorkFunction;
 use JsonSerializable;
 
 class Document implements JsonSerializable
@@ -32,11 +31,6 @@ class Document implements JsonSerializable
      * @var string | null
      */
     private $content;
-
-    /**
-     * @var Document[] | null;
-     */
-    private $subDocuments;
 
     /**
      * @var int | null
@@ -115,22 +109,6 @@ class Document implements JsonSerializable
     }
 
     /**
-     * @return Document[]|null
-     */
-    public function getSubDocuments(): ?array
-    {
-        return $this->subDocuments;
-    }
-
-    /**
-     * @param Document[]|null $subDocuments
-     */
-    public function setSubDocuments(?array $subDocuments): void
-    {
-        $this->subDocuments = $subDocuments;
-    }
-
-    /**
      * @return int|null
      */
     public function getOrder(): ?int
@@ -169,7 +147,6 @@ class Document implements JsonSerializable
             'originalName' => $this->getOriginalName(),
             'name' => $this->getName(),
             'content' => $this->getContent(),
-            'subDocuments' => $this->getSubDocuments(),
             'order' => $this->getOrder(),
             'fromTemplate' => $this->isfromTemplate(),
         ];

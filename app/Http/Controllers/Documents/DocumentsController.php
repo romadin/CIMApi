@@ -75,6 +75,17 @@ class DocumentsController extends ApiController
         return response('No parent id has been given', 501);
     }
 
+    public function getDocument($id)
+    {
+        try {
+            $document = $this->documentsHandler->getDocumentById($id);
+        } catch (Exception $e) {
+            return response($e->getMessage(), 500);
+        }
+
+        return $document;
+    }
+
     public function postDocuments(Request $request, $id = null)
     {
         if ( $id !== null ) {

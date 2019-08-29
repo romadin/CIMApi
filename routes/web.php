@@ -27,6 +27,7 @@ $router->group(['middleware' => 'auth'], function () use ($router)
     $router->get('projects', 'Projects\ProjectsController@getProjects');
     $router->get('projects/{id}', 'Projects\ProjectsController@getProject');
     $router->get('documents', 'Documents\DocumentsController@getDocuments');
+    $router->get('documents/{id}', 'Documents\DocumentsController@getDocument');
     $router->get('roles/{id}', 'Roles\RolesController@getRole');
 
     $router->get('folders', 'Folders\FoldersController@getFolders');

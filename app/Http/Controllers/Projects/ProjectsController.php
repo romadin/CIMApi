@@ -132,49 +132,53 @@ class ProjectsController extends ApiController
      */
     public function createOrUpdateProject(Request $request, $id = null)
     {
-        if ( $id ) {
-            return $this->updateProject($request, $id);
-        }
-        if ( !$request->input('templateId')) {
-            return response('No template was given', 400);
-        }
-
-        $postData = [
-            'name' => $request->input('name'),
-            'organisationId' => $request->input('organisationId'),
-        ];
-        $project = $this->projectsHandler->postProject($postData);
-
-        if ( $project ) {
-
-            /** @var Template|Response $template */
-            $template = $this->templateController->getTemplate($request->input('templateId'));
-            if ($template instanceof Response) {
-                return $template;
+        try {
+            if ( $id ) {
+                return $this->updateProject($request, $id);
+            }
+            if ( !$request->input('templateId')) {
+                return response('No template was given', 400);
             }
 
-            foreach ($template->getWorkFunctions() as $workFunction) {
-                $postData = [
-                    'name' => $workFunction->getName(),
-                    'isMainFunction' => $workFunction->isMainFunction(),
-                    'projectId' => $project->getId(),
-                    'fromTemplate' => true
-                ];
+            $postData = [
+                'name' => $request->input('name'),
+                'organisationId' => $request->input('organisationId'),
+            ];
+            $project = $this->projectsHandler->postProject($postData);
 
-                $workFunction = $this->workFunctionsHandler->postWorkFunction($postData);
+            if ( $project ) {
 
-                if($workFunction->isMainFunction()) {
-                    $mainWorkFunctionFromTemplate = array_filter($template->getWorkFunctions(), function(WorkFunction $workFunction) { return $workFunction->isMainFunction(); });
-                    if(!empty($mainWorkFunctionFromTemplate)) {
-                        /** @var WorkFunction $mainWorkFunctionFromTemplate */
-                        $mainWorkFunctionFromTemplate = $mainWorkFunctionFromTemplate[0];
-                        $this->foldersHandler->createFoldersWithTemplateWorkFunction($mainWorkFunctionFromTemplate->getHeadlines(), $template, $workFunction);
-                        $this->documentsHandler->createDocumentsWithTemplate($workFunction, $mainWorkFunctionFromTemplate->getChapters(), WorkFunctionsHandler::MAIN_HAS_DOCUMENT_TABLE);
+                /** @var Template|Response $template */
+                $template = $this->templateController->getTemplate($request->input('templateId'));
+                if ($template instanceof Response) {
+                    return $template;
+                }
+
+                foreach ($template->getWorkFunctions() as $workFunction) {
+                    $postData = [
+                        'name' => $workFunction->getName(),
+                        'isMainFunction' => $workFunction->isMainFunction(),
+                        'projectId' => $project->getId(),
+                        'fromTemplate' => true
+                    ];
+
+                    $workFunction = $this->workFunctionsHandler->postWorkFunction($postData);
+
+                    if($workFunction->isMainFunction()) {
+                        $mainWorkFunctionFromTemplate = array_filter($template->getWorkFunctions(), function(WorkFunction $workFunction) { return $workFunction->isMainFunction(); });
+                        if(!empty($mainWorkFunctionFromTemplate)) {
+                            /** @var WorkFunction $mainWorkFunctionFromTemplate */
+                            $mainWorkFunctionFromTemplate = $mainWorkFunctionFromTemplate[0];
+                            $this->foldersHandler->createFoldersWithTemplateWorkFunction($mainWorkFunctionFromTemplate->getHeadlines(), $template, $workFunction);
+                            $this->documentsHandler->createDocumentsWithTemplate($workFunction, $mainWorkFunctionFromTemplate->getChapters(), WorkFunctionsHandler::MAIN_HAS_DOCUMENT_TABLE);
+                        }
                     }
                 }
-            }
 
-            return $this->getReturnValueObject($request, $project);
+                return $this->getReturnValueObject($request, $project);
+            }
+        } catch (Exception $e) {
+            return response($e->getMessage(), 500);
         }
 
         return response('something went wrong', 400);

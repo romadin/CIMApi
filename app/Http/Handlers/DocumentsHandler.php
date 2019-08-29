@@ -110,7 +110,7 @@ class DocumentsHandler
      * @param int $id
      * @param WorkFunction|Folder|null $parent
      * @return Document|\Illuminate\Http\Response|\Laravel\Lumen\Http\ResponseFactory
-     *
+     * @throws Exception
      */
     public function getDocumentById(int $id, $parent = null)
     {
@@ -119,7 +119,7 @@ class DocumentsHandler
                 ->where(self::DOCUMENT_TABLE.'.id', '=', $id)
                 ->first();
         } catch (\Exception $e) {
-            return response($e->getMessage(), 500);
+            throw new Exception($e->getMessage(),500);
         }
         return $this->makeDocument($documentResult, $parent);
     }
@@ -168,21 +168,26 @@ class DocumentsHandler
 
     /**
      * Create document from an given template.
-     * @param Folder|WorkFunction $parentItem
+     * @param Document|WorkFunction $parentItem
      * @param Chapter[] $documents
-     * @param string $linkTable
      * @return Document[]
+     * @throws Exception
      */
-    public function createDocumentsWithTemplate($parentItem, $documents, $linkTable)
+    public function createDocumentsWithTemplate($parentItem, $documents)
     {
-        foreach ($documents as $document) {
-            $row = [
-                'originalName' => $document->getName(),
-                'name' => null,
-                'content' => $document->getContent(),
-                'fromTemplate' => true,
-            ];
-            $this->postDocument($row, $parentItem, $linkTable, $document->getOrder());
+        try {
+
+            foreach ($documents as $document) {
+                $row = [
+                    'originalName' => $document->getName(),
+                    'name' => null,
+                    'content' => $document->getContent(),
+                    'fromTemplate' => true,
+                ];
+                $this->postDocument($row);
+            }
+        }catch (\Exception $e) {
+            throw new Exception($e->getMessage(),500);
         }
 
         if($parentItem instanceof Folder) {
