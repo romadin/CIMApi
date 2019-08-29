@@ -10,6 +10,7 @@ namespace App\Models\WorkFunction;
 
 
 use App\Models\Company\Company;
+use App\Models\Document\Document;
 use JsonSerializable;
 use App\Models\Chapter\Chapter;
 use App\Models\Headline\Headline;
@@ -55,6 +56,10 @@ class WorkFunction implements JsonSerializable
      */
     private $chapters = null;
 
+    /**
+     * @var null | Document[]
+     */
+    private $documents = null;
     /**
      * @var null | boolean
      */
@@ -203,6 +208,22 @@ class WorkFunction implements JsonSerializable
     }
 
     /**
+     * @return Document[]|null
+     */
+    public function getDocuments(): ?array
+    {
+        return $this->documents;
+    }
+
+    /**
+     * @param Document[]|null $documents
+     */
+    public function setDocuments(?array $documents): void
+    {
+        $this->documents = $documents;
+    }
+
+    /**
      * @return bool|null
      */
     public function getOn(): ?bool
@@ -261,6 +282,7 @@ class WorkFunction implements JsonSerializable
             'on' => $this->getOn(),
             'fromTemplate' => $this->getFromTemplate(),
             'companies' => $this->getCompanies(),
+            'documents' => array_map(function(Document $d) { return $d->getId(); }, $this->getDocuments()),
         ];
     }
 }

@@ -12,6 +12,7 @@ use App\Models\Chapter\Chapter;
 use App\Models\Company\Company;
 use App\Models\Document\Document;
 use App\Models\Folder\Folder;
+use App\Models\Headline\Headline;
 use App\Models\WorkFunction\WorkFunction;
 use Exception;
 use Illuminate\Http\UploadedFile;
@@ -75,7 +76,7 @@ class DocumentsHandler
 
         forEach ( $documentsResult as $document ) {
             $document->parentId = $workFunction->getId();
-            array_push($documents, $this->makeDocument($document, $workFunction));
+            array_push($documents, $this->makeDocument($document));
         }
 
         return $documents;
@@ -100,7 +101,35 @@ class DocumentsHandler
 
         forEach ( $documentsResult as $document ) {
             $document->parentId = $company->getId();
-            array_push($documents, $this->makeDocument($document, $company));
+            array_push($documents, $this->makeDocument($document));
+        }
+
+        return $documents;
+    }
+
+    public function getSubDocuments(Document $document)
+    {
+        $linkTable = self::DOCUMENT_LINK_DOCUMENT_TABLE;
+
+        try {
+            $documentsResult = DB::table(self::DOCUMENT_TABLE)
+                ->select([
+                    self::DOCUMENT_TABLE.'.id', self::DOCUMENT_TABLE.'.originalName',
+                    self::DOCUMENT_TABLE.'.name', self::DOCUMENT_TABLE.'.content',
+                    self::DOCUMENT_TABLE.'.fromTemplate',
+                    $linkTable.'.order',
+                ])
+                ->where($linkTable.'.documentId', '=', $document->getId())
+                ->join($linkTable, $linkTable. '.subDocumentId', '=', self::DOCUMENT_TABLE. '.id')
+                ->get();
+        } catch (\Exception $e) {
+            throw new Exception($e->getMessage(),500);
+        }
+
+        $documents = [];
+
+        forEach ( $documentsResult as $document ) {
+            array_push($documents, $this->makeDocument($document, true));
         }
 
         return $documents;
@@ -150,9 +179,10 @@ class DocumentsHandler
      * @param array $child
      * @param array $parent
      * @param string $linkTable
+     * @param int|null $order
      * @throws Exception
      */
-    public function setDocumentLink(array $parent, array $child, string $linkTable)
+    public function setDocumentLink(array $parent, array $child, string $linkTable, ?int $order = null)
     {
         try {
             DB::table($linkTable)
@@ -169,14 +199,14 @@ class DocumentsHandler
     /**
      * Create document from an given template.
      * @param Document|WorkFunction $parentItem
-     * @param Chapter[] $documents
+     * @param Chapter[]|Headline[] $documents
+     * @param string $linkTable
      * @return Document[]
      * @throws Exception
      */
-    public function createDocumentsWithTemplate($parentItem, $documents)
+    public function createDocumentsWithTemplate($parentItem, $documents, string $linkTable)
     {
         try {
-
             foreach ($documents as $document) {
                 $row = [
                     'originalName' => $document->getName(),
@@ -184,14 +214,29 @@ class DocumentsHandler
                     'content' => $document->getContent(),
                     'fromTemplate' => true,
                 ];
-                $this->postDocument($row);
+                $newDocument = $this->postDocument($row);
+
+                $parentLinkTable = ['id' => $parentItem->getId()];
+
+                if ($parentItem instanceof Document) {
+                    $parentLinkTable['name'] = 'documentId';
+                    $childLink = ['name' => 'subDocumentId', 'id' => $newDocument->getId()];
+                } else {
+                    $childLink = ['name' => 'documentId', 'id' => $newDocument->getId()];
+                    $parentLinkTable['name'] = 'workFunctionId';
+                }
+
+                $this->setDocumentLink($parentLinkTable, $childLink, $linkTable, $document->getOrder());
+                if ($document instanceof Headline) {
+                    $this->createDocumentsWithTemplate($newDocument, $document->getChapters(), self::DOCUMENT_LINK_DOCUMENT_TABLE);
+                }
             }
         }catch (\Exception $e) {
             throw new Exception($e->getMessage(),500);
         }
 
-        if($parentItem instanceof Folder) {
-            return $this->getDocumentsFromFolder($parentItem);
+        if($parentItem instanceof Document) {
+            return $this->getSubDocuments($parentItem);
         }
 
         return $this->getDocumentsFromWorkFunction($parentItem);
@@ -315,20 +360,28 @@ class DocumentsHandler
 
     /**
      * @param $data
-     * @param WorkFunction|Folder|null $parent
+     * @param bool $isSub
      * @return Document
+     * @throws Exception
      */
-    private function makeDocument($data, $parent = null): Document
+    private function makeDocument($data, $isSub = false): Document
     {
         $document = new Document();
 
-        foreach ($data as $key => $value) {
-            if ($value) {
-                $method = 'set'. ucfirst($key);
-                if(method_exists($document, $method)) {
-                    $document->$method($value);
+        try {
+            foreach ($data as $key => $value) {
+                if ($value) {
+                    $method = 'set'. ucfirst($key);
+                    if(method_exists($document, $method)) {
+                        $document->$method($value);
+                    }
                 }
             }
+            if (!$isSub) {
+                $document->setSubDocuments($this->getSubDocuments($document));
+            }
+        } catch(Exception $e) {
+            throw new Exception($e->getMessage(),500);
         }
 
         return $document;

@@ -33,6 +33,11 @@ class Document implements JsonSerializable
     private $content;
 
     /**
+     * @var Document[] | null;
+     */
+    private $subDocuments;
+
+    /**
      * @var int | null
      */
     private $order = null;
@@ -109,6 +114,22 @@ class Document implements JsonSerializable
     }
 
     /**
+     * @return Document[]|null
+     */
+    public function getSubDocuments(): ?array
+    {
+        return $this->subDocuments;
+    }
+
+    /**
+     * @param Document[]|null $subDocuments
+     */
+    public function setSubDocuments(?array $subDocuments): void
+    {
+        $this->subDocuments = $subDocuments;
+    }
+
+    /**
      * @return int|null
      */
     public function getOrder(): ?int
@@ -147,6 +168,7 @@ class Document implements JsonSerializable
             'originalName' => $this->getOriginalName(),
             'name' => $this->getName(),
             'content' => $this->getContent(),
+            'documents' => array_map(function(Document $d) { return $d->getId(); }, $this->getSubDocuments()),
             'order' => $this->getOrder(),
             'fromTemplate' => $this->isfromTemplate(),
         ];

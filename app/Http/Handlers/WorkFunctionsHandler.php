@@ -520,7 +520,7 @@ class WorkFunctionsHandler
             throw new Exception($e->getMessage(), 404);
         }
         $workFunction->setCompanies($companies);
-
+        $workFunction->setDocuments($this->documentsHandler->getDocumentsFromWorkFunction($workFunction));
 
         return $workFunction;
     }

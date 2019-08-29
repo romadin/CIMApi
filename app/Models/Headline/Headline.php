@@ -29,6 +29,11 @@ class Headline implements JsonSerializable
     private $chapters = null;
 
     /**
+     * @var string | null
+     */
+    private $content = null;
+
+    /**
      * @var int|null
      */
     private $order;
@@ -83,6 +88,22 @@ class Headline implements JsonSerializable
     public function setChapters(?array $chapters): void
     {
         $this->chapters = $chapters;
+    }
+
+    /**
+     * @return null|string
+     */
+    public function getContent(): ?string
+    {
+        return $this->content;
+    }
+
+    /**
+     * @param null|string $content
+     */
+    public function setContent(?string $content): void
+    {
+        $this->content = $content;
     }
 
     /**

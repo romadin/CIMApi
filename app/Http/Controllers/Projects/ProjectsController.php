@@ -169,7 +169,7 @@ class ProjectsController extends ApiController
                         if(!empty($mainWorkFunctionFromTemplate)) {
                             /** @var WorkFunction $mainWorkFunctionFromTemplate */
                             $mainWorkFunctionFromTemplate = $mainWorkFunctionFromTemplate[0];
-                            $this->foldersHandler->createFoldersWithTemplateWorkFunction($mainWorkFunctionFromTemplate->getHeadlines(), $template, $workFunction);
+                            $this->documentsHandler->createDocumentsWithTemplate($workFunction, $mainWorkFunctionFromTemplate->getHeadlines(), WorkFunctionsHandler::MAIN_HAS_DOCUMENT_TABLE);
                             $this->documentsHandler->createDocumentsWithTemplate($workFunction, $mainWorkFunctionFromTemplate->getChapters(), WorkFunctionsHandler::MAIN_HAS_DOCUMENT_TABLE);
                         }
                     }
