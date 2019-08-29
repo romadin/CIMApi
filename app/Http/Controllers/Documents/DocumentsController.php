@@ -15,6 +15,7 @@ use App\Http\Handlers\DocumentsHandler;
 use App\Http\Handlers\FoldersHandler;
 use App\Http\Handlers\TemplatesHandler;
 use App\Http\Handlers\WorkFunctionsHandler;
+use Exception;
 use Illuminate\Http\Request;
 
 class DocumentsController extends ApiController
@@ -79,20 +80,27 @@ class DocumentsController extends ApiController
         if ( $id !== null ) {
             return $this->editDocument($request, $id);
         }
-        if (!$request->input('workFunctionId')) {
-            return response('work function id not given', 501);
+
+        try {
+            $document = $this->documentsHandler->postDocument($request->post());
+            $child = ['name' => 'documentId', 'id' => $document->getId()];
+
+            if ($request->input('workFunctionId')) {
+                $workFunction = $this->workFunctionsHandler->getWorkFunction($request->input('workFunctionId'));
+                $parent = ['name' => 'workFunctionId', 'id' => $workFunction->getId()];
+                $this->documentsHandler->setDocumentLink($parent, $child, WorkFunctionsHandler::MAIN_HAS_DOCUMENT_TABLE);
+            } else if ($request->input('documentId')) {
+                $parentDocument = $this->documentsHandler->getDocumentById($request->input('documentId'));
+                // we give the parameters reverse because in the function we have hardcoded documentId as column name
+                $parent = ['name' => 'documentId', 'id' => $parentDocument->getId()];
+                $child['name'] = 'subDocumentId';
+                $this->documentsHandler->setDocumentLink($parent, $child, DocumentsHandler::DOCUMENT_LINK_DOCUMENT_TABLE);
+            }
+        } catch (Exception $e) {
+            return response($e->getMessage(), 500);
         }
 
-        if ($request->input('folderId')) {
-            $workFunction = $this->workFunctionsHandler->getWorkFunction($request->input('workFunctionId'));
-            $parentItem = $this->foldersHandler->getFolderById($request->input('folderId'), $workFunction);
-            $linkTable = DocumentsHandler::DOCUMENT_LINK_FOLDER_TABLE;
-        } else {
-            $parentItem = $this->workFunctionsHandler->getWorkFunction($request->input('workFunctionId'));
-            $linkTable = WorkFunctionsHandler::MAIN_HAS_DOCUMENT_TABLE;
-        }
-
-        return $this->documentsHandler->postDocument($request->post(), $parentItem, $linkTable);
+        return $document;
     }
 
     public function deleteDocument(Request $request, int $id)

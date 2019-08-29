@@ -136,13 +136,13 @@ class CompaniesHandler
      * Set the link between work function, company and document.
      * @param Company $company
      * @param WorkFunction $workFunction
-     * @param int[] $itemsId
+     * @param int[] $documentsId
      * @throws Exception
      */
-    public function addDocuments(Company $company, WorkFunction $workFunction, $itemsId): void
+    public function addDocuments(Company $company, WorkFunction $workFunction, $documentsId): void
     {
         $linkTable = DocumentsHandler::DOCUMENT_LINK_COMPANY_WORK_FUNCTION;
-        foreach ($itemsId as $documentId) {
+        foreach ($documentsId as $documentId) {
             $row = [
                 'workFunctionId' => $workFunction->getId(),
                 'companyId' => $company->getId(),

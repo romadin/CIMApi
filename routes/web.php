@@ -107,11 +107,8 @@ $router->group(['middleware' => 'auth'], function () use ($router)
         $router->post('companies/{id}', 'Companies\CompaniesController@editCompany');
         $router->delete('companies/{id}', 'Companies\CompaniesController@deleteCompany');
 
-
-
         $router->post('cache/{id}', 'Cache\CacheController@updateCache');
         $router->post('cache', 'Cache\CacheController@postCache');
-
     });
 });
 

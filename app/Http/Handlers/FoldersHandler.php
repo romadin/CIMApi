@@ -143,7 +143,7 @@ class FoldersHandler
             $this->insertLink($workFunction->getId(), $newFolder->getId(), $item->getOrder(), WorkFunctionsHandler::MAIN_HAS_FOLDER_TABLE,  'folderId');
 
             /** Create documents from the template to add to the folder */
-            $this->documentsHandler->createDocumentsWithTemplate($newFolder, $item->getChapters(), DocumentsHandler::DOCUMENT_LINK_FOLDER_TABLE);
+            $this->documentsHandler->createDocumentsWithTemplate($newFolder, $item->getChapters(), DocumentsHandler::DOCUMENT_LINK_DOCUMENT_TABLE);
         }
     }
 

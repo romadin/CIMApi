@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateFoldersHasDocumentsTable extends Migration
+class CreateDocumentsHasDocumentsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,12 +13,12 @@ class CreateFoldersHasDocumentsTable extends Migration
      */
     public function up()
     {
-        Schema::create('folders_has_documents', function (Blueprint $table) {
-            $table->unsignedInteger('folderId');
-            $table->foreign('folderId')->references('id')->on('folders');
+        Schema::create('documents_has_documents', function (Blueprint $table) {
             $table->unsignedInteger('documentId');
             $table->foreign('documentId')->references('id')->on('documents');
-            $table->unsignedInteger('order')->default(0);
+            $table->unsignedInteger('subDocumentId');
+            $table->foreign('subDocumentId')->references('id')->on('documents');
+            $table->unsignedInteger('order');
         });
     }
 
@@ -29,6 +29,6 @@ class CreateFoldersHasDocumentsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('folders_has_documents');
+        Schema::dropIfExists('documents_has_documents');
     }
 }
