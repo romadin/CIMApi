@@ -290,7 +290,7 @@ class WorkFunctionsHandler
                 ->where('id', $workFunction->getId())
                 ->delete();
         } catch (Exception $e) {
-            var_dump('here');
+            var_dump($workFunction->getId());
             throw new Exception($e->getMessage(),500);
         }
 
