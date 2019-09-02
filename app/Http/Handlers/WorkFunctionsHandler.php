@@ -269,7 +269,7 @@ class WorkFunctionsHandler
         try {
             $this->deleteLinks($workFunction);
         } catch (Exception $e) {
-            return response($e->getMessage(),500);
+            new Exception($e->getMessage(),500);
         }
 
         if ($workFunction->isMainFunction() && $workFunction->getProjectId() !== null) {
@@ -280,7 +280,7 @@ class WorkFunctionsHandler
             try {
                 $this->deleteChaptersAndHeadline($workFunction);
             } catch (Exception $e) {
-                return response($e->getMessage(),500);
+                new Exception($e->getMessage(),500);
             }
         }
 
@@ -289,7 +289,8 @@ class WorkFunctionsHandler
                 ->where('id', $workFunction->getId())
                 ->delete();
         } catch (Exception $e) {
-            return response($e->getMessage(),500);
+            var_dump('here');
+            throw new Exception($e->getMessage(),500);
         }
 
         return json_decode('WorkFunction deleted');
