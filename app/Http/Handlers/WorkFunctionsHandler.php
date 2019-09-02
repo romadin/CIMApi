@@ -269,6 +269,7 @@ class WorkFunctionsHandler
         try {
             $this->deleteLinks($workFunction);
         } catch (Exception $e) {
+            var_dump('trying to delete the link of the workfunction');
             new Exception($e->getMessage(),500);
         }
 
@@ -453,9 +454,6 @@ class WorkFunctionsHandler
     {
         try {
             DB::table(self::MAIN_HAS_DOCUMENT_TABLE)
-                ->where('workFunctionId', $workFunction->getId())
-                ->delete();
-            DB::table(self::MAIN_HAS_FOLDER_TABLE)
                 ->where('workFunctionId', $workFunction->getId())
                 ->delete();
             DB::table(self::MAIN_HAS_CHAPTER_TABLE)
