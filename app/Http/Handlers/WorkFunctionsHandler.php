@@ -261,11 +261,11 @@ class WorkFunctionsHandler
     /**
      * @param WorkFunction $workFunction
      * @return \Illuminate\Http\Response|\Laravel\Lumen\Http\ResponseFactory|mixed
+     * @throws Exception
      */
     public function deleteWorkFunction(WorkFunction $workFunction)
     {
         $documents = $this->documentsHandler->getDocumentsFromWorkFunction($workFunction);
-        $folders = $this->foldersHandler->getFoldersByWorkFunction($workFunction);
         try {
             $this->deleteLinks($workFunction);
         } catch (Exception $e) {
@@ -276,7 +276,6 @@ class WorkFunctionsHandler
             foreach ($documents as $document) {
                 $this->documentsHandler->deleteDocument($document->getId());
             }
-            $this->foldersHandler->deleteFolders($folders);
         } else {
             try {
                 $this->deleteChaptersAndHeadline($workFunction);

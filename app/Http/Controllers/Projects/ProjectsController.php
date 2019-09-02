@@ -192,23 +192,27 @@ class ProjectsController extends ApiController
      */
     public function deleteProject(Request $request, int $id)
     {
-        $workFunctions = $this->workFunctionsHandler->getWorkFunctionsFromProjectId($id);
-        foreach ($workFunctions as $workFunction) {
-            $this->workFunctionsHandler->deleteWorkFunction($workFunction);
-        }
-        $linkedUsers = $this->usersHandler->deleteProjectLink($id);
-        $linkedActionsDeleted = $this->actionHandler->deleteActionByProjectId($id);
-        $linkedEvents = $this->eventsHandler->deleteEventByProjectId($id);
 
-        if( $linkedUsers && $linkedActionsDeleted && $linkedEvents) {
-            try {
+
+        try {
+            $workFunctions = $this->workFunctionsHandler->getWorkFunctionsFromProjectId($id);
+            foreach ($workFunctions as $workFunction) {
+                $this->workFunctionsHandler->deleteWorkFunction($workFunction);
+            }
+            $linkedUsers = $this->usersHandler->deleteProjectLink($id);
+            $linkedActionsDeleted = $this->actionHandler->deleteActionByProjectId($id);
+            $linkedEvents = $this->eventsHandler->deleteEventByProjectId($id);
+
+            if( $linkedUsers && $linkedActionsDeleted && $linkedEvents) {
+
                 DB::table(ProjectsHandler::PROJECT_TABLE)->delete($id);
                 return $this->getProjects($request);
-            } catch (Exception $e) {
-                return response($e->getMessage(), 200);
-//                return response('Delete item went wrong', 400);
             }
+        } catch (Exception $e) {
+            return response($e->getMessage(), 200);
+//                return response('Delete item went wrong', 400);
         }
+
 
         return response('Deleting the linked items went wrong', 400);
     }
