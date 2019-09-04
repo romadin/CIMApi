@@ -41,6 +41,7 @@ class TemplateDefault
         ['workFunctionId' => 1, 'chapterId' => 7, 'order' => 7],
         ['workFunctionId' => 1, 'chapterId' => 8, 'order' => 8],
         ['workFunctionId' => 1, 'chapterId' => 9, 'order' => 9],
+        ['workFunctionId' => 1, 'chapterId' => 10, 'order' => 10],
     ];
     const WORK_FUNCTION_HAS_CHAPTER_ORDER_DEFAULT = [1, 2, 3, 4, 5, 6, 7, 8, 9];
     const SUB_CHAPTERS = [

@@ -64,14 +64,15 @@ class WorkFunctionsHandler
             $results = DB::table(self::MAIN_TABLE)
                 ->where($parentIdName, $parentId)
                 ->get();
-        } catch (\Exception $e) {
-            return \response('WorkFunctionsHandler: There is something wrong with the database connection',500);
+
+            $workFunctions = [];
+            foreach ($results as $result) {
+                array_push($workFunctions, $this->makeWorkFunction($result));
+            }
+        } catch (Exception $e) {
+            throw new Exception($e->getMessage(),500);
         }
 
-        $workFunctions = [];
-        foreach ($results as $result) {
-            array_push($workFunctions, $this->makeWorkFunction($result));
-        }
 
         return $workFunctions;
     }
@@ -497,24 +498,23 @@ class WorkFunctionsHandler
     {
         $workFunction = new WorkFunction();
 
-        $workFunction->setId($data->id);
-        $workFunction->setName($data->name);
-        $workFunction->setMainFunction($data->isMainFunction);
-        $workFunction->setTemplateId($data->templateId);
-        $workFunction->setProjectId($data->projectId);
-        $workFunction->setOrder($data->order);
-        $workFunction->setHeadlines($this->headlinesHandler->getHeadlinesByWorkFunction($workFunction));
-        $workFunction->setChapters($this->chaptersHandler->getChaptersByParentWorkFunction($workFunction));
-        $workFunction->setOn($data->on);
-        $workFunction->setFromTemplate($data->fromTemplate);
-
         try {
+            $workFunction->setId($data->id);
+            $workFunction->setName($data->name);
+            $workFunction->setMainFunction($data->isMainFunction);
+            $workFunction->setTemplateId($data->templateId);
+            $workFunction->setProjectId($data->projectId);
+            $workFunction->setOrder($data->order);
+            $workFunction->setChapters($this->chaptersHandler->getChaptersByParentWorkFunction($workFunction));
+            $workFunction->setOn($data->on);
+            $workFunction->setFromTemplate($data->fromTemplate);
             $companies = $this->companiesHandler->getCompaniesByWorkFunction($workFunction);
         } catch (Exception $e) {
             throw new Exception($e->getMessage(), 404);
         }
         $workFunction->setCompanies($companies);
         $workFunction->setDocuments($this->documentsHandler->getDocumentsFromWorkFunction($workFunction));
+
 
         return $workFunction;
     }

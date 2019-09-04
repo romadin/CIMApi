@@ -16,28 +16,28 @@ class ChapterTableSeeder extends Seeder
     {
 
         DB::table('chapters')->insert([
-            ['name' => 'Doel en toepassing' ,'order' => 1, 'content' => '', 'parentChapterId' => NULL],
-            ['name' => 'Analyse' ,'order' => 2, 'content' => '', 'parentChapterId' => NULL],
-            ['name' => 'BIM-process' ,'order' => 3, 'content' => '', 'parentChapterId' => NULL],
-            ['name' => 'Informatie en data' ,'order' => 4, 'content' => '', 'parentChapterId' => NULL],
-            ['name' => 'Communicatie' ,'order' => 5, 'content' => '', 'parentChapterId' => NULL],
-            ['name' => 'Model afspraken' ,'order' => 6, 'content' => '', 'parentChapterId' => NULL],
-            ['name' => 'Eigendom' ,'order' => 7, 'content' => '', 'parentChapterId' => NULL],
+            ['name' => 'Doel en toepassing' ,'order' => NULL, 'content' => '', 'parentChapterId' => NULL],
+            ['name' => 'Analyse' ,'order' => NULL, 'content' => '', 'parentChapterId' => NULL],
+            ['name' => 'BIM-process' ,'order' => NULL, 'content' => '', 'parentChapterId' => NULL],
+            ['name' => 'Informatie en data' ,'order' => NULL, 'content' => '', 'parentChapterId' => NULL],
+            ['name' => 'Communicatie' ,'order' => NULL, 'content' => '', 'parentChapterId' => NULL],
+            ['name' => 'Model afspraken' ,'order' => NULL, 'content' => '', 'parentChapterId' => NULL],
+            ['name' => 'Eigendom' ,'order' => NULL, 'content' => '', 'parentChapterId' => NULL],
             [
                 'name' => 'Projectgegevens',
-                'order' => 8,
+                'order' => NULL,
                 'content' => File::get(storage_path('templateText/projectData.html')),
                 'parentChapterId' => NULL
             ],
             [
                 'name' => 'Verplichtingen van de Opdrachtgever',
-                'order' => 9,
+                'order' => NULL,
                 'content' => File::get(storage_path('templateText/obligationsClient.html')),
                 'parentChapterId' => NULL
             ],
             [
                 'name' => 'Verplichtingen van de Opdrachtnemer',
-                'order' => 10,
+                'order' => NULL,
                 'content' => File::get(storage_path('templateText/obligationsContractor.html')),
                 'parentChapterId' => NULL
             ],
