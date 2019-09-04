@@ -10,6 +10,7 @@ namespace App\Http\Controllers\Cache;
 
 
 use App\Http\Handlers\CacheHandler;
+use Exception;
 use Illuminate\Http\Request;
 
 class CacheController
@@ -26,13 +27,19 @@ class CacheController
 
     public function getCache(Request $request, int $id = null)
     {
-        if ($request->input('hash') && $id) {
-            return $this->cacheHandler->checkCacheHash($id, $request->input('hash'));
+        try {
+
+            if ($request->input('hash') && $id) {
+                return $this->cacheHandler->checkCacheHash($id, $request->input('hash'));
+            }
+
+            if ($request->input('name') && $request->input('url')) {
+                return $this->cacheHandler->getCacheByNameAndUrl($request->input('name'), $request->input('url'));
+            }
+        } catch (Exception $e) {
+            return response($e->getMessage(), 200);
         }
 
-        if ($request->input('name') && $request->input('url')) {
-            return $this->cacheHandler->getCacheByNameAndUrl($request->input('name'), $request->input('url'));
-        }
 
         return response('There are no params given', 400);
     }

@@ -10,6 +10,7 @@ namespace App\Http\Handlers;
 
 
 use App\Models\CacheItem\CacheItem;
+use Exception;
 use Illuminate\Support\Facades\DB;
 
 class CacheHandler
@@ -25,8 +26,8 @@ class CacheHandler
             if ( $result === null ) {
                 return [];
             }
-        } catch (\Exception $e) {
-            return \response('CacheHandler: There is something wrong with the database connection',500);
+        } catch (Exception $e) {
+            throw new Exception($e->getMessage(),500);
         }
 
         return $this->makeCache($result);
@@ -43,8 +44,8 @@ class CacheHandler
                 $data = ['name' => $name, 'url' => $url];
                 return $this->createNewCache($data);
             }
-        } catch (\Exception $e) {
-            return \response('CacheHandler: There is something wrong with the database connection',500);
+        } catch (Exception $e) {
+            throw new Exception($e->getMessage(),500);
         }
 
         return $this->makeCache($result);
@@ -60,8 +61,8 @@ class CacheHandler
             if ( $results === null ) {
                 ['sameHash' => false];
             }
-        } catch (\Exception $e) {
-            return \response('ChaptersHandler: There is something wrong with the database connection',500);
+        } catch (Exception $e) {
+            throw new Exception($e->getMessage(),500);
         }
 
         return ['sameHash' => true];
@@ -75,7 +76,7 @@ class CacheHandler
             $id = DB::table(self::TABLE)
                 ->insertGetId($values);
         } catch (\Exception $e) {
-            return \response('ChaptersHandler: There is something wrong with the database connection',500);
+            throw new Exception($e->getMessage(),500);
         }
 
         return $this->getCacheItem($id);
@@ -95,7 +96,7 @@ class CacheHandler
                 ->where('id', $cache->getId())
                 ->update($values);
         } catch (\Exception $e) {
-            return \response('ChaptersHandler: There is something wrong with the database connection',500);
+            throw new Exception($e->getMessage(),500);
         }
         $cache->setHash($values['hash']);
         return $cache;

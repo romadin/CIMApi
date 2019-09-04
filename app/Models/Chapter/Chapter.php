@@ -35,6 +35,11 @@ class Chapter implements JsonSerializable
     /**
      * @var int|null
      */
+    private $parentChapterId = null;
+
+    /**
+     * @var int|null
+     */
     private $order = null;
 
     /**
@@ -111,6 +116,22 @@ class Chapter implements JsonSerializable
     /**
      * @return int|null
      */
+    public function getParentChapterId(): ?int
+    {
+        return $this->parentChapterId;
+    }
+
+    /**
+     * @param int|null $parentChapterId
+     */
+    public function setParentChapterId(?int $parentChapterId): void
+    {
+        $this->parentChapterId = $parentChapterId;
+    }
+
+    /**
+     * @return int|null
+     */
     public function getOrder(): ?int
     {
         return $this->order;
@@ -130,6 +151,8 @@ class Chapter implements JsonSerializable
             'id' => $this->getId(),
             'name' => $this->getName(),
             'content' => $this->getContent(),
+            'chapters' => array_map(function(Chapter $c) { return $c->getId(); }, $this->getChapters()),
+            'parentChapterId' => $this->getParentChapterId(),
             'order' => $this->getOrder(),
         ];
     }

@@ -27,16 +27,11 @@ class ChaptersHandler
                 ->where('id', $id)
                 ->first();
             if ( $results === null ) {
-                return response('Chapter does not exist', 404);
+                return [];
             }
-        } catch (\Exception $e) {
-            return \response('ChaptersHandler: There is something wrong with the database connection',500);
-        }
-
-        try {
             $chapter = $this->makeChapter($results, $workFunctionId);
-        }catch (\Exception $e) {
-            return \response($e->getMessage(),500);
+        } catch (Exception $e) {
+            throw new Exception ('ChaptersHandler: There is something wrong with the database connection',500);
         }
 
         return $chapter;
@@ -57,8 +52,8 @@ class ChaptersHandler
                 $chapter = $this->makeChapter($result, null, true);
                 array_push($chapters, $chapter);
             }
-        } catch (\Exception $e) {
-            throw new Exception('ChaptersHandler: There is something wrong with the database connection',500);
+        } catch (Exception $e) {
+            throw new Exception($e->getMessage(),500);
         }
 
         return $chapters;
@@ -170,12 +165,15 @@ class ChaptersHandler
 
     public function updateChapter(Chapter $chapter)
     {
+        $data = $chapter->jsonSerialize();
+        unset($data['chapters']);
+
         try {
             DB::table(self::TABLE)
                 ->where('id', $chapter->getId())
-                ->update($chapter->jsonSerialize());
-        } catch (\Exception $e) {
-            return \response($e->getMessage(),500);
+                ->update($data);
+        } catch (Exception $e) {
+            throw new Exception($e->getMessage(),500);
         }
         return $chapter;
     }
@@ -321,6 +319,7 @@ class ChaptersHandler
         $chapter->setId($data->id);
         $chapter->setName($data->name);
         $chapter->setContent($data->content);
+        $chapter->setParentChapterId($data->parentChapterId);
 
         try {
             if (!$isSubChapter) {

@@ -171,14 +171,19 @@ class TemplatesHandler
      * Search for the chapter with the same name. And set the new content on the chapter.
      * @param Chapter[] $chapters
      * @param Chapter $defaultChapter
+     * @throws Exception
      */
     private function setDefaultContentForChapter($chapters, Chapter $defaultChapter): void
     {
         $chapterToSetContentOn = array_filter($chapters, function($chapter) use ($defaultChapter) { return $chapter->getName() === $defaultChapter->getName(); });
         if (count($chapterToSetContentOn) === 1) {
             $chapterToSetContentOn = reset($chapterToSetContentOn);
-            $chapterToSetContentOn->setContent($defaultChapter->getContent());
-            $this->chaptersHandler->updateChapter($chapterToSetContentOn);
+            try {
+                $chapterToSetContentOn->setContent($defaultChapter->getContent());
+                $this->chaptersHandler->updateChapter($chapterToSetContentOn);
+            } catch (Exception $e) {
+                throw new Exception($e->getMessage(), 403);
+            }
         }
     }
 
