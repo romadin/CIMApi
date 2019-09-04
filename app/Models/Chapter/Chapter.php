@@ -151,7 +151,7 @@ class Chapter implements JsonSerializable
             'id' => $this->getId(),
             'name' => $this->getName(),
             'content' => $this->getContent(),
-            'chapters' => array_map(function(Chapter $c) { return $c->getId(); }, $this->getChapters()),
+            'chapters' => $this->getChapters() ? array_map(function(Chapter $c) { return $c->getId(); }, $this->getChapters()) : [],
             'parentChapterId' => $this->getParentChapterId(),
             'order' => $this->getOrder(),
         ];

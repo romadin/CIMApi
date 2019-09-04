@@ -12,6 +12,7 @@ namespace App\Http\Handlers;
 use App\Http\Controllers\Templates\TemplateDefault;
 use App\Models\Chapter\Chapter;
 use App\Models\Template\Template;
+use App\Models\WorkFunction\WorkFunction;
 use Exception;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
@@ -150,17 +151,32 @@ class TemplatesHandler
         try {
             $newTemplate = $this->createNewTemplate($postData);
             foreach ($templateDefault->getWorkFunctions() as $workFunction) {
+                $newCurrentWorkFunction = array_filter($newTemplate->getWorkFunctions(), function(WorkFunction $newWorkFunction) use ($workFunction) { return $newWorkFunction->getName() === $workFunction->getName(); });
+                /** @var WorkFunction $newCurrentWorkFunction */
+                $newCurrentWorkFunction = reset($newCurrentWorkFunction);
+
                 foreach ($workFunction->getChapters() as $defaultChapter) {
                     $chapterContent = $defaultChapter->getContent();
                     if ($chapterContent !== null && $chapterContent !== '') {
                         // set to new chapter
-                        foreach ($newTemplate->getWorkFunctions() as $newWorkFunction) {
-                            $this->setDefaultContentForChapter($newWorkFunction->getChapters(), $defaultChapter);
+                        $this->setDefaultContentForChapter($newCurrentWorkFunction->getChapters(), $defaultChapter);
+                    }
+
+
+                    $newCurrentChapter = array_filter($newCurrentWorkFunction->getChapters(), function(Chapter $newChapter) use ($defaultChapter) { return $newChapter->getName() === $defaultChapter->getName(); });
+                    /** reset the array because we want the first item. @var Chapter $newCurrentChapter */
+                    $newCurrentChapter = reset($newCurrentChapter);
+
+                    foreach ($defaultChapter->getChapters() as $defaultSubChapter) {
+                        $subChapterContent = $defaultSubChapter->getContent();
+                        if ($subChapterContent !== null && $subChapterContent !== '') {
+                            // set to new chapter
+                            $this->setDefaultContentForChapter($newCurrentChapter->getChapters(), $defaultSubChapter);
                         }
                     }
                 }
             }
-        }catch (Exception $e) {
+        } catch (Exception $e) {
             throw new Exception($e->getMessage(), 403);
         }
 
@@ -175,7 +191,7 @@ class TemplatesHandler
      */
     private function setDefaultContentForChapter($chapters, Chapter $defaultChapter): void
     {
-        $chapterToSetContentOn = array_filter($chapters, function($chapter) use ($defaultChapter) { return $chapter->getName() === $defaultChapter->getName(); });
+        $chapterToSetContentOn = array_filter($chapters, function(Chapter $chapter) use ($defaultChapter) { return $chapter->getName() === $defaultChapter->getName(); });
         if (count($chapterToSetContentOn) === 1) {
             $chapterToSetContentOn = reset($chapterToSetContentOn);
             try {
