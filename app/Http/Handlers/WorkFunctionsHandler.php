@@ -111,6 +111,12 @@ class WorkFunctionsHandler
         return $this->makeWorkFunction($results);
     }
 
+    /**
+     * @param int $templateId
+     * @param WorkFunction[] $workFunctions
+     * @return WorkFunction[]
+     * @throws Exception
+     */
     public function postWorkFunctions(int $templateId, array $workFunctions)
     {
         $container = [];
@@ -124,25 +130,25 @@ class WorkFunctionsHandler
             try {
                 $id = DB::table(self::MAIN_TABLE)
                     ->insertGetId($row);
-            } catch (\Exception $e) {
-                return \response($e->getMessage(),500);
+            } catch (Exception $e) {
+                throw new Exception($e->getMessage(),500);
             }
             $workFunction = $this->getWorkFunction($id);
 
             /** if it is the main function we need to create and add headlines, chapters. */
             if ($workFunction->isMainFunction()) {
                 $chapters = $this->chaptersHandler->postChapters(TemplateDefault::CHAPTERS_DEFAULT, $workFunction->getId());
-                $subChapters = $this->chaptersHandler->postChapters(TemplateDefault::SUB_CHAPTERS, $workFunction->getId());
 
                 try {
                     $this->createWorkFunctionHasChapters($workFunction, $chapters);
-                } catch (\Exception $e) {
-                    return \response($e->getMessage(),500);
+                } catch (Exception $e) {
+                    throw new Exception($e->getMessage(),500);
                 }
                 $workFunction->setChapters($chapters);
             }
             array_push($container, $workFunction);
         }
+
         return $container;
     }
 

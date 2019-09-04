@@ -12,6 +12,7 @@ namespace App\Http\Handlers;
 use App\Http\Controllers\Templates\TemplateDefault;
 use App\Models\Chapter\Chapter;
 use App\Models\Template\Template;
+use Exception;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 
@@ -91,13 +92,13 @@ class TemplatesHandler
         try {
             $id = DB::table(self::TEMPLATE_TABLE)
                 ->insertGetId($postData);
-        } catch (\Exception $e) {
-            return \response($e->getMessage(),500);
+
+            $template = $this->getTemplateById($id);
+
+            $template->setWorkFunctions($this->workFunctionsHandler->postWorkFunctions($template->getId(), TemplateDefault::WORK_FUNCTIONS));
+        } catch (Exception $e) {
+            throw new Exception($e->getMessage(),500);
         }
-
-        $template = $this->getTemplateById($id);
-
-        $template->setWorkFunctions($this->workFunctionsHandler->postWorkFunctions($template->getId(), TemplateDefault::WORK_FUNCTIONS));
 
         return $template;
     }
@@ -132,8 +133,8 @@ class TemplatesHandler
             DB::table(self::TEMPLATE_TABLE)
                 ->where('id', $id)
                 ->delete();
-        } catch (\Exception $e) {
-            return response($e->getMessage(), 403);
+        } catch (Exception $e) {
+            throw new Exception($e->getMessage(), 403);
         }
         return json_encode('Template deleted');
     }
@@ -146,33 +147,23 @@ class TemplatesHandler
             'organisationId' => $organisationId,
             'isDefault' => true,
         ];
-        $newTemplate = $this->createNewTemplate($postData);
-
-        foreach ($templateDefault->getWorkFunctions() as $workFunction) {
-            foreach ($workFunction->getChapters() as $defaultChapter) {
-                $chapterContent = $defaultChapter->getContent();
-                if ($chapterContent !== null && $chapterContent !== '') {
-                    // set to new chapter
-                    foreach ($newTemplate->getWorkFunctions() as $newWorkFunction) {
-                        $this->setDefaultContentForChapter($newWorkFunction->getChapters(), $defaultChapter);
-                    }
-                }
-            }
-
-            foreach ($workFunction->getHeadlines() as $defaultHeadline) {
-                foreach ($defaultHeadline->getChapters() as $defaultHeadlineChapter) {
-                    $chapterContent = $defaultHeadlineChapter->getContent();
+        try {
+            $newTemplate = $this->createNewTemplate($postData);
+            foreach ($templateDefault->getWorkFunctions() as $workFunction) {
+                foreach ($workFunction->getChapters() as $defaultChapter) {
+                    $chapterContent = $defaultChapter->getContent();
                     if ($chapterContent !== null && $chapterContent !== '') {
                         // set to new chapter
                         foreach ($newTemplate->getWorkFunctions() as $newWorkFunction) {
-                            foreach ($newWorkFunction->getHeadlines() as $newHeadline) {
-                                $this->setDefaultContentForChapter($newHeadline->getChapters(), $defaultHeadlineChapter);
-                            }
+                            $this->setDefaultContentForChapter($newWorkFunction->getChapters(), $defaultChapter);
                         }
                     }
                 }
             }
+        }catch (Exception $e) {
+            throw new Exception($e->getMessage(), 403);
         }
+
         return [$newTemplate];
     }
 

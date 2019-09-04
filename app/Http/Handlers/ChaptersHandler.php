@@ -8,6 +8,7 @@
 
 namespace App\Http\Handlers;
 
+use App\Http\Controllers\Templates\TemplateDefault;
 use Exception;
 use Illuminate\Support\Facades\DB;
 use App\Models\Chapter\Chapter;
@@ -137,8 +138,18 @@ class ChaptersHandler
             try {
                 $id = DB::table(self::TABLE)
                     ->insertGetId($chapter);
-            } catch (\Exception $e) {
-                return \response($e->getMessage(),500);
+
+                if (isset(TemplateDefault::SUB_CHAPTERS[$chapter['name']])) {
+
+                    $subChapters = TemplateDefault::SUB_CHAPTERS[$chapter['name']];
+                    foreach ($subChapters as $subChapter) {
+                        $subChapter['parentChapterId'] = $id;
+                        $this->postChapter($subChapter);
+                    }
+                }
+
+            } catch (Exception $e) {
+                throw new Exception($e->getMessage(),500);
             }
             array_push($container, $this->getChapter($id, $workFunctionId));
         }
