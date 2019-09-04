@@ -130,16 +130,14 @@ class WorkFunctionsHandler
 
             /** if it is the main function we need to create and add headlines, chapters. */
             if ($workFunction->isMainFunction()) {
-                $headlines = $this->headlinesHandler->postHeadlines($workFunction->getId(), TemplateDefault::HEADLINES_DEFAULT);
                 $chapters = $this->chaptersHandler->postChapters(TemplateDefault::CHAPTERS_DEFAULT, $workFunction->getId());
+                $subChapters = $this->chaptersHandler->postChapters(TemplateDefault::SUB_CHAPTERS, $workFunction->getId());
 
                 try {
-                    $this->createWorkFunctionHasHeadlines($workFunction, $headlines);
                     $this->createWorkFunctionHasChapters($workFunction, $chapters);
                 } catch (\Exception $e) {
                     return \response($e->getMessage(),500);
                 }
-                $workFunction->setHeadlines($headlines);
                 $workFunction->setChapters($chapters);
             }
             array_push($container, $workFunction);
@@ -269,7 +267,6 @@ class WorkFunctionsHandler
         try {
             $this->deleteLinks($workFunction);
         } catch (Exception $e) {
-            var_dump('trying to delete the link of the workfunction');
             new Exception($e->getMessage(),500);
         }
 
@@ -290,7 +287,6 @@ class WorkFunctionsHandler
                 ->where('id', $workFunction->getId())
                 ->delete();
         } catch (Exception $e) {
-            var_dump($workFunction->getId());
             throw new Exception($e->getMessage(),500);
         }
 

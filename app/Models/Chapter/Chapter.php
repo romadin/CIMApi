@@ -28,9 +28,9 @@ class Chapter implements JsonSerializable
     private $content = null;
 
     /**
-     * @var int|null
+     * @var Chapter[]|null
      */
-    private $headlineId = null;
+    private $chapters = null;
 
     /**
      * @var int|null
@@ -93,19 +93,19 @@ class Chapter implements JsonSerializable
     }
 
     /**
-     * @return int|null
+     * @return Chapter[]|null
      */
-    public function getHeadlineId(): ?int
+    public function getChapters(): ?array
     {
-        return $this->headlineId;
+        return $this->chapters;
     }
 
     /**
-     * @param int|null $headlineId
+     * @param Chapter[]|null $chapters
      */
-    public function setHeadlineId(?int $headlineId): void
+    public function setChapters(?array $chapters): void
     {
-        $this->headlineId = $headlineId;
+        $this->chapters = $chapters;
     }
 
     /**
@@ -131,7 +131,6 @@ class Chapter implements JsonSerializable
             'name' => $this->getName(),
             'content' => $this->getContent(),
             'order' => $this->getOrder(),
-            'headlineId' => $this->getHeadlineId(),
         ];
     }
 }

@@ -17,8 +17,6 @@ class DatabaseSeeder extends Seeder
         $this->call('UsersTable2DefaultUsersSeeder');
         $this->call('TemplatesTableSeeder');
         $this->call('WorkFunctionsTableSeeder');
-        $this->call('HeadlinesTableSeeder');
-        $this->call('WorkFunctionHasHeadlineTableSeeder');
         $this->call('ChapterTableSeeder');
         $this->call('WorkFunctionHasChapterTableSeeder');
         $this->call('ModulesTableSeeder');

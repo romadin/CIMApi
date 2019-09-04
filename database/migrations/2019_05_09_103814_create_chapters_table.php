@@ -17,8 +17,8 @@ class CreateChaptersTable extends Migration
             $table->increments('id');
             $table->string('name');
             $table->text('content')->nullable(true);
-            $table->unsignedInteger('headlineId')->nullable(true);
-            $table->foreign('headlineId')->references('id')->on('headlines');
+            $table->unsignedInteger('parentChapterId')->nullable(true);
+            $table->foreign('parentChapterId')->references('id')->on('chapters');
             $table->unsignedInteger('order')->nullable(true);
             $table->timestamps();
         });

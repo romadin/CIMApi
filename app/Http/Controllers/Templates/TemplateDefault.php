@@ -18,37 +18,32 @@ class TemplateDefault
         ['name' => 'BIM Regisseur', 'order' => 4],
         ['name' => 'BIM Manager', 'order' => 5]
     ];
-    const HEADLINES_DEFAULT = [
-        ['name' => 'Doel en toepassing'],
-        ['name' => 'Analyse'],
-        ['name' => 'BIM-process'],
-        ['name' => 'Informatie en data'],
-        ['name' => 'Communicatie'],
-        ['name' => 'Model afspraken'],
-        ['name' => 'Eigendom'],
-    ];
-    const WORK_FUNCTION_HAS_HEADLINE = [
-        ['workFunctionId' => 1, 'headlineId' => 1, 'order' => 2],
-        ['workFunctionId' => 1, 'headlineId' => 2, 'order' => 3],
-        ['workFunctionId' => 1, 'headlineId' => 3, 'order' => 4],
-        ['workFunctionId' => 1, 'headlineId' => 4, 'order' => 5],
-        ['workFunctionId' => 1, 'headlineId' => 5, 'order' => 6],
-        ['workFunctionId' => 1, 'headlineId' => 6, 'order' => 7],
-        ['workFunctionId' => 1, 'headlineId' => 7, 'order' => 10],
-    ];
     const WORK_FUNCTION_HAS_HEADLINE_ORDER_DEFAULT = [2, 3, 4, 5, 6, 7, 10];
     const CHAPTERS_DEFAULT = [
+        ['name' => 'Doel en toepassing', 'content' => ''],
+        ['name' => 'Analyse', 'content' => ''],
+        ['name' => 'BIM-process', 'content' => ''],
+        ['name' => 'Informatie en data', 'content' => ''],
+        ['name' => 'Communicatie', 'content' => ''],
+        ['name' => 'Model afspraken', 'content' => ''],
+        ['name' => 'Eigendom', 'content' => ''],
         ['name' => 'Projectgegevens', 'content' => ''],
         ['name' => 'Verplichtingen van de Opdrachtgever', 'content' => ''],
         ['name' => 'Verplichtingen van de Opdrachtnemer', 'content' => ''],
     ];
     const WORK_FUNCTION_HAS_CHAPTER = [
         ['workFunctionId' => 1, 'chapterId' => 1, 'order' => 1],
-        ['workFunctionId' => 1, 'chapterId' => 2, 'order' => 8],
-        ['workFunctionId' => 1, 'chapterId' => 3, 'order' => 9],
+        ['workFunctionId' => 1, 'chapterId' => 2, 'order' => 2],
+        ['workFunctionId' => 1, 'chapterId' => 3, 'order' => 3],
+        ['workFunctionId' => 1, 'chapterId' => 4, 'order' => 4],
+        ['workFunctionId' => 1, 'chapterId' => 5, 'order' => 5],
+        ['workFunctionId' => 1, 'chapterId' => 6, 'order' => 6],
+        ['workFunctionId' => 1, 'chapterId' => 7, 'order' => 7],
+        ['workFunctionId' => 1, 'chapterId' => 8, 'order' => 8],
+        ['workFunctionId' => 1, 'chapterId' => 9, 'order' => 9],
     ];
-    const WORK_FUNCTION_HAS_CHAPTER_ORDER_DEFAULT = [1, 8, 9];
-    const CHAPTERS_FOR_HEADLINE = [
+    const WORK_FUNCTION_HAS_CHAPTER_ORDER_DEFAULT = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+    const SUB_CHAPTERS = [
         'Doel en toepassing' => [
             ['name' => 'BIM-doelen', 'order' => 1, 'content' => ''],
             ['name' => 'BIM-toepassing', 'order' => 2, 'content' => ''],

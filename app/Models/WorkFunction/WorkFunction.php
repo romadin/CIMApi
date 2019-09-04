@@ -9,11 +9,10 @@
 namespace App\Models\WorkFunction;
 
 
+use JsonSerializable;
 use App\Models\Company\Company;
 use App\Models\Document\Document;
-use JsonSerializable;
 use App\Models\Chapter\Chapter;
-use App\Models\Headline\Headline;
 
 class WorkFunction implements JsonSerializable
 {
@@ -47,10 +46,6 @@ class WorkFunction implements JsonSerializable
      */
     private $projectId = null;
 
-    /**
-     * @var null | Headline[]
-     */
-    private $headlines = null;
     /**
      * @var null | Chapter[]
      */
@@ -173,22 +168,6 @@ class WorkFunction implements JsonSerializable
     public function setProjectId(?int $projectId): void
     {
         $this->projectId = $projectId;
-    }
-
-    /**
-     * @return Headline[]|null
-     */
-    public function getHeadlines(): ?array
-    {
-        return $this->headlines;
-    }
-
-    /**
-     * @param Headline[]|null $headlines
-     */
-    public function setHeadlines(?array $headlines): void
-    {
-        $this->headlines = $headlines;
     }
 
     /**

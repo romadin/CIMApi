@@ -99,7 +99,7 @@ class HeadlinesHandler
             // set for each default chapter the parent headline id
             $defaultChapters = array_map(function($chapterRow) use ($headline) {
                 return array_merge($chapterRow, ['headlineId' => $headline->getId()]);
-            }, TemplateDefault::CHAPTERS_FOR_HEADLINE[$headline->getName()]);
+            }, TemplateDefault::SUB_CHAPTERS[$headline->getName()]);
 
             $headline->setChapters($this->chaptersHandler->postChapters($defaultChapters));
             array_push($container, $headline);

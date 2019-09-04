@@ -17,6 +17,7 @@ use App\Models\WorkFunction\WorkFunction;
 class ChaptersHandler
 {
     const TABLE = 'chapters';
+    const CHAPTERS_HAS_CHAPTERS = self::TABLE . '_has_' . self::TABLE;
 
     public function getChapter(int $id, int $workFunctionId = null)
     {
@@ -40,6 +41,28 @@ class ChaptersHandler
         return $chapter;
     }
 
+    public function getSubChapters(Chapter $chapter)
+    {
+        try {
+            $results = DB::table(self::TABLE)
+                ->where('parentChapterId', $chapter->getId())
+                ->get();
+            if ( $results === null ) {
+                return [];
+            }
+            $chapters = [];
+
+            foreach ($results as $result) {
+                $chapter = $this->makeChapter($result, null, true);
+                array_push($chapters, $chapter);
+            }
+        } catch (\Exception $e) {
+            throw new Exception('ChaptersHandler: There is something wrong with the database connection',500);
+        }
+
+        return $chapters;
+    }
+
     /**
      * Get the chapters from the parent headline.
      * @param Headline $headline
@@ -47,28 +70,28 @@ class ChaptersHandler
      */
     public function getChaptersByParentHeadline(Headline $headline)
     {
-        try {
-            $results = DB::table(self::TABLE)
-                ->where('headlineId', $headline->getId())
-                ->get();
-            if ( $results === null ) {
-                return [];
-            }
-        } catch (\Exception $e) {
-            return \response('ChaptersHandler: There is something wrong with the database connection',500);
-        }
-
-        $container = [];
-        try {
-            foreach ($results as $result) {
-                $chapter = $this->makeChapter($result);
-                array_push($container, $chapter);
-            }
-        }catch (\Exception $e) {
-            return \response($e->getMessage(),500);
-        }
-
-        return $container;
+//        try {
+//            $results = DB::table(self::TABLE)
+//                ->where('headlineId', $headline->getId())
+//                ->get();
+//            if ( $results === null ) {
+//                return [];
+//            }
+//        } catch (\Exception $e) {
+//            return \response('ChaptersHandler: There is something wrong with the database connection',500);
+//        }
+//
+//        $container = [];
+//        try {
+//            foreach ($results as $result) {
+//                $chapter = $this->makeChapter($result);
+//                array_push($container, $chapter);
+//            }
+//        }catch (\Exception $e) {
+//            return \response($e->getMessage(),500);
+//        }
+//
+//        return $container;
     }
 
     /**
@@ -279,17 +302,21 @@ class ChaptersHandler
     /**
      * @param \stdClass $data
      * @param int|null $workFunctionId
+     * @param boolean $isSubChapter
      * @return Chapter
      * @throws Exception
      */
-    private function makeChapter(\stdClass $data, int $workFunctionId = null): Chapter
+    private function makeChapter(\stdClass $data, int $workFunctionId = null, $isSubChapter = false): Chapter
     {
         $chapter = new Chapter();
         $chapter->setId($data->id);
         $chapter->setName($data->name);
         $chapter->setContent($data->content);
-        $chapter->setHeadlineId($data->headlineId);
+
         try {
+            if (!$isSubChapter) {
+                $chapter->setChapters($this->getSubChapters($chapter));
+            }
             $chapter->setOrder($data->order ?: $this->getOrder($chapter, $workFunctionId));
         }catch (\Exception $e) {
             throw new Exception($e->getMessage(),500);
