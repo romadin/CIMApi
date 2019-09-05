@@ -151,16 +151,23 @@ class ChaptersHandler
         return $container;
     }
 
+    /**
+     * Create new chapter
+     * @param array $postData
+     * @param int|null $workFunctionId
+     * @return Chapter|array
+     * @throws Exception
+     */
     public function postChapter(array $postData, int $workFunctionId = null)
     {
         try {
             $id = DB::table(self::TABLE)
                 ->insertGetId($postData);
-        } catch (\Exception $e) {
-            return \response($e->getMessage(),500);
-        }
 
-        return $this->getChapter($id, $workFunctionId);
+            return $this->getChapter($id, $workFunctionId);
+        } catch (Exception $e) {
+            throw new Exception($e->getMessage(),500);
+        }
     }
 
     /**
@@ -231,11 +238,11 @@ class ChaptersHandler
      * @param int $headlineId
      * @return int
      */
-    public function getHighestOrderInHeadline(int $headlineId): int
+    public function getHighestOrderInChapter(int $headlineId): int
     {
         $result = DB::table(self::TABLE)
             ->select('order')
-            ->where('headlineId', $headlineId)
+            ->where('parentChapterId', $headlineId)
             ->orderByDesc('order')
             ->first();
         if ($result == null) {

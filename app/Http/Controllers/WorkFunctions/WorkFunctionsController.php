@@ -87,17 +87,9 @@ class WorkFunctionsController
                 $this->workFunctionsHandler->addChildItems($workFunction, $postData['chapters'], 'chapterId', WorkFunctionsHandler::MAIN_HAS_CHAPTER_TABLE);
                 unset($postData['chapters']);
             }
-            if (isset($postData['headlines'])) {
-                $this->workFunctionsHandler->addChildItems($workFunction, $postData['headlines'], 'headlineId', WorkFunctionsHandler::MAIN_HAS_HEADLINE_TABLE);
-                unset($postData['headlines']);
-            }
             if (isset($postData['documents'])) {
                 $this->workFunctionsHandler->addChildItems($workFunction, $postData['documents'], 'documentId', WorkFunctionsHandler::MAIN_HAS_DOCUMENT_TABLE);
                 unset($postData['documents']);
-            }
-            if (isset($postData['folders'])) {
-                $this->workFunctionsHandler->addChildItems($workFunction, $postData['folders'], 'folderId', WorkFunctionsHandler::MAIN_HAS_FOLDER_TABLE);
-                unset($postData['folders']);
             }
             if (isset($postData['companies'])) {
                 $this->workFunctionsHandler->addChildItems($workFunction, $postData['companies'], 'companyId', CompaniesHandler::TABLE_LINK_WORK_FUNCTION);

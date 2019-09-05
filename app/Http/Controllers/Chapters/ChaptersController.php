@@ -61,34 +61,38 @@ class ChaptersController
 
     public function postChapter(Request $request)
     {
-        if( !$request->input('headlineId') && !$request->input('workFunctionId') ) {
+        if( !$request->input('parentChapterId') && !$request->input('workFunctionId') ) {
             return response('parent id is not given', 400);
-        } else if( $request->input('headlineId') && $request->input('workFunctionId') ) {
+        } else if( $request->input('parentChapterId') && $request->input('workFunctionId') ) {
             return response('too much parent id is given', 400);
         } else if( !$request->input('name') ) {
-            return response('Headline name is not given', 400);
+            return response('chapter name is not given', 400);
         }
 
         $postData = $request->post();
-        if ($request->input('workFunctionId')) {
-            $linkTable = WorkFunctionsHandler::MAIN_HAS_CHAPTER_TABLE;
-            $workFunction = $this->workFunctionsHandler->getWorkFunction($request->input('workFunctionId'));
-            $newOrder = $this->workFunctionsHandler->getHighestOrderOfChildItems($workFunction->getId(), $linkTable, WorkFunctionsHandler::getLinkTableSibling($linkTable)) + 1;
-            $newChapter = $this->chaptersHandler->postChapter($postData, $request->input('workFunctionId'));
+        try {
+            if ($request->input('workFunctionId')) {
+                $linkTable = WorkFunctionsHandler::MAIN_HAS_CHAPTER_TABLE;
+                $workFunction = $this->workFunctionsHandler->getWorkFunction($request->input('workFunctionId'));
+                $newOrder = $this->workFunctionsHandler->getHighestOrder($linkTable, 'workFunctionId', $workFunction->getId()) + 1;
+                $newChapter = $this->chaptersHandler->postChapter($postData, $request->input('workFunctionId'));
 
-            try {
-                $this->workFunctionsHandler->createWorkFunctionHasChapters($workFunction, [$newChapter], [$newOrder]);
-            } catch (Exception $e) {
-                return response($e->getMessage());
+                try {
+                    $this->workFunctionsHandler->createWorkFunctionHasChapters($workFunction, [$newChapter], [$newOrder]);
+                } catch (Exception $e) {
+                    return response($e->getMessage());
+                }
+
+                $newChapter->setOrder($newOrder);
+            } else if(!$request->input('order')) {
+                $order = $this->chaptersHandler->getHighestOrderInChapter($request->input('parentChapterId')) + 1;
+                $postData['order'] = $order;
+                $newChapter = $this->chaptersHandler->postChapter($postData, $request->input('workFunctionId'));
+            } else {
+                $newChapter = $this->chaptersHandler->postChapter($postData, $request->input('workFunctionId'));
             }
-
-            $newChapter->setOrder($newOrder);
-        } else if(!$request->input('order')) {
-            $order = $this->chaptersHandler->getHighestOrderInHeadline($request->input('headlineId')) + 1;
-            $postData['order'] = $order;
-            $newChapter = $this->chaptersHandler->postChapter($postData, $request->input('workFunctionId'));
-        } else {
-            $newChapter = $this->chaptersHandler->postChapter($postData, $request->input('workFunctionId'));
+        } catch (Exception $e) {
+            return response($e->getMessage());
         }
 
         return $newChapter;

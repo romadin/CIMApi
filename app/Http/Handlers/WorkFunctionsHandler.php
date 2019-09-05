@@ -19,9 +19,7 @@ use Illuminate\Support\Facades\DB;
 class WorkFunctionsHandler
 {
     const MAIN_TABLE = 'work_functions';
-    const MAIN_HAS_HEADLINE_TABLE = 'work_function_has_headline';
     const MAIN_HAS_CHAPTER_TABLE = 'work_function_has_chapter';
-    const MAIN_HAS_FOLDER_TABLE = 'work_function_has_folder';
     const MAIN_HAS_DOCUMENT_TABLE = 'work_function_has_document';
     /**
      * @var HeadlinesHandler
@@ -200,12 +198,10 @@ class WorkFunctionsHandler
                 $itemIdName => $itemId,
                 'workFunctionId' => $workFunction->getId(),
             ];
-            $linkTableSibling = $this->getLinkTableSibling($linkTable);
-            $row['order'] = $linkTableSibling === '' ?
-                $this->getHighestOrder(CompaniesHandler::TABLE_LINK_WORK_FUNCTION,'workFunctionId', $workFunction->getId()) + 1 :
-                $this->getHighestOrderOfChildItems($workFunction->getId(), $linkTable, $linkTableSibling) + 1;
 
             try {
+                $row['order'] = $this->getHighestOrder($linkTable,'workFunctionId', $workFunction->getId()) + 1;
+
                 $isEmpty = DB::table($linkTable)
                     ->where($itemIdName, $itemId)
                     ->where('workFunctionId', $workFunction->getId())
@@ -347,6 +343,7 @@ class WorkFunctionsHandler
      * @param string $linkTable
      * @param string $linkTableSibling
      * @return int
+     * @throws Exception
      */
     public function getHighestOrderOfChildItems(int $workFunctionId, string $linkTable, string $linkTableSibling): int
     {
@@ -364,8 +361,8 @@ class WorkFunctionsHandler
             if ($result == null) {
                 return 0;
             }
-        } catch (\Exception $e) {
-            return response('There is something wrong with the connection', 403);
+        } catch (Exception $e) {
+            throw new Exception($e->getMessage(), 403);
         }
 
         return $result->order;
@@ -379,19 +376,7 @@ class WorkFunctionsHandler
      */
     public function createWorkFunctionHasHeadlines(WorkFunction $workFunction, $headlines, $order = null): void
     {
-        try {
-            foreach ($headlines as $i => $headline) {
-                $row = [
-                    'workFunctionId' => $workFunction->getId(),
-                    'headlineId' => $headline->getId(),
-                    'order' => $order ? $order[$i] : TemplateDefault::WORK_FUNCTION_HAS_HEADLINE_ORDER_DEFAULT[$i]
-                ];
-                DB::table(self::MAIN_HAS_HEADLINE_TABLE)
-                    ->insert($row);
-            }
-        } catch (\Exception $e) {
-            throw new Exception($e->getMessage(),500);
-        }
+
     }
 
     /**
@@ -424,7 +409,7 @@ class WorkFunctionsHandler
      * @param int $parentId
      * @return int
      */
-    private function getHighestOrder(string $table, string $idName, int $parentId): int
+    public function getHighestOrder(string $table, string $idName, int $parentId): int
     {
         $result = DB::table($table)
             ->select('order')
@@ -450,9 +435,6 @@ class WorkFunctionsHandler
                 ->where('workFunctionId', $workFunction->getId())
                 ->delete();
             DB::table(self::MAIN_HAS_CHAPTER_TABLE)
-                ->where('workFunctionId', $workFunction->getId())
-                ->delete();
-            DB::table(self::MAIN_HAS_HEADLINE_TABLE)
                 ->where('workFunctionId', $workFunction->getId())
                 ->delete();
             DB::table(CompaniesHandler::TABLE_LINK_WORK_FUNCTION)
@@ -505,29 +487,12 @@ class WorkFunctionsHandler
             $workFunction->setOn($data->on);
             $workFunction->setFromTemplate($data->fromTemplate);
             $companies = $this->companiesHandler->getCompaniesByWorkFunction($workFunction);
+            $workFunction->setCompanies($companies);
+            $workFunction->setDocuments($this->documentsHandler->getDocumentsFromWorkFunction($workFunction));
         } catch (Exception $e) {
             throw new Exception($e->getMessage(), 404);
         }
-        $workFunction->setCompanies($companies);
-        $workFunction->setDocuments($this->documentsHandler->getDocumentsFromWorkFunction($workFunction));
-
 
         return $workFunction;
     }
-
-    static function getLinkTableSibling($linkTable): string {
-        switch ($linkTable) {
-            case (self::MAIN_HAS_FOLDER_TABLE):
-                return self::MAIN_HAS_DOCUMENT_TABLE;
-            case (self::MAIN_HAS_DOCUMENT_TABLE):
-                return self::MAIN_HAS_FOLDER_TABLE;
-            case (self::MAIN_HAS_HEADLINE_TABLE):
-                return self::MAIN_HAS_CHAPTER_TABLE;
-            case (self::MAIN_HAS_CHAPTER_TABLE):
-                return self::MAIN_HAS_HEADLINE_TABLE;
-        }
-
-        return '';
-    }
-
 }

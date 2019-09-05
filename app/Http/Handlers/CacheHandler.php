@@ -9,8 +9,8 @@
 namespace App\Http\Handlers;
 
 
-use App\Models\CacheItem\CacheItem;
 use Exception;
+use App\Models\CacheItem\CacheItem;
 use Illuminate\Support\Facades\DB;
 
 class CacheHandler
@@ -38,17 +38,21 @@ class CacheHandler
         try {
             $result = DB::table(self::TABLE)
                 ->where('name', $name)
-                ->where('url', $url)
                 ->first();
             if ( $result === null ) {
                 $data = ['name' => $name, 'url' => $url];
                 return $this->createNewCache($data);
             }
+            $cacheItem = $this->makeCache($result);
+            if ($cacheItem->getUrl() !== $url) {
+                $cacheItem->setUrl($url);
+                return $this->updateCache($cacheItem);
+            }
         } catch (Exception $e) {
             throw new Exception($e->getMessage(),500);
         }
 
-        return $this->makeCache($result);
+        return $cacheItem;
     }
 
     public function checkCacheHash($id, $hash)
@@ -75,7 +79,7 @@ class CacheHandler
         try {
             $id = DB::table(self::TABLE)
                 ->insertGetId($values);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             throw new Exception($e->getMessage(),500);
         }
 
@@ -95,7 +99,7 @@ class CacheHandler
             DB::table(self::TABLE)
                 ->where('id', $cache->getId())
                 ->update($values);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             throw new Exception($e->getMessage(),500);
         }
         $cache->setHash($values['hash']);
