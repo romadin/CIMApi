@@ -11,7 +11,6 @@ namespace App\Http\Handlers;
 
 use App\Http\Controllers\Templates\TemplateDefault;
 use App\Models\Chapter\Chapter;
-use App\Models\Headline\Headline;
 use App\Models\WorkFunction\WorkFunction;
 use Exception;
 use Illuminate\Support\Facades\DB;
@@ -22,10 +21,6 @@ class WorkFunctionsHandler
     const MAIN_HAS_CHAPTER_TABLE = 'work_function_has_chapter';
     const MAIN_HAS_DOCUMENT_TABLE = 'work_function_has_document';
     /**
-     * @var HeadlinesHandler
-     */
-    private $headlinesHandler;
-    /**
      * @var ChaptersHandler
      */
     private $chaptersHandler;
@@ -33,26 +28,19 @@ class WorkFunctionsHandler
      * @var DocumentsHandler
      */
     private $documentsHandler;
-    /**
-     * @var FoldersHandler
-     */
-    private $foldersHandler;
+
     /**
      * @var CompaniesHandler
      */
     private $companiesHandler;
 
     public function __construct(
-        HeadlinesHandler $headlinesHandler,
         ChaptersHandler $chaptersHandler,
         DocumentsHandler $documentsHandler,
-        FoldersHandler $foldersHandler,
         CompaniesHandler $companiesHandler)
     {
-        $this->headlinesHandler = $headlinesHandler;
         $this->chaptersHandler = $chaptersHandler;
         $this->documentsHandler = $documentsHandler;
-        $this->foldersHandler = $foldersHandler;
         $this->companiesHandler = $companiesHandler;
     }
 
@@ -133,7 +121,7 @@ class WorkFunctionsHandler
             }
             $workFunction = $this->getWorkFunction($id);
 
-            /** if it is the main function we need to create and add headlines, chapters. */
+            /** if it is the main function we need to create and add chapters. */
             if ($workFunction->isMainFunction()) {
                 $chapters = $this->chaptersHandler->postChapters(TemplateDefault::CHAPTERS_DEFAULT, $workFunction->getId());
 
@@ -279,7 +267,7 @@ class WorkFunctionsHandler
             }
         } else {
             try {
-                $this->deleteChaptersAndHeadline($workFunction);
+                $this->deleteChapters($workFunction);
             } catch (Exception $e) {
                 new Exception($e->getMessage(),500);
             }
@@ -370,17 +358,6 @@ class WorkFunctionsHandler
 
     /**
      * @param WorkFunction $workFunction
-     * @param Headline[] $headlines
-     * @param int[]|null $order
-     * @throws Exception
-     */
-    public function createWorkFunctionHasHeadlines(WorkFunction $workFunction, $headlines, $order = null): void
-    {
-
-    }
-
-    /**
-     * @param WorkFunction $workFunction
      * @param Chapter[] $chapters
      * @param int[]|null $order
      * @throws Exception
@@ -449,18 +426,15 @@ class WorkFunctionsHandler
     }
 
     /**
-     * Delete the chapters and the headline
+     * Delete the chapters
      * @param WorkFunction $workFunction
      * @throws Exception
      */
-    private function deleteChaptersAndHeadline(WorkFunction $workFunction): void
+    private function deleteChapters(WorkFunction $workFunction): void
     {
         try {
             foreach ($workFunction->getChapters() as $chapter) {
                 $this->chaptersHandler->deleteChapterAndLink($chapter, $workFunction);
-            }
-            foreach ($workFunction->getHeadlines() as $headline) {
-                $this->headlinesHandler->deleteHeadline($headline, $workFunction);
             }
         } catch (Exception $e) {
             throw new Exception($e->getMessage(),500);

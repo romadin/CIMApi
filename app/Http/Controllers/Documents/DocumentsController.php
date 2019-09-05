@@ -12,7 +12,6 @@ namespace App\Http\Controllers\Documents;
 use App\Http\Controllers\ApiController;
 use App\Http\Handlers\CompaniesHandler;
 use App\Http\Handlers\DocumentsHandler;
-use App\Http\Handlers\FoldersHandler;
 use App\Http\Handlers\TemplatesHandler;
 use App\Http\Handlers\WorkFunctionsHandler;
 use Exception;
@@ -31,11 +30,6 @@ class DocumentsController extends ApiController
     private $templateHandler;
 
     /**
-     * @var FoldersHandler
-     */
-    private $foldersHandler;
-
-    /**
      * @var WorkFunctionsHandler
      */
     private $workFunctionsHandler;
@@ -45,11 +39,10 @@ class DocumentsController extends ApiController
      */
     private $companiesHandler;
 
-    public function __construct(DocumentsHandler $documentsHandler, TemplatesHandler $templatesHandler, FoldersHandler $foldersHandler, WorkFunctionsHandler $workFunctionsHandler, CompaniesHandler $companiesHandler)
+    public function __construct(DocumentsHandler $documentsHandler, TemplatesHandler $templatesHandler, WorkFunctionsHandler $workFunctionsHandler, CompaniesHandler $companiesHandler)
     {
         $this->documentsHandler = $documentsHandler;
         $this->templateHandler = $templatesHandler;
-        $this->foldersHandler = $foldersHandler;
         $this->workFunctionsHandler = $workFunctionsHandler;
         $this->companiesHandler = $companiesHandler;
     }
@@ -57,10 +50,7 @@ class DocumentsController extends ApiController
     public function getDocuments(Request $request)
     {
         try {
-            if ( $request->input('folderId') ) {
-                $folder = $this->foldersHandler->getFolderById($request->input('folderId'));
-                return $this->getReturnValueArray($request, $this->documentsHandler->getDocumentsFromFolder($folder));
-            } else if ( $request->input('companyId') && $request->input('workFunctionId')) {
+            if ( $request->input('companyId') && $request->input('workFunctionId')) {
                 try {
                     $company = $this->companiesHandler->getCompanyById($request->input('companyId'));
                     $workFunction = $this->workFunctionsHandler->getWorkFunction($request->input('workFunctionId'));

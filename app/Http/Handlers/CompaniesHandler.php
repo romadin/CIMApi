@@ -19,7 +19,6 @@ class CompaniesHandler
 {
     const TABLE_COMPANIES = 'companies';
     const TABLE_LINK_DOCUMENT = self::TABLE_COMPANIES . '_has_' . DocumentsHandler::DOCUMENT_TABLE;
-    const TABLE_LINK_FOLDER = self::TABLE_COMPANIES . '_has_' . FoldersHandler::FOLDERS_TABLE;
     const TABLE_LINK_WORK_FUNCTION = WorkFunctionsHandler::MAIN_TABLE.'_has_'.self::TABLE_COMPANIES;
 
     /**
@@ -307,16 +306,4 @@ class CompaniesHandler
 
         return $result->order;
     }
-
-    private function getLinkTableSibling($linkTable): string {
-        switch ($linkTable) {
-            case (self::TABLE_LINK_DOCUMENT):
-                return self::TABLE_LINK_FOLDER;
-            case (self::TABLE_LINK_FOLDER):
-                return self::TABLE_LINK_DOCUMENT;
-        }
-
-        return self::TABLE_COMPANIES;
-    }
-
 }

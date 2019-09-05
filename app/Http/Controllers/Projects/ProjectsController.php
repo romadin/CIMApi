@@ -14,7 +14,6 @@ use App\Http\Controllers\Templates\TemplatesController;
 use App\Http\Handlers\ActionsHandler;
 use App\Http\Handlers\DocumentsHandler;
 use App\Http\Handlers\EventsHandler;
-use App\Http\Handlers\FoldersHandler;
 use App\Http\Handlers\ProjectsHandler;
 use App\Http\Handlers\UsersHandler;
 use App\Http\Handlers\WorkFunctionsHandler;
@@ -32,11 +31,6 @@ class ProjectsController extends ApiController
      * @var ProjectsHandler
      */
     private $projectsHandler;
-
-    /**
-     * @var FoldersHandler
-     */
-    private $foldersHandler;
 
     /**
      * @var UsersHandler
@@ -70,7 +64,6 @@ class ProjectsController extends ApiController
     /**
      * ProjectsController constructor.
      * @param ProjectsHandler $projectsHandler
-     * @param FoldersHandler $foldersHandler
      * @param UsersHandler $usersHandlers
      * @param ActionsHandler $actionHandlers
      * @param EventsHandler $eventsHandler
@@ -80,7 +73,6 @@ class ProjectsController extends ApiController
      */
     public function __construct(
         ProjectsHandler $projectsHandler,
-        FoldersHandler $foldersHandler,
         UsersHandler $usersHandlers,
         ActionsHandler $actionHandlers,
         EventsHandler $eventsHandler,
@@ -89,7 +81,6 @@ class ProjectsController extends ApiController
         DocumentsHandler $documentsHandler)
     {
         $this->projectsHandler = $projectsHandler;
-        $this->foldersHandler = $foldersHandler;
         $this->usersHandler = $usersHandlers;
         $this->actionHandler = $actionHandlers;
         $this->eventsHandler = $eventsHandler;
@@ -169,7 +160,6 @@ class ProjectsController extends ApiController
                         if(!empty($mainWorkFunctionFromTemplate)) {
                             /** @var WorkFunction $mainWorkFunctionFromTemplate */
                             $mainWorkFunctionFromTemplate = $mainWorkFunctionFromTemplate[0];
-                            $this->documentsHandler->createDocumentsWithTemplate($workFunction, $mainWorkFunctionFromTemplate->getHeadlines(), WorkFunctionsHandler::MAIN_HAS_DOCUMENT_TABLE);
                             $this->documentsHandler->createDocumentsWithTemplate($workFunction, $mainWorkFunctionFromTemplate->getChapters(), WorkFunctionsHandler::MAIN_HAS_DOCUMENT_TABLE);
                         }
                     }
@@ -210,7 +200,6 @@ class ProjectsController extends ApiController
             }
         } catch (Exception $e) {
             return response($e->getMessage(), 200);
-//                return response('Delete item went wrong', 400);
         }
 
 

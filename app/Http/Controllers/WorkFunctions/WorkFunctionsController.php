@@ -11,7 +11,6 @@ namespace App\Http\Controllers\WorkFunctions;
 
 use App\Http\Handlers\ChaptersHandler;
 use App\Http\Handlers\CompaniesHandler;
-use App\Http\Handlers\HeadlinesHandler;
 use App\Http\Handlers\WorkFunctionsHandler;
 use Exception;
 use Illuminate\Http\Request;
@@ -22,19 +21,15 @@ class WorkFunctionsController
      * @var WorkFunctionsHandler
      */
     private $workFunctionsHandler;
-    /**
-     * @var HeadlinesHandler
-     */
-    private $headlinesHandler;
+
     /**
      * @var ChaptersHandler
      */
     private $chaptersHandler;
 
-    public function __construct(WorkFunctionsHandler $workFunctionsHandler, HeadlinesHandler $headlinesHandler, ChaptersHandler $chaptersHandler)
+    public function __construct(WorkFunctionsHandler $workFunctionsHandler, ChaptersHandler $chaptersHandler)
     {
-        $this->workFunctionsHandler = $workFunctionsHandler;
-        $this->headlinesHandler = $headlinesHandler;
+        $this->workFunctionsHandler = $workFunctionsHandler;;
         $this->chaptersHandler = $chaptersHandler;
     }
 

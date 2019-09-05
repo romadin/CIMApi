@@ -12,7 +12,6 @@ use App\Http\Controllers\Templates\TemplateDefault;
 use Exception;
 use Illuminate\Support\Facades\DB;
 use App\Models\Chapter\Chapter;
-use App\Models\Headline\Headline;
 use App\Models\WorkFunction\WorkFunction;
 
 class ChaptersHandler
@@ -59,36 +58,7 @@ class ChaptersHandler
         return $chapters;
     }
 
-    /**
-     * Get the chapters from the parent headline.
-     * @param Headline $headline
-     * @return Chapter[]|\Illuminate\Http\Response|\Laravel\Lumen\Http\ResponseFactory
-     */
-    public function getChaptersByParentHeadline(Headline $headline)
-    {
-//        try {
-//            $results = DB::table(self::TABLE)
-//                ->where('headlineId', $headline->getId())
-//                ->get();
-//            if ( $results === null ) {
-//                return [];
-//            }
-//        } catch (\Exception $e) {
-//            return \response('ChaptersHandler: There is something wrong with the database connection',500);
-//        }
-//
-//        $container = [];
-//        try {
-//            foreach ($results as $result) {
-//                $chapter = $this->makeChapter($result);
-//                array_push($container, $chapter);
-//            }
-//        }catch (\Exception $e) {
-//            return \response($e->getMessage(),500);
-//        }
-//
-//        return $container;
-    }
+
 
     /**
      * Get the chapters connected to the work function.
@@ -192,7 +162,7 @@ class ChaptersHandler
     }
 
     /**
-     * Reorder the chapters within the same headline.
+     * Reorder the chapters within the same chapter.
      * @param Chapter $chapter
      * @param int $order
      */
@@ -234,15 +204,15 @@ class ChaptersHandler
     }
 
     /**
-     * Get the highest order from the same headline.
-     * @param int $headlineId
+     * Get the highest order from the same chapter.
+     * @param int $chapterId
      * @return int
      */
-    public function getHighestOrderInChapter(int $headlineId): int
+    public function getHighestOrderInChapter(int $chapterId): int
     {
         $result = DB::table(self::TABLE)
             ->select('order')
-            ->where('parentChapterId', $headlineId)
+            ->where('parentChapterId', $chapterId)
             ->orderByDesc('order')
             ->first();
         if ($result == null) {
@@ -300,17 +270,17 @@ class ChaptersHandler
         return $result;
     }
     /**
-     * @param Chapter $headline
+     * @param Chapter $chapter
      * @param int $workFunctionId
      * @return int
      * @throws Exception
      */
-    private function getOrder(Chapter $headline, int $workFunctionId): int
+    private function getOrder(Chapter $chapter, int $workFunctionId): int
     {
         try {
             $results = DB::table(WorkFunctionsHandler::MAIN_HAS_CHAPTER_TABLE)
                 ->where('workFunctionId', $workFunctionId)
-                ->where('chapterId', $headline->getId())
+                ->where('chapterId', $chapter->getId())
                 ->first();
         } catch (\Exception $e) {
             throw new Exception($e->getMessage(),500);

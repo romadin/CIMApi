@@ -11,8 +11,6 @@ namespace App\Http\Handlers;
 use App\Models\Chapter\Chapter;
 use App\Models\Company\Company;
 use App\Models\Document\Document;
-use App\Models\Folder\Folder;
-use App\Models\Headline\Headline;
 use App\Models\WorkFunction\WorkFunction;
 use Exception;
 use Illuminate\Http\UploadedFile;
@@ -24,34 +22,6 @@ class DocumentsHandler
     const DOCUMENT_IMAGE_TABLE = 'document_image';
     const DOCUMENT_LINK_DOCUMENT_TABLE = 'documents_has_documents';
     const DOCUMENT_LINK_COMPANY_WORK_FUNCTION = 'work_function_has_companies_has_documents';
-
-    /**
-     * @param Folder $folder
-     * @return Document[]
-     */
-    public function getDocumentsFromFolder(Folder $folder)
-    {
-//        $documentsResult = DB::table(self::DOCUMENT_LINK_DOCUMENT_TABLE)
-//            ->select([
-//                self::DOCUMENT_TABLE.'.id', self::DOCUMENT_TABLE.'.originalName',
-//                self::DOCUMENT_TABLE.'.name', self::DOCUMENT_TABLE.'.content',
-//                self::DOCUMENT_TABLE.'.fromTemplate',
-//                self::DOCUMENT_LINK_DOCUMENT_TABLE.'.folderId',
-//                self::DOCUMENT_LINK_DOCUMENT_TABLE. '.order',
-//            ])
-//            ->where(self::DOCUMENT_LINK_DOCUMENT_TABLE.'.folderId', '=', $folder->getId())
-//            ->join(self::DOCUMENT_TABLE, self::DOCUMENT_LINK_DOCUMENT_TABLE. '.documentId', '=', self::DOCUMENT_TABLE. '.id'  )
-//            ->get();
-//
-//        $documents = [];
-//
-//        forEach ( $documentsResult as $document ) {
-//            $document = $this->setFoldersId($document);
-//            array_push($documents, $this->makeDocument($document, $folder));
-//        }
-//
-//        return $documents;
-    }
 
     /**
      * @param WorkFunction $workFunction
@@ -142,7 +112,7 @@ class DocumentsHandler
 
     /**
      * @param int $id
-     * @param WorkFunction|Folder|null $parent
+     * @param WorkFunction|null $parent
      * @return Document|\Illuminate\Http\Response|\Laravel\Lumen\Http\ResponseFactory
      * @throws Exception
      */
@@ -204,7 +174,7 @@ class DocumentsHandler
     /**
      * Create document from an given template.
      * @param Document|WorkFunction $parentItem
-     * @param Chapter[]|Headline[] $documents
+     * @param Chapter[] $documents
      * @param string $linkTable
      * @return Document[]
      * @throws Exception
@@ -232,7 +202,7 @@ class DocumentsHandler
                 }
 
                 $this->setDocumentLink($parentLinkTable, $childLink, $linkTable, $document->getOrder());
-                if ($document instanceof Headline) {
+                if (!empty($document->getChapters())) {
                     $this->createDocumentsWithTemplate($newDocument, $document->getChapters(), self::DOCUMENT_LINK_DOCUMENT_TABLE);
                 }
             }
@@ -259,24 +229,6 @@ class DocumentsHandler
             return response($e->getMessage(), 500);
         }
         return $document;
-    }
-
-    public function deleteDocumentsByFolderId(Folder $folder)
-    {
-        $documents = $this->getDocumentsFromFolder($folder);
-        try {
-            foreach ($documents as $document) {
-                DB::table(self::DOCUMENT_LINK_DOCUMENT_TABLE)
-                    ->where('documentId', $document->getId())
-                    ->delete();
-
-                DB::table(self::DOCUMENT_TABLE)->delete($document->getId());
-            }
-        } catch (\Exception $e) {
-            return response('DocumentHandler: There is something wrong with the database connection', 500);
-        }
-
-        return true;
     }
 
     public function deleteDocumentLink(string $linkTable, array $where, int $documentId)
@@ -453,32 +405,6 @@ class DocumentsHandler
         }
 
         return $result->order;
-    }
-
-    /**
-     * Set the linked folders id to the document result. So that we can put it in the document model.
-     * @param $documentResult
-     * @return \Illuminate\Database\Eloquent\Model | object
-     */
-    private function setFoldersId($documentResult)
-    {
-        try {
-            $foldersId = DB::table(self::DOCUMENT_LINK_DOCUMENT_TABLE)
-                ->select('folderId')
-                ->where('documentId', '=', $documentResult->id)
-                ->get();
-        } catch (\Exception $e) {
-            return response($e->getMessage(), 500);
-        }
-
-        if( $foldersId->isNotEmpty() ) {
-            $idContainer = [];
-            foreach ($foldersId as $item) {
-                array_push($idContainer, $item->folderId);
-            }
-            $documentResult->parentId = $idContainer;
-        }
-        return $documentResult;
     }
 
 }

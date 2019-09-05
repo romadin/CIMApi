@@ -9,7 +9,6 @@
 namespace App\Http\Controllers\Chapters;
 
 use App\Http\Handlers\ChaptersHandler;
-use App\Http\Handlers\HeadlinesHandler;
 use App\Http\Handlers\WorkFunctionsHandler;
 use App\Models\Chapter\Chapter;
 use Exception;
@@ -17,10 +16,6 @@ use Illuminate\Http\Request;
 
 class ChaptersController
 {
-    /**
-     * @var HeadlinesHandler
-     */
-    private $headlinesHandler;
     /**
      * @var WorkFunctionsHandler
      */
@@ -30,9 +25,8 @@ class ChaptersController
      */
     private $chaptersHandler;
 
-    public function __construct(HeadlinesHandler $headlinesHandler, WorkFunctionsHandler $workFunctionsHandler, ChaptersHandler $chaptersHandler)
+    public function __construct(WorkFunctionsHandler $workFunctionsHandler, ChaptersHandler $chaptersHandler)
     {
-        $this->headlinesHandler = $headlinesHandler;
         $this->workFunctionsHandler = $workFunctionsHandler;
         $this->chaptersHandler = $chaptersHandler;
     }

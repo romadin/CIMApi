@@ -30,9 +30,6 @@ $router->group(['middleware' => 'auth'], function () use ($router)
     $router->get('documents/{id}', 'Documents\DocumentsController@getDocument');
     $router->get('roles/{id}', 'Roles\RolesController@getRole');
 
-    $router->get('folders', 'Folders\FoldersController@getFolders');
-    $router->get('folders/{id}', 'Folders\FoldersController@getFolder');
-
     $router->get('users', 'Users\UsersController@getUsers');
     $router->get('users/activate', 'Users\UsersController@getUserActivation');
     $router->get('users/{id}', 'Users\UsersController@getUser');
@@ -49,9 +46,6 @@ $router->group(['middleware' => 'auth'], function () use ($router)
 
     $router->get('workFunctions', 'WorkFunctions\WorkFunctionsController@getWorkFunctions');
     $router->get('workFunctions/{id}', 'WorkFunctions\WorkFunctionsController@getWorkFunction');
-
-    $router->get('headlines', 'Headlines\HeadlinesController@getHeadlines');
-    $router->get('headlines/{id}', 'Headlines\HeadlinesController@getHeadline');
 
     $router->get('chapters', 'Chapters\ChaptersController@getChapters');
     $router->get('chapters/{id}', 'Chapters\ChaptersController@getChapter');
@@ -72,12 +66,6 @@ $router->group(['middleware' => 'auth'], function () use ($router)
         $router->delete('documents/{id}', 'Documents\DocumentsController@deleteDocument');
         $router->post('documents/{id}/image', 'Documents\DocumentsController@uploadImage');
 
-        $router->post('folders', 'Folders\FoldersController@createFolder');
-        $router->post('folders/{id}', 'Folders\FoldersController@editFolder');
-        $router->delete('folders/{id}', 'Folders\FoldersController@deleteFolders');
-
-        $router->delete('folders/{folderId}/documents/{documentId}', 'FoldersLinkDocumentsController@deleteFoldersLinkDocuments');
-
         $router->delete('actions[/{id}]', 'Actions\ActionsController@deleteAction');
 
         $router->delete('users/{id}', 'Users\UsersController@deleteUser');
@@ -95,10 +83,6 @@ $router->group(['middleware' => 'auth'], function () use ($router)
         $router->post('workFunctions', 'WorkFunctions\WorkFunctionsController@postWorkFunction');
         $router->post('workFunctions/{id}', 'WorkFunctions\WorkFunctionsController@editWorkFunction');
         $router->delete('workFunctions/{id}', 'WorkFunctions\WorkFunctionsController@deleteWorkFunction');
-
-        $router->post('headlines', 'Headlines\HeadlinesController@postHeadline');
-        $router->post('headlines/{id}', 'Headlines\HeadlinesController@editHeadline');
-        $router->delete('headlines/{id}', 'Headlines\HeadlinesController@deleteHeadline');
 
         $router->post('chapters', 'Chapters\ChaptersController@postChapter');
         $router->post('chapters/{id}', 'Chapters\ChaptersController@editChapter');
