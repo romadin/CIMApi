@@ -163,6 +163,12 @@ class ChaptersHandler
         return $this->getChapter($id, $workFunctionId);
     }
 
+    /**
+     * Update the chapter in the database.
+     * @param Chapter $chapter
+     * @return Chapter
+     * @throws Exception
+     */
     public function updateChapter(Chapter $chapter)
     {
         $data = $chapter->jsonSerialize();
@@ -183,13 +189,13 @@ class ChaptersHandler
      * @param Chapter $chapter
      * @param int $order
      */
-    public function reOrderChaptersByHeadline(Chapter $chapter, int $order): void
+    public function reOrderSubChapters(Chapter $chapter, int $order): void
     {
         $inBetween = $order > $chapter->getOrder() ? [$chapter->getOrder(), $order] : [$order, $chapter->getOrder()];
 
         $chapters = DB::table(self::TABLE)
             ->select('id', 'order')
-            ->where('headlineId', $chapter->getHeadlineId())
+            ->where('parentChapterId', $chapter->getParentChapterId())
             ->where('id', '!=', $chapter->getId())
             ->whereBetween('order', $inBetween)
             ->get()->toArray();

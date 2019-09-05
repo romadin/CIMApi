@@ -304,20 +304,14 @@ class WorkFunctionsHandler
      * Update the order of the items from the work function.
      * Example ( order 1 going to be order 8. So we take all the orders between 1 and 8 except the one that is going to get a new order and we subtract 1 )
      * @param int $order
-     * @param Headline|Chapter $childItem
+     * @param Chapter $chapter
      * @param int $workFunctionId
-     * @return Headline|Chapter
+     * @return Chapter
      */
-    public function updateChildOrder(int $order, $childItem, int $workFunctionId)
+    public function updateChildOrder(int $order, Chapter $chapter, int $workFunctionId)
     {
-        if ($order !== $childItem->getOrder()) {
-            $inBetween = $order > $childItem->getOrder() ? [$childItem->getOrder(), $order] : [$order, $childItem->getOrder()];
-
-            $headlinesLink = DB::table(self::MAIN_HAS_HEADLINE_TABLE)
-                ->select('headlineId', 'order')
-                ->where('workFunctionId', $workFunctionId)
-                ->whereBetween('order', $inBetween)
-                ->get()->toArray();
+        if ($order !== $chapter->getOrder()) {
+            $inBetween = $order > $chapter->getOrder() ? [$chapter->getOrder(), $order] : [$order, $chapter->getOrder()];
 
             $chaptersLink = DB::table(self::MAIN_HAS_CHAPTER_TABLE)
                 ->select('chapterId', 'order')
@@ -326,29 +320,25 @@ class WorkFunctionsHandler
                 ->get()->toArray();
 
             // filter the current child item out of the result
-            $container = array_merge($headlinesLink, $chaptersLink);
-            $container = array_filter($container, function($item) use ($childItem) { return $item->order !== $childItem->getOrder(); });
+            $chaptersLink = array_filter($chaptersLink, function($item) use ($chapter) { return $item->order !== $chapter->getOrder(); });
 
-            foreach ($container as $item) {
-                $key = isset($item->chapterId) ? 'chapterId' : 'headlineId';
-                $tableName = 'work_function_has_' . str_replace('Id', '', $key);
-                $item->order = $order > $childItem->getOrder() ? $item->order -1 : $item->order +1;
-                DB::table($tableName)
+            foreach ($chaptersLink as $chapterLink) {
+                $chapterLink->order = $order > $chapter->getOrder() ? $chapterLink->order -1 : $chapterLink->order +1;
+                DB::table(self::MAIN_HAS_CHAPTER_TABLE)
                     ->where('workFunctionId', $workFunctionId)
-                    ->where( $key, $item->$key)
-                    ->update((array)$item);
+                    ->where( 'chapterId', $chapterLink->chapterId)
+                    ->update((array)$chapterLink);
             }
 
-            $className = substr(get_class($childItem), strrpos(get_class($childItem), '\\') + 1);
-            DB::table($childItem instanceof Headline ? self::MAIN_HAS_HEADLINE_TABLE : self::MAIN_HAS_CHAPTER_TABLE)
+            DB::table(self::MAIN_HAS_CHAPTER_TABLE)
                 ->where('workFunctionId', $workFunctionId)
-                ->where( strtolower($className) . 'Id', $childItem->getId())
+                ->where('chapterId', $chapter->getId())
                 ->update(['order' => $order]);
 
-            $childItem->setOrder($order);
+            $chapter->setOrder($order);
         }
 
-        return $childItem;
+        return $chapter;
     }
 
     /**

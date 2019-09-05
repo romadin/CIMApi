@@ -12,6 +12,7 @@ use App\Http\Handlers\ChaptersHandler;
 use App\Http\Handlers\HeadlinesHandler;
 use App\Http\Handlers\WorkFunctionsHandler;
 use App\Models\Chapter\Chapter;
+use Exception;
 use Illuminate\Http\Request;
 
 class ChaptersController
@@ -77,7 +78,7 @@ class ChaptersController
 
             try {
                 $this->workFunctionsHandler->createWorkFunctionHasChapters($workFunction, [$newChapter], [$newOrder]);
-            }catch (\Exception $e) {
+            } catch (Exception $e) {
                 return response($e->getMessage());
             }
 
@@ -95,27 +96,32 @@ class ChaptersController
 
     public function editChapter(Request $request, int $id)
     {
-        $chapter = $this->chaptersHandler->getChapter($id, $request->input('workFunctionId'));
+        try {
+            $chapter = $this->chaptersHandler->getChapter($id, $request->input('workFunctionId'));
 
-        if ($request->input('workFunctionId')) {
-            // reorder
-            if ($request->input('order')) {
-                return $this->workFunctionsHandler->updateChildOrder($request->input('order'), $chapter, $request->input('workFunctionId'));
+            if ($request->input('workFunctionId')) {
+                // reorder
+                if ($request->input('order')) {
+                    return $this->workFunctionsHandler->updateChildOrder($request->input('order'), $chapter, $request->input('workFunctionId'));
+                }
+            } else if ($request->input('order')) {
+                $this->chaptersHandler->reOrderSubChapters($chapter, $request->input('order'));
             }
-        } else if ($request->input('order')) {
-            $this->chaptersHandler->reOrderChaptersByHeadline($chapter, $request->input('order'));
-        }
 
-        foreach ($request->post() as $key => $data) {
-            if ($data) {
-                $method = 'set'. ucfirst($key);
-                if(method_exists($chapter, $method)) {
-                    $chapter->$method($data);
+            foreach ($request->post() as $key => $data) {
+                if ($data) {
+                    $method = 'set'. ucfirst($key);
+                    if(method_exists($chapter, $method)) {
+                        $chapter->$method($data);
+                    }
                 }
             }
+
+            return $this->chaptersHandler->updateChapter($chapter);
+        } catch (Exception $e) {
+            return response($e->getMessage());
         }
 
-        return $this->chaptersHandler->updateChapter($chapter);
     }
 
     public function deleteChapter(Request $request, $id)
