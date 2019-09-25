@@ -18,7 +18,6 @@ use Illuminate\Support\Facades\DB;
 class CompaniesHandler
 {
     const TABLE_COMPANIES = 'companies';
-    const TABLE_LINK_DOCUMENT = self::TABLE_COMPANIES . '_has_' . DocumentsHandler::DOCUMENT_TABLE;
     const TABLE_LINK_WORK_FUNCTION = WorkFunctionsHandler::MAIN_TABLE.'_has_'.self::TABLE_COMPANIES;
 
     /**
@@ -186,7 +185,7 @@ class CompaniesHandler
             return response('CompaniesHandler: There is something wrong with the database connection', 500);
         }
 
-        return json_decode('Company link deleted');
+        return json_encode('Company link deleted');
     }
 
     public function deleteCompany(int $id)
@@ -202,7 +201,7 @@ class CompaniesHandler
         } catch (Exception $e) {
             return response($e->getMessage(), 200);
         }
-        return json_decode('Company deleted');
+        return json_encode('Company deleted');
     }
 
     /**
