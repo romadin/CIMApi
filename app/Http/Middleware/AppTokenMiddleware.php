@@ -20,7 +20,6 @@ class AppTokenMiddleware
             return $next($request);
         }
         return response($request->input('appToken'), 403);
-
     }
 
 }

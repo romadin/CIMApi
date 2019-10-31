@@ -10,7 +10,9 @@ namespace App\Http\Controllers\Organisation;
 
 
 use App\Http\Controllers\ApiController;
+use App\Http\Controllers\Mail\MailController;
 use App\Http\Handlers\OrganisationHandler;
+use App\Http\Handlers\UsersHandler;
 use Illuminate\Http\Request;
 
 class OrganisationController extends ApiController
@@ -19,10 +21,20 @@ class OrganisationController extends ApiController
      * @var OrganisationHandler
      */
     private $organisationHandler;
+    /**
+     * @var UsersHandler
+     */
+    private $userHandler;
+    /**
+     * @var MailController
+     */
+    private $mailController;
 
-    public function __construct(OrganisationHandler $organisationHandler)
+    public function __construct(OrganisationHandler $organisationHandler, UsersHandler $userHandler, MailController $mailController)
     {
         $this->organisationHandler = $organisationHandler;
+        $this->userHandler = $userHandler;
+        $this->mailController = $mailController;
     }
 
     public function getOrganisation(Request $request)
@@ -32,7 +44,17 @@ class OrganisationController extends ApiController
 
     public function createOrganisation(Request $request)
     {
-        return $this->getReturnValueObject($request, $this->organisationHandler->createOrganisation($request->input('name')));
+        $organisation = $this->organisationHandler->createOrganisation($request->input('name'));
+
+        if ($organisation === true) {
+            $organisation = $this->organisationHandler->getOrganisationByName($request->input('name'));
+        } else {
+            $userResponse = $request->input('user');
+            $user = $this->userHandler->postUser($userResponse, false, $organisation->getId());
+            $this->mailController->sendUserActivation($user->getId());
+        }
+
+        return $this->getReturnValueObject($request, $organisation);
     }
 
     public function getOrganisationImage(int $id)

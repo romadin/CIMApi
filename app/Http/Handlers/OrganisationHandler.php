@@ -8,6 +8,7 @@
 
 namespace App\Http\Handlers;
 
+use App\Http\Controllers\Mail\MailController;
 use App\Models\Organisation\Organisation;
 use Exception;
 use Illuminate\Support\Facades\DB;
@@ -64,6 +65,12 @@ class OrganisationHandler
     public function createOrganisation(string $name)
     {
         try {
+            $exist = DB::table(self::table)
+                ->where('name', $name)
+                ->get()->isNotEmpty();
+
+            if ($exist) return true;
+
             $id = DB::table(self::table)
                 ->insertGetId(['name' => $name]);
         } catch (\Exception $e) {

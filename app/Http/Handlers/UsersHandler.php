@@ -203,6 +203,7 @@ class UsersHandler
                 'image' => $image ? $image->openFile()->fread($image->getSize()) : $image,
                 'token' => bin2hex(random_bytes(64)),
                 'organisationId' => $organisationId,
+                'role_id' => $postData['role_id'] ? $postData['role_id'] : 2,
             ]);
         } catch (\Exception $e) {
             return response($e->getMessage());
