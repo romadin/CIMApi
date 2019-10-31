@@ -19,7 +19,7 @@ class AppTokenMiddleware
         if ( $request->input('appToken') === env('APP_KEY') ) {
             return $next($request);
         }
-        return response('Forbidden.', 403);
+        return response($request->input('appToken'), 403);
 
     }
 
