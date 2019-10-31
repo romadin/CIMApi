@@ -210,7 +210,7 @@ class UsersHandler
         }
 
 
-        if ( $newId ) {
+        if ( $newId && isset($postData['projectsId'])) {
             // insert the link for the user to the projects.
             foreach (json_decode($postData['projectsId']) as $projectId) {
                 DB::table(self::PROJECT_LINK_TABLE)->insert([
