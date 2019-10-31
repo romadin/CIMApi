@@ -61,6 +61,17 @@ class OrganisationHandler
         return $logo->logo ?: json_encode(null);
     }
 
+    public function createOrganisation(string $name)
+    {
+        try {
+            $id = DB::table(self::table)
+                ->insertGetId(['name' => $name]);
+        } catch (\Exception $e) {
+            return response($e->getMessage());
+        }
+        return $this->getOrganisationById($id);
+    }
+
     public function updateOrganisation($postData, int $id, $logo)
     {
         $logo ? $postData['logo'] = $logo->openFile()->fread($logo->getSize()) : null;

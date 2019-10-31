@@ -15,6 +15,7 @@ $router->group(['middleware' => 'appToken'], function () use ($router) {
     $router->post('authenticate', 'Authenticate\Authenticate@login');
 
     $router->get('organisations', 'Organisation\OrganisationController@getOrganisation');
+    $router->post('organisations', 'Organisation\OrganisationController@createOrganisation');
     $router->get('organisations/{id}/image', 'Organisation\OrganisationController@getOrganisationImage');
 });
 

@@ -30,6 +30,11 @@ class OrganisationController extends ApiController
         return $this->getReturnValueObject($request, $this->organisationHandler->getOrganisationByName($request->input('name')));
     }
 
+    public function createOrganisation(Request $request)
+    {
+        return $this->getReturnValueObject($request, $this->organisationHandler->createOrganisation($request->input('name')));
+    }
+
     public function getOrganisationImage(int $id)
     {
         return $this->organisationHandler->getImage($id);
