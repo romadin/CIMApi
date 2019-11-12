@@ -56,23 +56,16 @@ class ModulesHandler
     {
         $currentModules = $organisation->getModules();
 
-
-        $templateModuleKey = array_search(1, $modulesId);
-
-        $modulesWithOptions = array_filter($modulesId, function($module, $key) use ($modulesId) {
-            var_dump($key);
-            var_dump($module);
-            if (is_array($module)) {
+        foreach ($modulesId as $key => $module) {
+            if (is_array($module) && isset($module['id']) && $organisation->getModule($module['id'])) {
+                $updateData = ['restrictions' => $module['restrictions']];
+                $where = [['organisationId', $organisation->getId()], ['moduleId', $module['id'] ]];
+                $this->updateModuleRestriction($updateData, $where);
                 array_splice($modulesId, $key, 1);
-                return true;
             }
-            return false;
-        }, ARRAY_FILTER_USE_BOTH);
-        die;
-        if ($templateModuleKey && $organisation->getModule(1)) {
-            // we only need to edit restriction
-            array_splice($modulesId, $templateModuleKey, 1);
         }
+
+        die;
 
         $modulesIdToAdd = array_filter($modulesId, function($moduleId) use ($currentModules) {
             if ($moduleId > 0 && $moduleId < 5) {
@@ -87,7 +80,7 @@ class ModulesHandler
 
         $postData = array_map(function($moduleId) use ($organisation, $restriction) {
             $data = ['organisationId' => $organisation->getId(), 'moduleId' => $moduleId, 'isOn' => true];
-            return $moduleId === 1 && $restriction ? $data['restriction'] = $restriction : $data;
+            return $moduleId === 1 && $restriction ? $data['restrictions'] = $restriction : $data;
         }, $modulesIdToAdd);
 
         $whereData = [];
@@ -104,6 +97,22 @@ class ModulesHandler
             $this->linkModules($postData, $whereData);
             $organisation->setModules($this->getModulesByOrganisation($organisation));
             return $organisation;
+        } catch (\Exception $e) {
+            throw new \Exception($e->getMessage(), 400);
+        }
+    }
+
+    /**
+     * @param array $postData
+     * @param array $whereData
+     * @throws Exception
+     */
+    private function updateModuleRestriction(array $postData, array $whereData)
+    {
+        try {
+            DB::table(self::TABLE_HAS_ORGANISATION)
+                ->where($whereData)
+                ->update($postData);
         } catch (\Exception $e) {
             throw new \Exception($e->getMessage(), 400);
         }
