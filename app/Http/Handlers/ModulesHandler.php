@@ -109,26 +109,10 @@ class ModulesHandler
     /**
      * @param array $postData
      * @param array $whereData
-     * @throws Exception
-     */
-    private function updateModuleRestriction(array $postData, array $whereData)
-    {
-        try {
-            DB::table(self::TABLE_HAS_ORGANISATION)
-                ->where($whereData)
-                ->update($postData);
-        } catch (\Exception $e) {
-            throw new \Exception($e->getMessage(), 400);
-        }
-    }
-
-    /**
-     * @param array $postData
-     * @param array $whereData
      * @return bool
      * @throws Exception
      */
-    private function linkModules(array $postData, array $whereData)
+    public function linkModules(array $postData, array $whereData)
     {
         try {
             $isEmpty = DB::table(self::TABLE_HAS_ORGANISATION)
@@ -145,6 +129,22 @@ class ModulesHandler
         }
     }
 
+    /**
+     * @param array $postData
+     * @param array $whereData
+     * @throws Exception
+     */
+    private function updateModuleRestriction(array $postData, array $whereData)
+    {
+        try {
+            DB::table(self::TABLE_HAS_ORGANISATION)
+                ->where($whereData)
+                ->update($postData);
+        } catch (\Exception $e) {
+            throw new \Exception($e->getMessage(), 400);
+        }
+    }
+
     private function makeModule($data): Module
     {
         $module = new Module();
@@ -154,7 +154,6 @@ class ModulesHandler
                 if(method_exists($module, $method)) {
                     if ($key === 'restrictions') {
                         $value = json_decode($value);
-                        var_dump($value);
                     }
                     $module->$method($value);
                 }

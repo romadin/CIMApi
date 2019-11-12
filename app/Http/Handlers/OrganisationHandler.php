@@ -61,6 +61,11 @@ class OrganisationHandler
         return $logo->logo ?: json_encode(null);
     }
 
+    /**
+     * @param string $name
+     * @return Organisation|bool|\Illuminate\Http\Response|\Laravel\Lumen\Http\ResponseFactory
+     * @throws Exception
+     */
     public function createOrganisation(string $name)
     {
         try {
@@ -72,8 +77,13 @@ class OrganisationHandler
 
             $id = DB::table(self::table)
                 ->insertGetId(['name' => $name]);
+
+            // Add template module for default with restriction amount 1.
+            $where = [['organisationId', $id], ['moduleId', 1] ];
+            $data = ['organisationId' => $id, 'moduleId' => 1, 'isOn' => true, 'restrictions' => '{"amount": 1}'];
+            $this->modulesHandler->linkModules($data, $where);
         } catch (\Exception $e) {
-            return response($e->getMessage());
+            throw new \Exception($e->getMessage(), 400);
         }
         return $this->getOrganisationById($id);
     }

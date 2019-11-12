@@ -44,14 +44,18 @@ class OrganisationController extends ApiController
 
     public function createOrganisation(Request $request)
     {
-        $organisation = $this->organisationHandler->createOrganisation($request->input('name'));
+        try {
+            $organisation = $this->organisationHandler->createOrganisation($request->input('name'));
 
-        if ($organisation === true) {
-            $organisation = $this->organisationHandler->getOrganisationByName($request->input('name'));
-        } else {
-            $userResponse = $request->input('user');
-            $user = $this->userHandler->postUser($userResponse, false, $organisation->getId());
-            $this->mailController->sendUserActivation($user->getId());
+            if ($organisation === true) {
+                $organisation = $this->organisationHandler->getOrganisationByName($request->input('name'));
+            } else {
+                $userResponse = $request->input('user');
+                $user = $this->userHandler->postUser($userResponse, false, $organisation->getId());
+                $this->mailController->sendUserActivation($user->getId());
+            }
+        } catch (\Exception $e) {
+            return response($e->getMessage());
         }
 
         return $this->getReturnValueObject($request, $organisation);
