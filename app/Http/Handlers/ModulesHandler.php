@@ -59,9 +59,15 @@ class ModulesHandler
 
         $templateModuleKey = array_search(1, $modulesId);
 
-        array_filter($modulesId, function($module) {
-            var_dump('hey');
-        });
+        $modulesWithOptions = array_filter($modulesId, function($module, $key) use ($modulesId) {
+            var_dump($key);
+            var_dump($module);
+            if (is_array($module)) {
+                array_splice($modulesId, $key, 1);
+                return true;
+            }
+            return false;
+        }, ARRAY_FILTER_USE_BOTH);
         die;
         if ($templateModuleKey && $organisation->getModule(1)) {
             // we only need to edit restriction
