@@ -61,7 +61,7 @@ class ModulesHandler
             $moduleObj = isset($module['id']) ? $organisation->getModule($module['id']) : false;
             if (is_array($module) && $moduleObj) {
                 $currentAmount = property_exists($moduleObj->getRestrictions(), "amount") ? $moduleObj->getRestrictions()->amount : 0;
-                $amount = $module['restrictions']->amount * self::DEFAULT_TEMPLATE + $currentAmount;
+                $amount = $module['restrictions']['amount'] * self::DEFAULT_TEMPLATE + $currentAmount;
                 $rules = ['amount' => $amount];
 
                 $updateData = ['restrictions' => json_encode($rules)];
