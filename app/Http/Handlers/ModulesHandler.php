@@ -58,9 +58,10 @@ class ModulesHandler
         $currentModules = $organisation->getModules();
 
         foreach ($modulesId as $key => $module) {
-            $module = isset($module['id']) ? $organisation->getModule($module['id']) : false;
-            if (is_array($module) && $module) {
-                $amount = $module['restrictions']->amount * self::DEFAULT_TEMPLATE + $module->getRestrictions()->amount;
+            $moduleObj = isset($module['id']) ? $organisation->getModule($module['id']) : false;
+            if (is_array($module) && $moduleObj) {
+                var_dump(json_decode($moduleObj->getRestrictions()));
+                $amount = $module['restrictions']->amount * self::DEFAULT_TEMPLATE + json_decode($moduleObj->getRestrictions())->amount;
                 $rules = ['amount' => $amount];
 
                 $updateData = ['restrictions' => json_encode($rules)];
