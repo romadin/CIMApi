@@ -8,7 +8,6 @@
 
 namespace App\Http\Handlers;
 
-use App\Http\Controllers\Mail\MailController;
 use App\Models\Organisation\Organisation;
 use Exception;
 use Illuminate\Support\Facades\DB;
@@ -112,7 +111,7 @@ class OrganisationHandler
         }
         try {
             $modules = $this->modulesHandler->getModulesByOrganisation($organisation);
-        }catch (Exception $e) {
+        } catch (Exception $e) {
             return response($e->getMessage(), 500);
         }
 

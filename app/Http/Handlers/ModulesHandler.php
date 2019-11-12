@@ -45,11 +45,78 @@ class ModulesHandler
         return $modules;
     }
 
+    /**
+     * @param Organisation $organisation
+     * @param array $modulesId
+     * @return Organisation
+     * @throws Exception
+     */
+    public function joinModulesToOrganisation(Organisation $organisation, array $modulesId)
+    {
+        $currentModules = $organisation->getModules();
+
+        $modulesIdToAdd = array_filter($modulesId, function($moduleId) use ($currentModules) {
+            if ($moduleId > 0 && $moduleId < 5) {
+                // If array is empty we know that we dont have that module already.
+                return empty(array_filter($currentModules, function ($currentModule) use ($moduleId) {
+                    /** @var Module $currentModule */
+                    return (int)$moduleId === $currentModule->getId();
+                }));
+            }
+            return false;
+        });
+
+        $postData = array_map(function($moduleId) use ($organisation) {
+            return ['organisationId' => $organisation->getId(), 'moduleId' => $moduleId];
+        }, $modulesIdToAdd);
+
+        $whereData = [];
+        foreach ($modulesIdToAdd as $moduleId) {
+            $whereData[] = ['organisationId', $organisation->getId()];
+            $whereData[] = ['moduleId', $moduleId];
+        }
+
+        if (empty($postData)) {
+            return $organisation;
+        }
+
+        try {
+            $this->linkModules($postData, $whereData);
+            $organisation->setModules($this->getModulesByOrganisation($organisation));
+            return $organisation;
+        } catch (\Exception $e) {
+            throw new \Exception($e->getMessage(), 400);
+        }
+    }
+
+    /**
+     * @param array $postData
+     * @param array $whereData
+     * @return bool
+     * @throws Exception
+     */
+    private function linkModules(array $postData, array $whereData)
+    {
+        try {
+            $isEmpty = DB::table(self::TABLE_HAS_ORGANISATION)
+                ->where($whereData)
+                ->get()->isEmpty();
+            if ($isEmpty) {
+                DB::table(self::TABLE_HAS_ORGANISATION)
+                    ->insert($postData);
+                return true;
+            }
+            throw new \Exception('Link already exists', 400);
+        } catch (\Exception $e) {
+            throw new \Exception($e->getMessage(), 400);
+        }
+    }
+
     private function makeModule($data): Module
     {
         $module = new Module();
         foreach ($data as $key => $value) {
-            if ($value) {
+            if ($value !== null) {
                 $method = 'set'. ucfirst($key);
                 if(method_exists($module, $method)) {
                     $module->$method($value);
