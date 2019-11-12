@@ -60,8 +60,8 @@ class ModulesHandler
         foreach ($modulesId as $key => $module) {
             $moduleObj = isset($module['id']) ? $organisation->getModule($module['id']) : false;
             if (is_array($module) && $moduleObj) {
-                var_dump($moduleObj->getRestrictions());
-                $amount = $module['restrictions']->amount * self::DEFAULT_TEMPLATE + $moduleObj->getRestrictions()->amount;
+                $currentAmount = property_exists($moduleObj->getRestrictions(), "amount") ? $moduleObj->getRestrictions()->amount : 0;
+                $amount = $module['restrictions']->amount * self::DEFAULT_TEMPLATE + $currentAmount;
                 $rules = ['amount' => $amount];
 
                 $updateData = ['restrictions' => json_encode($rules)];
