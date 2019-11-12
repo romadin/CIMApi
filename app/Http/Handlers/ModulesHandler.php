@@ -48,16 +48,26 @@ class ModulesHandler
     /**
      * @param Organisation $organisation
      * @param array $modulesId
+     * @param mixed $restriction
      * @return Organisation
      * @throws Exception
      */
-    public function joinModulesToOrganisation(Organisation $organisation, array $modulesId)
+    public function joinModulesToOrganisation(Organisation $organisation, array $modulesId, $restriction = null)
     {
         $currentModules = $organisation->getModules();
 
+        var_dump($modulesId);
+        die;
+
+        $templateModuleKey = array_search(1, $modulesId);
+        if ($templateModuleKey && $organisation->getModule(1)) {
+            // we only need to edit restriction
+            array_splice($modulesId, $templateModuleKey, 1);
+        }
+
         $modulesIdToAdd = array_filter($modulesId, function($moduleId) use ($currentModules) {
             if ($moduleId > 0 && $moduleId < 5) {
-                // If array is empty we know that we dont have that module already.
+                // If array is empty we know that we dont have that module.
                 return empty(array_filter($currentModules, function ($currentModule) use ($moduleId) {
                     /** @var Module $currentModule */
                     return (int)$moduleId === $currentModule->getId();
@@ -66,8 +76,9 @@ class ModulesHandler
             return false;
         });
 
-        $postData = array_map(function($moduleId) use ($organisation) {
-            return ['organisationId' => $organisation->getId(), 'moduleId' => $moduleId];
+        $postData = array_map(function($moduleId) use ($organisation, $restriction) {
+            $data = ['organisationId' => $organisation->getId(), 'moduleId' => $moduleId, 'isOn' => true];
+            return $moduleId === 1 && $restriction ? $data['restriction'] = $restriction : $data;
         }, $modulesIdToAdd);
 
         $whereData = [];
