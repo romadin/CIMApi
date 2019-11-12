@@ -60,7 +60,7 @@ class ModulesHandler
         $templateModuleKey = array_search(1, $modulesId);
 
         array_filter($modulesId, function($module) {
-            var_dump($module);
+            var_dump('hey');
         });
         die;
         if ($templateModuleKey && $organisation->getModule(1)) {
