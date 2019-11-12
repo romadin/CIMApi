@@ -56,10 +56,13 @@ class ModulesHandler
     {
         $currentModules = $organisation->getModules();
 
-        var_dump($modulesId);
-        die;
 
         $templateModuleKey = array_search(1, $modulesId);
+
+        array_filter($modulesId, function($module) {
+            var_dump($module);
+        });
+        die;
         if ($templateModuleKey && $organisation->getModule(1)) {
             // we only need to edit restriction
             array_splice($modulesId, $templateModuleKey, 1);

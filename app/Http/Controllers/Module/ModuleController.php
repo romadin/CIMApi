@@ -33,7 +33,6 @@ class ModuleController
         }
         if ($request->input('organisationId')) {
             try {
-                return $request->input('modulesId');
                 $organisation = $this->organisationHandler->getOrganisationById($request->input('organisationId'));
                 return $this->modulesHandler->joinModulesToOrganisation($organisation, $request->input('modulesId'));
             } catch (Exception $e) {
