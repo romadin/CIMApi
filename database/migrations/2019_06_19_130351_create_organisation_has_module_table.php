@@ -20,7 +20,7 @@ class CreateOrganisationHasModuleTable extends Migration
             $table->unsignedInteger('moduleId');
             $table->foreign('moduleId')->references('id')->on('modules');
             $table->boolean('isOn')->default(false);
-            $table->json('restrictions')->nullable(true);
+            $table->json('restrictions');
         });
     }
 

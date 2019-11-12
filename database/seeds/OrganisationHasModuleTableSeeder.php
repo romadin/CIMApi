@@ -17,11 +17,13 @@ class OrganisationHasModuleTableSeeder extends Seeder
                 'organisationId' => 2,
                 'moduleId' => 1,
                 'isOn' => true,
+                'restrictions' => '{}'
             ],
             [
                 'organisationId' => 2,
                 'moduleId' => 2,
                 'isOn' => true,
+                'restrictions' => '{}'
             ],
         ]);
     }

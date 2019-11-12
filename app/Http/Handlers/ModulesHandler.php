@@ -85,7 +85,7 @@ class ModulesHandler
         });
 
         $postData = array_map(function($moduleId) use ($organisation, $restrictions) {
-            $data = ['organisationId' => $organisation->getId(), 'moduleId' => $moduleId, 'isOn' => true];
+            $data = ['organisationId' => $organisation->getId(), 'moduleId' => $moduleId, 'isOn' => true, 'restrictions' => '{}'];
             return $moduleId === 1 && $restrictions ? $data['restrictions'] = $restrictions : $data;
         }, $modulesIdToAdd);
 
@@ -154,6 +154,10 @@ class ModulesHandler
             if ($value !== null) {
                 $method = 'set'. ucfirst($key);
                 if(method_exists($module, $method)) {
+                    if ($key === 'restrictions') {
+                        $value = json_decode($value);
+                        var_dump($value);
+                    }
                     $module->$method($value);
                 }
             }

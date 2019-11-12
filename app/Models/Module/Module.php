@@ -11,6 +11,7 @@ namespace App\Models\Module;
 
 use JsonSerializable;
 use PHPUnit\Util\Json;
+use stdClass;
 
 class Module implements JsonSerializable
 {
@@ -27,7 +28,7 @@ class Module implements JsonSerializable
      */
     private $isOn;
     /**
-     * @var Json|null
+     * @var stdClass|null
      */
     private $restrictions = null;
 
@@ -84,17 +85,17 @@ class Module implements JsonSerializable
     }
 
     /**
-     * @return null|Json
+     * @return null|stdClass
      */
-    public function getRestrictions(): ?Json
+    public function getRestrictions(): ?stdClass
     {
         return $this->restrictions;
     }
 
     /**
-     * @param null|Json $restrictions
+     * @param null|stdClass $restrictions
      */
-    public function setRestrictions(?Json $restrictions): void
+    public function setRestrictions(?stdClass $restrictions): void
     {
         $this->restrictions = $restrictions;
     }
