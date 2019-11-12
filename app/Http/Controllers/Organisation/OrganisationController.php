@@ -63,7 +63,7 @@ class OrganisationController extends ApiController
             return response('Only users can be updated', 400);
         }
 
-        return $this->getReturnValueObject($request, $this->organisationHandler->updateOrganisation($request->post(), $id, null));
+        return $this->getReturnValueObject($request, $this->organisationHandler->updateOrganisation(['maxUsers' => $request->input('maxUsers')], $id, null));
     }
 
     public function getOrganisationImage(int $id)
