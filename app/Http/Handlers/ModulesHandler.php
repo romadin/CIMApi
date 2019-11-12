@@ -60,8 +60,8 @@ class ModulesHandler
         foreach ($modulesId as $key => $module) {
             $moduleObj = isset($module['id']) ? $organisation->getModule($module['id']) : false;
             if (is_array($module) && $moduleObj) {
-                var_dump(json_decode($moduleObj->getRestrictions()));
-                $amount = $module['restrictions']->amount * self::DEFAULT_TEMPLATE + json_decode($moduleObj->getRestrictions())->amount;
+                var_dump($moduleObj->getRestrictions());
+                $amount = $module['restrictions']->amount * self::DEFAULT_TEMPLATE + $moduleObj->getRestrictions()->amount;
                 $rules = ['amount' => $amount];
 
                 $updateData = ['restrictions' => json_encode($rules)];
@@ -70,8 +70,6 @@ class ModulesHandler
                 array_splice($modulesId, $key, 1);
             }
         }
-
-        die;
 
         $modulesIdToAdd = array_filter($modulesId, function($moduleId) use ($currentModules) {
             if ($moduleId > 0 && $moduleId < 5) {
