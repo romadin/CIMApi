@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\DB;
 
 class ModulesHandler
 {
+    const DEFAULT_TEMPLATE = 3;
     const TABLE = 'modules';
     const TABLE_HAS_ORGANISATION = 'organisation_has_module';
 
@@ -48,17 +49,21 @@ class ModulesHandler
     /**
      * @param Organisation $organisation
      * @param array $modulesId
-     * @param mixed $restriction
+     * @param mixed $restrictions
      * @return Organisation
      * @throws Exception
      */
-    public function joinModulesToOrganisation(Organisation $organisation, array $modulesId, $restriction = null)
+    public function joinModulesToOrganisation(Organisation $organisation, array $modulesId, $restrictions = null)
     {
         $currentModules = $organisation->getModules();
 
         foreach ($modulesId as $key => $module) {
-            if (is_array($module) && isset($module['id']) && $organisation->getModule($module['id'])) {
-                $updateData = ['restrictions' => $module['restrictions']];
+            $module = isset($module['id']) ? $organisation->getModule($module['id']) : false;
+            if (is_array($module) && $module) {
+                $amount = $module['restrictions']->amount * self::DEFAULT_TEMPLATE + $module->getRestrictions()->amount;
+                $rules = ['amount' => $amount];
+
+                $updateData = ['restrictions' => json_encode($rules)];
                 $where = [['organisationId', $organisation->getId()], ['moduleId', $module['id'] ]];
                 $this->updateModuleRestriction($updateData, $where);
                 array_splice($modulesId, $key, 1);
@@ -78,9 +83,9 @@ class ModulesHandler
             return false;
         });
 
-        $postData = array_map(function($moduleId) use ($organisation, $restriction) {
+        $postData = array_map(function($moduleId) use ($organisation, $restrictions) {
             $data = ['organisationId' => $organisation->getId(), 'moduleId' => $moduleId, 'isOn' => true];
-            return $moduleId === 1 && $restriction ? $data['restrictions'] = $restriction : $data;
+            return $moduleId === 1 && $restrictions ? $data['restrictions'] = $restrictions : $data;
         }, $modulesIdToAdd);
 
         $whereData = [];
