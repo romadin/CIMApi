@@ -187,14 +187,14 @@ class Organisation implements JsonSerializable
 
     /**
      * @param int $id
-     * @return Module|null
+     * @return Module|false
      */
     public function getModule(int $id): ?Module
     {
         $module = array_filter($this->getModules(), function($module) use ($id) {
             return $module->getId() === $id;
         });
-        return $module;
+        return !$module ?: $module[0];
     }
 
     public function jsonSerialize()
