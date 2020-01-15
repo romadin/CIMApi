@@ -61,7 +61,7 @@ class WorkFunctionsController
             return response('work function name is not given', 400);
         }
 
-        return $this->workFunctionsHandler->postWorkFunction($request->post());
+        return $this->workFunctionsHandler->postWorkFunction($request->post(), $request->input('templateId') ? 'templateId' : 'projectId');
     }
 
     public function editWorkFunction(Request $request, $id)

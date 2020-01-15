@@ -32,10 +32,28 @@ class UserActivation extends Mailable
      */
     private $organisation;
 
-    public function __construct(User $user, Organisation $organisation)
+    /**
+     * @var string $subject
+     */
+    public $subject;
+
+    /**
+     * @var string $message
+     */
+    public $message;
+
+    /**
+     * @var string $buttonName
+     */
+    public $buttonName;
+
+    public function __construct(User $user, Organisation $organisation, $subject, $message, $buttonTitle)
     {
         $this->user = $user;
         $this->organisation = $organisation;
+        $this->subject = $subject;
+        $this->message = $message;
+        $this->buttonName = $buttonTitle;
     }
 
     public function build()
@@ -47,9 +65,11 @@ class UserActivation extends Mailable
             ->with([
                 'userName' => $username,
                 'email' => $this->user->getEmail(),
-                'link' => $this->getLink()
+                'link' => $this->getLink(),
+                'contentMessage' => $this->message,
+                'buttonTitle' => $this->buttonName
             ])
-            ->subject('Gebruiker activatie mail voor de BIM uitvoering app');
+            ->subject($this->subject);
     }
 
     private function getLink():string

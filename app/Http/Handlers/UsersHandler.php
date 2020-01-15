@@ -120,7 +120,7 @@ class UsersHandler
                 ->where(self::USERS_TABLE.'.organisationId', $organisationId)
                 ->first();
             if ( $result === null) {
-                return response('Wrong credentials.', 502);
+                throw new Exception('Wrong credentials.', 502);
             }
         } catch (Exception $e) {
             throw new Exception($e->getMessage(), 403);

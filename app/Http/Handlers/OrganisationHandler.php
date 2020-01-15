@@ -80,7 +80,7 @@ class OrganisationHandler
 
             // Add template module for default with restriction amount 1.
             $where = [['organisationId', $id], ['moduleId', 1] ];
-            $data = ['organisationId' => $id, 'moduleId' => 1, 'isOn' => true, 'restrictions' => '{"amount": 1}'];
+            $data = [['organisationId' => $id, 'moduleId' => 1, 'isOn' => true, 'restrictions' => '{"amount": 1}'], ['organisationId' => $id, 'moduleId' => 3, 'isOn' => true, 'restrictions' => '{}']];
             $this->modulesHandler->linkModules($data, $where);
         } catch (\Exception $e) {
             throw new \Exception($e->getMessage(), 400);

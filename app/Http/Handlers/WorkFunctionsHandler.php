@@ -141,12 +141,13 @@ class WorkFunctionsHandler
     /**
      * Create a new work function to a template
      * @param array $postData
+     * @param string $parentIdName
      * @return WorkFunction|\Illuminate\Http\Response|\Laravel\Lumen\Http\ResponseFactory
      */
-    public function postWorkFunction(array $postData)
+    public function postWorkFunction(array $postData, string $parentIdName)
     {
         $id = isset($postData['templateId']) ? $postData['templateId'] : $postData['projectId'];
-        $postData['order'] = $this->getHighestOrder(self::MAIN_TABLE, 'templateId', $id) + 1;
+        $postData['order'] = $this->getHighestOrder(self::MAIN_TABLE, $parentIdName, $id) + 1;
         try {
             $id = DB::table(self::MAIN_TABLE)
                 ->insertGetId($postData);

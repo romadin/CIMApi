@@ -47,9 +47,31 @@ class MailController extends ApiController
         $user = $this->userHandler->getUserById($id);
         $organisation = $this->organisationHandler->getOrganisationById($user->getOrganisationId());
 
+        $mailSubject = 'Gebruiker activeren voor de BIM uitvoeringsplan';
+        $message = 'Er is een account gemaakt met de volgende mail: ' . $user->getEmail() . '.
+        Klik op de link om u account te activeren en u wachtwoord te wijzigen.';
+        $button = 'Account activeren';
+
         // sendMail
         Mail::to($user->getEmail())
-            ->send(new UserActivation($user, $organisation));
+            ->send(new UserActivation($user, $organisation, $mailSubject, $message, $button));
+
+        return json_encode('success');
+    }
+
+    public function sendPasswordRecovery($id)
+    {
+        $user = $this->userHandler->getUserById($id);
+        $organisation = $this->organisationHandler->getOrganisationById($user->getOrganisationId());
+
+        $mailSubject = 'Wachtwoord herstellen';
+        $message = 'Je hebt gevraagd je wachtwoord te resetten. Klik op de onderstaande link om in te loggen op BIM uitvoeringsplan.
+        Hier kan je je wachtwoord veranderen.';
+        $buttonTitle = 'Wachtwoord opnieuw instellen';
+
+        // sendMail
+        Mail::to($user->getEmail())
+            ->send(new UserActivation($user, $organisation, $mailSubject, $message, $buttonTitle));
 
         return json_encode('success');
     }

@@ -8,11 +8,13 @@
 
 namespace App\Http\Controllers\Authenticate;
 
+use App\Http\Controllers\Mail\MailController;
 use App\Http\Handlers\UsersHandler;
 use Exception;
 use Illuminate\Contracts\Auth\Factory as Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Laravel\Lumen\Routing\Controller;
 use App\Models\User;
 
@@ -32,17 +34,24 @@ class Authenticate extends Controller
      */
     protected $usersHandler;
 
+    /**
+     * @var MailController
+     */
+    private $mailController;
+
 
     /**
      * Create a new middleware instance.
      *
      * @param Auth $auth
      * @param UsersHandler $usersHandler
+     * @param MailController $mailController
      */
-    public function __construct(Auth $auth, UsersHandler $usersHandler)
+    public function __construct(Auth $auth, UsersHandler $usersHandler, MailController $mailController)
     {
         $this->auth = $auth;
         $this->usersHandler = $usersHandler;
+        $this->mailController = $mailController;
     }
 
 
@@ -81,7 +90,28 @@ class Authenticate extends Controller
         } else {
             return response('Wrong credentials.', 403);
         }
+    }
 
+    public function reset(Request $request)
+    {
+        if (!$request->input('email')) {
+            return response('No email given.', 403);
+        }
+
+        if (!$request->input('organisationId')) {
+            return response('no organisation given', 403);
+        }
+
+        try {
+            $user = $this->usersHandler->getUserByEmail($request->input('email'), $request->input('organisationId'));
+
+            $postData = [ 'password' => password_hash(bin2hex(random_bytes(64)), PASSWORD_DEFAULT), 'token' => bin2hex(random_bytes(64))];
+            $this->usersHandler->editUser($postData, $user->getId(), null, null);
+        } catch (Exception $e) {
+            return response($e->getMessage(), 403);
+        }
+        $this->mailController->sendPasswordRecovery($user->getId());
+        return json_encode('password has been reset', 200);
     }
 
 }

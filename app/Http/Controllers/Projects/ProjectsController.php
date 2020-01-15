@@ -153,7 +153,7 @@ class ProjectsController extends ApiController
                         'fromTemplate' => true
                     ];
 
-                    $workFunction = $this->workFunctionsHandler->postWorkFunction($postData);
+                    $workFunction = $this->workFunctionsHandler->postWorkFunction($postData, 'projectId');
 
                     if($workFunction->isMainFunction()) {
                         $mainWorkFunctionFromTemplate = array_filter($template->getWorkFunctions(), function(WorkFunction $workFunction) { return $workFunction->isMainFunction(); });
