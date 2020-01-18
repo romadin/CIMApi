@@ -168,7 +168,7 @@ class Document implements JsonSerializable
             'originalName' => $this->getOriginalName(),
             'name' => $this->getName(),
             'content' => $this->getContent(),
-            'documents' => array_map(function(Document $d) { return $d->getId(); }, $this->getSubDocuments()),
+//            'documents' => array_map(function(Document $d) { return $d->getId(); }, $this->getSubDocuments()),
             'order' => $this->getOrder(),
             'fromTemplate' => $this->isfromTemplate(),
         ];

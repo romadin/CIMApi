@@ -231,6 +231,14 @@ class DocumentsHandler
         return $document;
     }
 
+    /**
+     * Only DELETE the link between the document and the given parent. Real document is still saved.
+     * @param string $linkTable
+     * @param array $where
+     * @param int $documentId
+     * @return mixed
+     * @throws Exception
+     */
     public function deleteDocumentLink(string $linkTable, array $where, int $documentId)
     {
         try {
@@ -239,10 +247,10 @@ class DocumentsHandler
                 ->where('documentId', $documentId)
                 ->delete();
         } catch (\Exception $e) {
-            return response('DocumentHandler: There is something wrong with the database connection', 500);
+            throw new Exception($e->getMessage(),500);
         }
 
-        return json_decode('Document link deleted');
+        return json_encode('Document link deleted');
     }
 
     public function deleteDocument(int $id)

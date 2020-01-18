@@ -61,6 +61,9 @@ class DocumentsController extends ApiController
             } else if ( $request->input('workFunctionId') ){
                 $workFunction = $this->workFunctionsHandler->getWorkFunction($request->input('workFunctionId'));
                 return $this->documentsHandler->getDocumentsFromWorkFunction($workFunction);
+            } else if ( $request->input('documentId') ){
+                $parentDocument = $this->documentsHandler->getDocumentById($request->input('documentId'));
+                return $this->documentsHandler->getSubDocuments($parentDocument);
             }
         } catch (Exception $e) {
             return response($e->getMessage(), 500);
@@ -92,6 +95,10 @@ class DocumentsController extends ApiController
     {
         if ( $id !== null ) {
             return $this->editDocument($request, $id);
+
+        } else if ($request->input('documents') && $request->input('workFunctionId')) {
+            // We only want to set the link for a BATCH of documents to the work function.
+            return $this->setDocumentsLink($request->input('documents'),  $request->input('workFunctionId'));
         }
 
         try {
@@ -117,23 +124,27 @@ class DocumentsController extends ApiController
 
     public function deleteDocument(Request $request, int $id)
     {
-        if ($request->input('companyId') && $request->input('workFunctionId')) {
-            $whereStatement = [
-                ['workFunctionId', '=', $request->input('workFunctionId')],
-                ['companyId', '=', $request->input('companyId')]
-            ];
+        try {
+            if ($request->input('companyId') && $request->input('workFunctionId')) {
+                $whereStatement = [
+                    ['workFunctionId', '=', $request->input('workFunctionId')],
+                    ['companyId', '=', $request->input('companyId')]
+                ];
 
-            return $this->documentsHandler->deleteDocumentLink(DocumentsHandler::DOCUMENT_LINK_COMPANY_WORK_FUNCTION, $whereStatement, $id);
-        } else if ($request->input('workFunctionId')) {
-            $whereStatement = [['workFunctionId', '=', $request->input('workFunctionId')]];
-            return $this->documentsHandler->deleteDocumentLink(WorkFunctionsHandler::MAIN_HAS_DOCUMENT_TABLE, $whereStatement, $id);
-        }
+                return $this->documentsHandler->deleteDocumentLink(DocumentsHandler::DOCUMENT_LINK_COMPANY_WORK_FUNCTION, $whereStatement, $id);
+            } else if ($request->input('workFunctionId')) {
+                $whereStatement = [['workFunctionId', '=', $request->input('workFunctionId')]];
+                return $this->documentsHandler->deleteDocumentLink(WorkFunctionsHandler::MAIN_HAS_DOCUMENT_TABLE, $whereStatement, $id);
+            }
 
-        $done = $this->documentsHandler->deleteDocument($id);
-        if ($done) {
-            return json_encode('document Deleted');
+            $done = $this->documentsHandler->deleteDocument($id);
+            if ($done) {
+                return json_encode('document Deleted');
+            }
+        } catch (Exception $e) {
+            return response('Deleting the document went wrong', 403);
         }
-        return response('Trying to delete document ' .  $id . 'went wrong', 403);
+        return response('Deleting the document went wrong', 404);
     }
 
     public function uploadImage(Request $request, $id)
@@ -147,4 +158,24 @@ class DocumentsController extends ApiController
         return $this->getReturnValueObject($request, $this->documentsHandler->editDocument($request->post(), $id));
     }
 
+    /**
+     * Only set the links between the batch documents and the work function.
+     * @param int[] $documents
+     * @param int $workFunctionId
+     * @return \App\Models\WorkFunction\WorkFunction|\Illuminate\Http\Response|\Laravel\Lumen\Http\ResponseFactory
+     */
+    private function setDocumentsLink($documents, int $workFunctionId) {
+        try {
+            $workFunction = $this->workFunctionsHandler->getWorkFunction($workFunctionId);
+            foreach ($documents as $documentsId) {
+                $child = ['name' => 'documentId', 'id' => $documentsId];
+                $parent = ['name' => 'workFunctionId', 'id' => $workFunction->getId()];
+
+                $this->documentsHandler->setDocumentLink($parent, $child, WorkFunctionsHandler::MAIN_HAS_DOCUMENT_TABLE);
+            }
+        } catch (Exception $e) {
+            return response($e->getMessage(), 500);
+        }
+        return json_encode('Link has been made');
+    }
 }
