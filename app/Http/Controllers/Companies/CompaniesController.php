@@ -83,22 +83,14 @@ class CompaniesController
         $postData = $request->post();
 
         try {
-            if (isset($postData['documents']) && $request->input('workFunctionId')) {
-                $workFunction = $this->workFunctionsHandler->getWorkFunction($request->input('workFunctionId'));
-                $this->companiesHandler->addDocuments($company, $workFunction,  $postData['documents']);
-                unset($postData['documents']);
-            } else  {
-                return response('no work function id given', 404);
-            }
             if (isset($postData['name'])) {
                 $company->setName($postData['name']);
-                $this->companiesHandler->editCompany($company);
+                return $this->companiesHandler->editCompany($company);
             }
         } catch (Exception $e) {
             return response($e->getMessage(), 500);
         }
-
-        return $company;
+        return response('Wrong data given', 400);
     }
 
     public function deleteCompany(Request $request, int $id)

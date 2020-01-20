@@ -93,15 +93,21 @@ class DocumentsController extends ApiController
 
     public function postDocuments(Request $request, $id = null)
     {
-        if ( $id !== null ) {
-            return $this->editDocument($request, $id);
-
-        } else if ($request->input('documents') && $request->input('workFunctionId')) {
-            // We only want to set the link for a BATCH of documents to the work function.
-            return $this->setDocumentsLink($request->input('documents'),  $request->input('workFunctionId'));
-        }
-
         try {
+            if ( $id !== null ) {
+                return $this->editDocument($request, $id);
+            } else if ($request->input('documents') && $request->input('companyId') && $request->input('workFunctionId')) {
+                // We only want to set the link for a BATCH of documents to a company and the company needs to be linked to a work function.
+                $company = $this->companiesHandler->getCompanyById($request->input('companyId'));
+                $workFunction = $this->workFunctionsHandler->getWorkFunction($request->input('workFunctionId'));
+                $this->companiesHandler->addDocuments($company, $workFunction, $request->input('documents'));
+                return $company;
+            } else if ($request->input('documents') && $request->input('workFunctionId')) {
+                // We only want to set the link for a BATCH of documents to the work function.
+                return $this->setDocumentsLink($request->input('documents'),  $request->input('workFunctionId'));
+            }
+
+
             $document = $this->documentsHandler->postDocument($request->post());
             $child = ['name' => 'documentId', 'id' => $document->getId()];
 
