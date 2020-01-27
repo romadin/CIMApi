@@ -145,7 +145,12 @@ class ProjectsController extends ApiController
                     return $template;
                 }
 
-                foreach ($template->getWorkFunctions() as $workFunction) {
+                $workFunctions = $template->getWorkFunctions();
+                usort($workFunctions, function ($a, $b) {
+                    return $a->getOrder() - $b->getOrder();
+                });
+
+                foreach ($workFunctions as $workFunction) {
                     $postData = [
                         'name' => $workFunction->getName(),
                         'isMainFunction' => $workFunction->isMainFunction(),
@@ -156,7 +161,7 @@ class ProjectsController extends ApiController
                     $workFunction = $this->workFunctionsHandler->postWorkFunction($postData, 'projectId');
 
                     if($workFunction->isMainFunction()) {
-                        $mainWorkFunctionFromTemplate = array_filter($template->getWorkFunctions(), function(WorkFunction $workFunction) { return $workFunction->isMainFunction(); });
+                        $mainWorkFunctionFromTemplate = array_filter($workFunctions, function(WorkFunction $workFunction) { return $workFunction->isMainFunction(); });
                         /** @var WorkFunction $mainWorkFunction */
                         $mainWorkFunction = reset($mainWorkFunctionFromTemplate);
                         if(isset($mainWorkFunction)) {
