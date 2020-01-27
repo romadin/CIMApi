@@ -107,7 +107,6 @@ class DocumentsController extends ApiController
                 return $this->setDocumentsLink($request->input('documents'),  $request->input('workFunctionId'));
             }
 
-
             $document = $this->documentsHandler->postDocument($request->post());
             $child = ['name' => 'documentId', 'id' => $document->getId()];
 

@@ -36,13 +36,16 @@ class ChaptersController
         if( !$request->input('chapterId') && !$request->input('workFunctionId') ) {
             return response('parent id is not given', 400);
         }
-
-        if( $request->input('chapterId') && $request->input('workFunctionId') ) {
-            $chapter = $this->chaptersHandler->getChapter($request->input('chapterId'));
-            return $this->chaptersHandler->getSubChapters($chapter);
-        } else if ($request->input('workFunctionId')) {
-            $workFunction = $this->workFunctionsHandler->getWorkFunction($request->input('workFunctionId'));
-            return $this->chaptersHandler->getChaptersByParentWorkFunction($workFunction);
+        try {
+            if( $request->input('chapterId') && $request->input('workFunctionId')) {
+                $chapter = $this->chaptersHandler->getChapter($request->input('chapterId'), $request->input('workFunctionId'));
+                return $this->chaptersHandler->getSubChapters($chapter);
+            } else if ($request->input('workFunctionId')) {
+                $workFunction = $this->workFunctionsHandler->getWorkFunction($request->input('workFunctionId'));
+                return $this->chaptersHandler->getChaptersByParentWorkFunction($workFunction);
+            }
+        } catch (Exception $e) {
+            return response($e->getMessage());
         }
 
         return response('work function id is not given', 400);
@@ -55,6 +58,17 @@ class ChaptersController
 
     public function postChapter(Request $request)
     {
+        try {
+            // link the existing chapters to a work function we do this in a batch.
+            if ($request->input('chapters') && $request->input('workFunctionId')) {
+                $workFunction = $this->workFunctionsHandler->getWorkFunction($request->input('workFunctionId'));
+                return $this->chaptersHandler->linkChapters($request->input('chapters'), $workFunction);
+            }
+        } catch (Exception $e) {
+            return response($e->getMessage());
+        }
+
+
         if( !$request->input('parentChapterId') && !$request->input('workFunctionId') ) {
             return response('parent id is not given', 400);
         } else if( $request->input('parentChapterId') && $request->input('workFunctionId') ) {
@@ -79,7 +93,7 @@ class ChaptersController
 
                 $newChapter->setOrder($newOrder);
             } else if(!$request->input('order')) {
-                $order = $this->chaptersHandler->getHighestOrderInChapter($request->input('parentChapterId')) + 1;
+                $order = $this->chaptersHandler->getHighestOrder(ChaptersHandler::TABLE, 'parentChapterId', $request->input('parentChapterId')) + 1;
                 $postData['order'] = $order;
                 $newChapter = $this->chaptersHandler->postChapter($postData, $request->input('workFunctionId'));
             } else {

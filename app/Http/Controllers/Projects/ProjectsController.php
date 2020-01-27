@@ -157,10 +157,10 @@ class ProjectsController extends ApiController
 
                     if($workFunction->isMainFunction()) {
                         $mainWorkFunctionFromTemplate = array_filter($template->getWorkFunctions(), function(WorkFunction $workFunction) { return $workFunction->isMainFunction(); });
-                        if(!empty($mainWorkFunctionFromTemplate)) {
-                            /** @var WorkFunction $mainWorkFunctionFromTemplate */
-                            $mainWorkFunctionFromTemplate = $mainWorkFunctionFromTemplate[0];
-                            $this->documentsHandler->createDocumentsWithTemplate($workFunction, $mainWorkFunctionFromTemplate->getChapters(), WorkFunctionsHandler::MAIN_HAS_DOCUMENT_TABLE);
+                        /** @var WorkFunction $mainWorkFunction */
+                        $mainWorkFunction = reset($mainWorkFunctionFromTemplate);
+                        if(isset($mainWorkFunction)) {
+                            $this->documentsHandler->createDocumentsWithTemplate($workFunction, $mainWorkFunction->getChapters(), WorkFunctionsHandler::MAIN_HAS_DOCUMENT_TABLE);
                         }
                     }
                 }
@@ -182,8 +182,6 @@ class ProjectsController extends ApiController
      */
     public function deleteProject(Request $request, int $id)
     {
-
-
         try {
             $workFunctions = $this->workFunctionsHandler->getWorkFunctionsFromProjectId($id);
             foreach ($workFunctions as $workFunction) {

@@ -42,7 +42,7 @@ class ChaptersHandler
             $results = DB::table(self::TABLE)
                 ->where('parentChapterId', $chapter->getId())
                 ->get();
-            if ( $results === null ) {
+            if ( $results === null || $results->isEmpty() ) {
                 return [];
             }
             $chapters = [];
@@ -112,13 +112,47 @@ class ChaptersHandler
                         $this->postChapter($subChapter);
                     }
                 }
-
+                array_push($container, $this->getChapter($id, $workFunctionId));
             } catch (Exception $e) {
                 throw new Exception($e->getMessage(),500);
             }
-            array_push($container, $this->getChapter($id, $workFunctionId));
         }
         return $container;
+    }
+
+    /**
+     * Link existing chapters to the given work function.
+     * @param array $chapters
+     * @param WorkFunction $workFunction
+     * @return Chapter[]
+     * @throws Exception
+     */
+    public function linkChapters(array $chapters, WorkFunction $workFunction)
+    {
+        $linkTable = WorkFunctionsHandler::MAIN_HAS_CHAPTER_TABLE;
+        foreach ($chapters as $chapterId) {
+            $row = [
+                'chapterId' => $chapterId,
+                'workFunctionId' => $workFunction->getId(),
+            ];
+
+            try {
+                $row['order'] = $this->getHighestOrder($linkTable,'workFunctionId', $workFunction->getId()) + 1;
+
+                $isEmpty = DB::table($linkTable)
+                    ->where('chapterId', $chapterId)
+                    ->where('workFunctionId', $workFunction->getId())
+                    ->get()->isEmpty();
+
+                if($isEmpty) {
+                    DB::table($linkTable)
+                        ->insert($row);
+                }
+            } catch (Exception $e) {
+                throw new Exception($e->getMessage(),500);
+            }
+        }
+        return $workFunction->getChapters();
     }
 
     /**
@@ -205,14 +239,16 @@ class ChaptersHandler
 
     /**
      * Get the highest order from the same chapter.
-     * @param int $chapterId
+     * @param string $table
+     * @param string $idName
+     * @param int $parentId
      * @return int
      */
-    public function getHighestOrderInChapter(int $chapterId): int
+    public function getHighestOrder(string $table, string $idName, int $parentId): int
     {
-        $result = DB::table(self::TABLE)
+        $result = DB::table($table)
             ->select('order')
-            ->where('parentChapterId', $chapterId)
+            ->where($idName, $parentId)
             ->orderByDesc('order')
             ->first();
         if ($result == null) {
