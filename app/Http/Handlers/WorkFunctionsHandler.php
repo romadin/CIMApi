@@ -259,19 +259,19 @@ class WorkFunctionsHandler
         try {
             $this->deleteLinks($workFunction);
         } catch (Exception $e) {
-            new Exception($e->getMessage(),500);
+            throw new Exception($e->getMessage(),500);
         }
 
-        if ($workFunction->isMainFunction() && $workFunction->getProjectId() !== null) {
-            foreach ($documents as $document) {
-                $this->documentsHandler->deleteDocument($document->getId());
-            }
-        } else {
-            try {
+        try {
+            if ($workFunction->isMainFunction() && $workFunction->getProjectId() !== null) {
+                foreach ($documents as $document) {
+                    $this->documentsHandler->deleteDocument($document->getId());
+                }
+            } else {
                 $this->deleteChapters($workFunction);
-            } catch (Exception $e) {
-                new Exception($e->getMessage(),500);
             }
+        } catch (Exception $e) {
+            throw new Exception($e->getMessage(),500);
         }
 
         try {

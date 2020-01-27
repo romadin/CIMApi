@@ -253,20 +253,40 @@ class DocumentsHandler
         return json_encode('Document link deleted');
     }
 
+    /**
+     * @param int $id
+     * @return bool
+     * @throws Exception
+     */
     public function deleteDocument(int $id)
     {
         try {
+            // get subDocuments id.
+            $results = DB::table(self::DOCUMENT_LINK_DOCUMENT_TABLE)
+                ->select('subDocumentId')
+                ->where('documentId', $id)
+                ->get();
+
+            // delete link with sub documents
             DB::table(self::DOCUMENT_LINK_DOCUMENT_TABLE)
                 ->where('documentId', $id)
                 ->delete();
 
+            // delete subDocuments
+            foreach ($results as $result) {
+                DB::table(self::DOCUMENT_TABLE )
+                    ->where('id', $result->subDocumentId)
+                    ->delete();
+            }
+
+            // delete link with parent work function.
             DB::table(WorkFunctionsHandler::MAIN_HAS_DOCUMENT_TABLE)
                 ->where('documentId', $id)
                 ->delete();
 
             DB::table(self::DOCUMENT_TABLE)->delete($id);
         } catch (\Exception $e) {
-            return response('DocumentHandler: There is something wrong with the database connection', 500);
+            throw new Exception($e->getMessage(), 500);
         }
 
         return true;

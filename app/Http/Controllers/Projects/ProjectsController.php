@@ -194,7 +194,7 @@ class ProjectsController extends ApiController
             if( $linkedUsers && $linkedActionsDeleted && $linkedEvents) {
 
                 DB::table(ProjectsHandler::PROJECT_TABLE)->delete($id);
-                return $this->getProjects($request);
+                return json_encode('Project deleted');
             }
         } catch (Exception $e) {
             return response($e->getMessage(), 200);
