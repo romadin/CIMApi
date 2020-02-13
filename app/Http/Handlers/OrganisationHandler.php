@@ -9,6 +9,7 @@
 namespace App\Http\Handlers;
 
 use App\Models\Organisation\Organisation;
+use DateTime;
 use Exception;
 use Illuminate\Support\Facades\DB;
 
@@ -63,10 +64,11 @@ class OrganisationHandler
 
     /**
      * @param string $name
+     * @param DateTime $demoPeriod
      * @return Organisation|bool|\Illuminate\Http\Response|\Laravel\Lumen\Http\ResponseFactory
      * @throws Exception
      */
-    public function createOrganisation(string $name)
+    public function createOrganisation(string $name, DateTime $demoPeriod = null)
     {
         try {
             $exist = DB::table(self::table)
@@ -75,8 +77,9 @@ class OrganisationHandler
 
             if ($exist) return true;
 
+
             $id = DB::table(self::table)
-                ->insertGetId(['name' => $name]);
+                ->insertGetId(['name' => $name, 'demoPeriod' => $demoPeriod->format('Y-m-d H:i:s')]);
 
             // Add template module for default with restriction amount 1.
             $where = [['organisationId', $id], ['moduleId', 1] ];
@@ -103,9 +106,11 @@ class OrganisationHandler
         return $this->getOrganisationById($id);
     }
 
+
     /**
      * @param $data
      * @return Organisation|\Illuminate\Http\Response|\Laravel\Lumen\Http\ResponseFactory
+     * @throws Exception
      */
     private function makeOrganisation($data)
     {
@@ -114,7 +119,10 @@ class OrganisationHandler
         foreach ($data as $key => $value) {
             if ($value) {
                 $method = 'set'. ucfirst($key);
-                if(method_exists($organisation, $method)) {
+                if(method_exists($organisation, $method) && $method === 'setDemoPeriod') {
+                    $period = new DateTime($value);
+                    $organisation->$method($period);
+                } else if (method_exists($organisation, $method) ) {
                     $organisation->$method($value);
                 }
             }

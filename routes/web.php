@@ -17,10 +17,12 @@ $router->group(['middleware' => 'appToken'], function () use ($router) {
 
     $router->get('organisations', 'Organisation\OrganisationController@getOrganisation');
     $router->post('organisations', 'Organisation\OrganisationController@createOrganisation');
-    $router->post('organisations/{id}/users', 'Organisation\OrganisationController@addUsersToOrganisation');
+    $router->post('organisations/{id}/site', 'Organisation\OrganisationController@updateOrganisationStrict');
     $router->get('organisations/{id}/image', 'Organisation\OrganisationController@getOrganisationImage');
 
     $router->post('modules', 'Module\ModuleController@joinModule');
+
+    $router->get('organisations/test', 'Organisation\OrganisationController@getTest');
 });
 
 $router->group(['middleware' => 'auth'], function () use ($router)

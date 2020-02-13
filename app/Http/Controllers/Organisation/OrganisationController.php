@@ -13,7 +13,13 @@ use App\Http\Controllers\ApiController;
 use App\Http\Controllers\Mail\MailController;
 use App\Http\Handlers\OrganisationHandler;
 use App\Http\Handlers\UsersHandler;
+use App\Mail\ReminderDemoVersion;
+use App\Mail\UserActivation;
+use DateInterval;
+use DateTime;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 class OrganisationController extends ApiController
 {
@@ -45,7 +51,8 @@ class OrganisationController extends ApiController
     public function createOrganisation(Request $request)
     {
         try {
-            $organisation = $this->organisationHandler->createOrganisation($request->input('name'));
+            $demoPeriod = $request->input('demo') ? new DateTime() : null;
+            $organisation = $this->organisationHandler->createOrganisation($request->input('name'), $demoPeriod);
 
             if ($organisation === true) {
                 $organisation = $this->organisationHandler->getOrganisationByName($request->input('name'));
@@ -61,13 +68,21 @@ class OrganisationController extends ApiController
         return $this->getReturnValueObject($request, $organisation);
     }
 
-    public function addUsersToOrganisation(Request $request, int $id)
+    public function updateOrganisationStrict(Request $request, int $id)
     {
-        if(!$request->input('maxUsers')) {
-            return response('Only users can be updated', 400);
+        if (!$request->input('maxUsers') && !$request->input('demoPeriod') ) {
+            return response('Action is not permitted', 400);
         }
 
-        return $this->getReturnValueObject($request, $this->organisationHandler->updateOrganisation(['maxUsers' => $request->input('maxUsers')], $id, null));
+        $updateData = [];
+        if($request->input('maxUsers')) {
+            $updateData['maxUsers'] = $request->input('maxUsers');
+        }
+        if ($request->input('demoPeriod')) {
+            $updateData['demoPeriod'] = null;
+        }
+
+        return $this->getReturnValueObject($request, $this->organisationHandler->updateOrganisation($updateData, $id, null));
     }
 
     public function getOrganisationImage(int $id)
@@ -82,6 +97,11 @@ class OrganisationController extends ApiController
         }
 
         return $this->getReturnValueObject($request, $this->organisationHandler->updateOrganisation($request->post(), $id, $request->file('logo')));
+    }
+
+    public function getTest()
+    {
+
     }
 
 }
