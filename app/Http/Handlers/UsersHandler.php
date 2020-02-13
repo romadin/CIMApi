@@ -189,6 +189,13 @@ class UsersHandler
         return $this->getUserById($id);
     }
 
+    /**
+     * @param $postData
+     * @param $image
+     * @param $organisationId
+     * @return User|\Illuminate\Http\Response|\Laravel\Lumen\Http\ResponseFactory
+     * @throws Exception
+     */
     public function postUser($postData, $image, $organisationId)
     {
         try {
@@ -206,7 +213,7 @@ class UsersHandler
                 'role_id' => isset($postData['role_id']) ? $postData['role_id'] : 2,
             ]);
         } catch (\Exception $e) {
-            return response($e->getMessage());
+            throw new Exception($e->getMessage());
         }
 
         if ( $newId ) {
@@ -221,7 +228,7 @@ class UsersHandler
 
             return $this->getUserById($newId);
         }
-        return response('Creating the new user went wrong', 400);
+        throw new Exception('Creating the new user went wrong', 400);
     }
 
     public function deleteUser(int $userId) {

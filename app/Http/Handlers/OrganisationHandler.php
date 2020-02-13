@@ -79,7 +79,7 @@ class OrganisationHandler
 
 
             $id = DB::table(self::table)
-                ->insertGetId(['name' => $name, 'demoPeriod' => $demoPeriod->format('Y-m-d H:i:s')]);
+                ->insertGetId(['name' => $name, 'demoPeriod' => $demoPeriod ? $demoPeriod->format('Y-m-d H:i:s'): $demoPeriod]);
 
             // Add template module for default with restriction amount 1.
             $where = [['organisationId', $id], ['moduleId', 1] ];

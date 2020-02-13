@@ -99,9 +99,4 @@ class OrganisationController extends ApiController
         return $this->getReturnValueObject($request, $this->organisationHandler->updateOrganisation($request->post(), $id, $request->file('logo')));
     }
 
-    public function getTest()
-    {
-
-    }
-
 }
