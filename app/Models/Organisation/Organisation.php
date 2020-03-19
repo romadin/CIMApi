@@ -54,9 +54,9 @@ class Organisation implements JsonSerializable
     private $modules = null;
 
     /**
-     * @var null | \DateTime
+     * @var boolean
      */
-    private $demoPeriod = null;
+    private $demo = null;
 
     public function __construct()
     {
@@ -202,14 +202,14 @@ class Organisation implements JsonSerializable
         return $module ? $module[0] : $module;
     }
 
-    public function getDemoPeriod(): ?\DateTime
+    public function getDemo(): bool
     {
-        return $this->demoPeriod;
+        return $this->demo;
     }
 
-    public function setDemoPeriod(?\DateTime $period): void
+    public function setDemo(bool $period): void
     {
-        $this->demoPeriod = $period;
+        $this->demo = $period;
     }
 
     public function jsonSerialize()
@@ -222,7 +222,7 @@ class Organisation implements JsonSerializable
             'maxUsers' => $this->getMaxUsers(),
             'templatesNumber' => $this->getTemplatesNumber(),
             'modules' => $this->getModules(),
-            'demoPeriod' => $this->getDemoPeriod(),
+            'isDemo' => $this->getDemo(),
             'hasLogo' => $this->getLogo() !== null,
         ];
     }

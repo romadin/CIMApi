@@ -51,8 +51,8 @@ class OrganisationController extends ApiController
     public function createOrganisation(Request $request)
     {
         try {
-            $demoPeriod = $request->input('demo') ? new DateTime() : null;
-            $organisation = $this->organisationHandler->createOrganisation($request->input('name'), $demoPeriod);
+            $bought = $request->input('buy') ?: false;
+            $organisation = $this->organisationHandler->createOrganisation($request->input('name'), $bought);
 
             if ($organisation === true) {
                 $organisation = $this->organisationHandler->getOrganisationByName($request->input('name'));

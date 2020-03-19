@@ -25,6 +25,9 @@ class ModulesTableSeeder extends Seeder
             [
                 'name' => 'Basic ILS',
             ],
+            [
+                'name' => 'Pdf export',
+            ],
         ]);
     }
 }
