@@ -10,6 +10,7 @@ namespace App\Http\Handlers;
 
 
 use App\Models\Project\Project;
+use Exception;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 
@@ -55,8 +56,8 @@ class ProjectsHandler
             if ( $results === null ) {
                 return response('Item does not exist', 404);
             }
-        } catch (\Exception $e) {
-            return \response('ProjectHandler: There is something wrong with the database connection',500);
+        } catch (Exception $e) {
+            throw new Exception('ProjectHandler: There is something wrong with the database connection',500);
         }
 
         $projects = [];
@@ -66,6 +67,20 @@ class ProjectsHandler
         }
 
         return $projects;
+    }
+
+    /**
+     * @param int $organisationId
+     * @return int
+     * @throws Exception
+     */
+    public function getProjectsAmountByOrganisation(int $organisationId): int
+    {
+        try {
+            return $amount = DB::table(self::PROJECT_TABLE)->where('organisationId', $organisationId)->count();
+        } catch (Exception $e) {
+            throw new Exception('ProjectHandler: There is something wrong with the database connection', 500);
+        }
     }
 
     /**

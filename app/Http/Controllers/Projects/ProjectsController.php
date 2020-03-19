@@ -14,6 +14,7 @@ use App\Http\Controllers\Templates\TemplatesController;
 use App\Http\Handlers\ActionsHandler;
 use App\Http\Handlers\DocumentsHandler;
 use App\Http\Handlers\EventsHandler;
+use App\Http\Handlers\OrganisationHandler;
 use App\Http\Handlers\ProjectsHandler;
 use App\Http\Handlers\UsersHandler;
 use App\Http\Handlers\WorkFunctionsHandler;
@@ -58,6 +59,11 @@ class ProjectsController extends ApiController
     private $workFunctionsHandler;
 
     /**
+     * @var WorkFunctionsHandler
+     */
+    private $organisationHandler;
+
+    /**
      * @var DocumentsHandler
      */
     private $documentsHandler;
@@ -69,6 +75,7 @@ class ProjectsController extends ApiController
      * @param EventsHandler $eventsHandler
      * @param TemplatesController $templatesController
      * @param WorkFunctionsHandler $workFunctionsHandler
+     * @param OrganisationHandler $organisationHandler
      * @param DocumentsHandler $documentsHandler
      */
     public function __construct(
@@ -78,6 +85,7 @@ class ProjectsController extends ApiController
         EventsHandler $eventsHandler,
         TemplatesController $templatesController,
         WorkFunctionsHandler $workFunctionsHandler,
+        OrganisationHandler $organisationHandler,
         DocumentsHandler $documentsHandler)
     {
         $this->projectsHandler = $projectsHandler;
@@ -86,6 +94,7 @@ class ProjectsController extends ApiController
         $this->eventsHandler = $eventsHandler;
         $this->templateController = $templatesController;
         $this->workFunctionsHandler = $workFunctionsHandler;
+        $this->organisationHandler = $organisationHandler;
         $this->documentsHandler = $documentsHandler;
     }
 
@@ -135,6 +144,13 @@ class ProjectsController extends ApiController
                 'name' => $request->input('name'),
                 'organisationId' => $request->input('organisationId'),
             ];
+
+            /**
+             * Security check for demo organisation maximum of 1 project
+             */
+            $passCheck = $this->checkDemo($request->input('organisationId'));
+            if ($passCheck instanceof Response) { return $passCheck; }
+
             $project = $this->projectsHandler->postProject($postData);
 
             if ( $project ) {
@@ -224,6 +240,23 @@ class ProjectsController extends ApiController
         $result = DB::table(ProjectsHandler::PROJECT_TABLE)->where('id', $id)->first();
 
         return $this->projectsHandler->makeProject($result);
+    }
+
+    /**
+     * @param int $organisationId
+     * @return bool|Response|\Laravel\Lumen\Http\ResponseFactory
+     */
+    private function checkDemo(int $organisationId) {
+        try {
+            $organisation = $this->organisationHandler->getOrganisationById($organisationId);
+
+            if ($organisation->getDemo() && $this->projectsHandler->getProjectsAmountByOrganisation($organisation->getId()) === 1) {
+                return response('Maximum amount of projects has been reached.', 400);
+            }
+        } catch  (Exception $e) {
+            return response($e->getMessage(), 200);
+        }
+        return true;
     }
 
 }
