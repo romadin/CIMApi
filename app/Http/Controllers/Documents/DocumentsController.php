@@ -14,6 +14,7 @@ use App\Http\Handlers\CompaniesHandler;
 use App\Http\Handlers\DocumentsHandler;
 use App\Http\Handlers\TemplatesHandler;
 use App\Http\Handlers\WorkFunctionsHandler;
+use Elibyy\TCPDF\Facades\TCPDF;
 use Exception;
 use Illuminate\Http\Request;
 
@@ -70,6 +71,24 @@ class DocumentsController extends ApiController
         }
 
         return response('No parent id has been given', 501);
+    }
+
+    public function createPdf(Request $request)
+    {
+        try {
+            $workFunction = $this->workFunctionsHandler->getWorkFunction($request->input('workFunctionId'));
+            $documents =  $this->documentsHandler->getDocumentsFromWorkFunction($workFunction);
+
+            TCPDF::SetTitle('hello world');
+            TCPDF::AddPage();
+            TCPDF::Write(0, 'Hello World');
+            TCPDF::Output('hello_world.pdf');
+
+        } catch (Exception $e) {
+            return response($e->getMessage(), 500);
+        }
+
+        return response('Cannot create pdf', 501);
     }
 
     public function getDocument(Request $request, $id)

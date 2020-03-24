@@ -2,12 +2,14 @@
 
 require_once __DIR__.'/../vendor/autoload.php';
 
-try {
-    (new Dotenv\Dotenv(dirname(__DIR__)))->load();
-} catch (Dotenv\Exception\InvalidPathException $e) {
-    //
-}
-
+//try {
+//    (new Dotenv\Dotenv(dirname(__DIR__)))->load();
+//} catch (Dotenv\Exception\InvalidPathException $e) {
+//    //
+//}
+(new Laravel\Lumen\Bootstrap\LoadEnvironmentVariables(
+    dirname(__DIR__)
+))->bootstrap();
 /*
 |--------------------------------------------------------------------------
 | Create The Application
@@ -83,6 +85,8 @@ $app->singleton(
 // $app->register(App\Providers\AppServiceProvider::class);
  $app->register(App\Providers\AuthServiceProvider::class);
  $app->register(\Illuminate\Mail\MailServiceProvider::class);
+ $app->register(Elibyy\TCPDF\ServiceProvider::class);
+
 // $app->register(App\Providers\EventServiceProvider::class);
 
 /*

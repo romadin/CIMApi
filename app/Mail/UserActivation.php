@@ -9,9 +9,9 @@
 namespace App\Mail;
 
 
+use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Bus\Queueable;
-use Illuminate\Mail\Mailable;
 use App\Http\Handlers\OrganisationHandler;
 use App\Models\Organisation\Organisation;
 use App\Models\User;
