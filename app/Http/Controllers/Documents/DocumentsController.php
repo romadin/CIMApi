@@ -93,7 +93,6 @@ class DocumentsController extends ApiController
                 }
             }
 
-
             $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
 
             // set document information
@@ -117,7 +116,7 @@ class DocumentsController extends ApiController
             // set margins
             $pdf->SetMargins(PDF_MARGIN_LEFT, PDF_MARGIN_TOP, PDF_MARGIN_RIGHT);
             $pdf->SetHeaderMargin(PDF_MARGIN_HEADER);
-            $pdf->SetFooterMargin(PDF_MARGIN_FOOTER);
+            $pdf->SetFooterMargin(2);
 
             // set auto page breaks
             $pdf->SetAutoPageBreak(TRUE, PDF_MARGIN_BOTTOM);
@@ -133,7 +132,7 @@ class DocumentsController extends ApiController
             // dejavusans is a UTF-8 Unicode font, if you only need to
             // print standard ASCII chars, you can use core fonts like
             // helvetica or times to reduce file size.
-            $pdf->SetFont('dejavusans', '', 14, '', true);
+            $pdf->SetFont('helvetica', '', 11, '', true);
 
             // Add a page
             // This method has several options, check the source code documentation for more information.
@@ -144,9 +143,11 @@ class DocumentsController extends ApiController
 
 
             // Print text using writeHTMLCell()
-            $pdf->writeHTML($testHtml);
+            $pdf->writeHTML($html);
 
-            // ---------------------------------------------------------
+            // set display mode. Fixes vertical scrolling
+            $pdf->SetDisplayMode('default','OneColumn');
+            $pdf->AddPage();
 
             // Close and output PDF document
             // This method has several options, check the source code documentation for more information.
