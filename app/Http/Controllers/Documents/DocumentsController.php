@@ -14,9 +14,10 @@ use App\Http\Handlers\CompaniesHandler;
 use App\Http\Handlers\DocumentsHandler;
 use App\Http\Handlers\TemplatesHandler;
 use App\Http\Handlers\WorkFunctionsHandler;
-use Elibyy\TCPDF\Facades\TCPDF;
+//use Elibyy\TCPDF\Facades\TCPDF;
 use Exception;
 use Illuminate\Http\Request;
+use TCPDF;
 
 class DocumentsController extends ApiController
 {
@@ -79,10 +80,78 @@ class DocumentsController extends ApiController
             $workFunction = $this->workFunctionsHandler->getWorkFunction($request->input('workFunctionId'));
             $documents =  $this->documentsHandler->getDocumentsFromWorkFunction($workFunction);
 
-            TCPDF::SetTitle('hello world');
-            TCPDF::AddPage();
-            TCPDF::Write(0, 'Hello World');
-            TCPDF::Output('hello_world.pdf');
+            usort($documents, array($this, 'sortByOrder'));
+
+            $html = '';
+            foreach ($documents as $document) {
+                $html .= '<h1>' . $document->getTitle() . '</h1>' . $document->getContent();
+                $subDocuments = $document->getSubDocuments();
+                usort($subDocuments, array($this, 'sortByOrder'));
+
+                foreach ($subDocuments as $subDocument) {
+                    $html .= '<h3 style="color: #80b8ff">' . $subDocument->getTitle() . '</h3>' . $subDocument->getContent();
+                }
+            }
+
+
+            $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+
+            // set document information
+            $pdf->SetCreator(PDF_CREATOR);
+            $pdf->SetAuthor('Nicola Asuni');
+            $pdf->SetTitle('TCPDF Example 001');
+            $pdf->SetSubject('TCPDF Tutorial');
+            $pdf->SetKeywords('TCPDF, PDF, example, test, guide');
+
+            // set default header data
+            $pdf->SetHeaderData(PDF_HEADER_LOGO, PDF_HEADER_LOGO_WIDTH, 'BIM uitvoeringsplan', PDF_HEADER_STRING, array(0,64,255), array(0,64,128));
+            $pdf->setFooterData(array(0,64,0), array(0,64,128));
+
+            // set header and footer fonts
+            $pdf->setHeaderFont(Array(PDF_FONT_NAME_MAIN, '', PDF_FONT_SIZE_MAIN));
+            $pdf->setFooterFont(Array(PDF_FONT_NAME_DATA, '', PDF_FONT_SIZE_DATA));
+
+            // set default monospaced font
+            $pdf->SetDefaultMonospacedFont(PDF_FONT_MONOSPACED);
+
+            // set margins
+            $pdf->SetMargins(PDF_MARGIN_LEFT, PDF_MARGIN_TOP, PDF_MARGIN_RIGHT);
+            $pdf->SetHeaderMargin(PDF_MARGIN_HEADER);
+            $pdf->SetFooterMargin(PDF_MARGIN_FOOTER);
+
+            // set auto page breaks
+            $pdf->SetAutoPageBreak(TRUE, PDF_MARGIN_BOTTOM);
+
+            // set image scale factor
+            $pdf->setImageScale(PDF_IMAGE_SCALE_RATIO);
+
+
+            // set default font subsetting mode
+            $pdf->setFontSubsetting(true);
+
+            // Set font
+            // dejavusans is a UTF-8 Unicode font, if you only need to
+            // print standard ASCII chars, you can use core fonts like
+            // helvetica or times to reduce file size.
+            $pdf->SetFont('dejavusans', '', 14, '', true);
+
+            // Add a page
+            // This method has several options, check the source code documentation for more information.
+            $pdf->AddPage();
+
+            // set text shadow effect
+            $pdf->setTextShadow(array('enabled'=>true, 'depth_w'=>0.2, 'depth_h'=>0.2, 'color'=>array(196,196,196), 'opacity'=>1, 'blend_mode'=>'Normal'));
+
+
+            // Print text using writeHTMLCell()
+            $pdf->writeHTML($testHtml);
+
+            // ---------------------------------------------------------
+
+            // Close and output PDF document
+            // This method has several options, check the source code documentation for more information.
+            $pdf->Output('example_001.pdf', 'I');
+
 
         } catch (Exception $e) {
             return response($e->getMessage(), 500);
@@ -202,4 +271,9 @@ class DocumentsController extends ApiController
         }
         return json_encode('Link has been made');
     }
+
+    static function sortByOrder($a, $b){
+        return $a->getOrder() === $b->getOrder() ? 0 : ($a->getOrder() < $b->getOrder()) ? -1 : 1;
+    }
+
 }

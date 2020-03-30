@@ -97,6 +97,11 @@ class Document implements JsonSerializable
         $this->name = $name;
     }
 
+    public function getTitle(): string
+    {
+        return $this->getName() ?: $this->getOriginalName();
+    }
+
     /**
      * @return string | null
      */
