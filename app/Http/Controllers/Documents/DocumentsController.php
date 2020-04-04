@@ -15,6 +15,7 @@ use App\Http\Handlers\DocumentsHandler;
 use App\Http\Handlers\TemplatesHandler;
 use App\Http\Handlers\WorkFunctionsHandler;
 //use Elibyy\TCPDF\Facades\TCPDF;
+use App\Models\Document\Document;
 use Exception;
 use Illuminate\Http\Request;
 use TCPDF;
@@ -77,30 +78,14 @@ class DocumentsController extends ApiController
     public function createPdf(Request $request)
     {
         try {
-            $workFunction = $this->workFunctionsHandler->getWorkFunction($request->input('workFunctionId'));
-            $documents =  $this->documentsHandler->getDocumentsFromWorkFunction($workFunction);
-
-            usort($documents, array($this, 'sortByOrder'));
-
-            $html = '';
-            foreach ($documents as $document) {
-                $html .= '<h1>' . $document->getTitle() . '</h1>' . $document->getContent();
-                $subDocuments = $document->getSubDocuments();
-                usort($subDocuments, array($this, 'sortByOrder'));
-
-                foreach ($subDocuments as $subDocument) {
-                    $html .= '<h3 style="color: #80b8ff">' . $subDocument->getTitle() . '</h3>' . $subDocument->getContent();
-                }
-            }
-
             $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
 
             // set document information
             $pdf->SetCreator(PDF_CREATOR);
-            $pdf->SetAuthor('Nicola Asuni');
-            $pdf->SetTitle('TCPDF Example 001');
-            $pdf->SetSubject('TCPDF Tutorial');
-            $pdf->SetKeywords('TCPDF, PDF, example, test, guide');
+            $pdf->SetAuthor('PDF generator');
+            $pdf->SetTitle('BIM uitvoeringsplan');
+            $pdf->SetSubject('BIM uitvoeringsplan');
+            $pdf->SetKeywords('BIM, PDF, uitvoeringsplan');
 
             // set default header data
             $pdf->SetHeaderData(PDF_HEADER_LOGO, PDF_HEADER_LOGO_WIDTH, 'BIM uitvoeringsplan', PDF_HEADER_STRING, array(0,64,255), array(0,64,128));
@@ -116,44 +101,52 @@ class DocumentsController extends ApiController
             // set margins
             $pdf->SetMargins(PDF_MARGIN_LEFT, PDF_MARGIN_TOP, PDF_MARGIN_RIGHT);
             $pdf->SetHeaderMargin(PDF_MARGIN_HEADER);
-            $pdf->SetFooterMargin(2);
+            $pdf->SetFooterMargin(PDF_MARGIN_FOOTER);
 
             // set auto page breaks
-            $pdf->SetAutoPageBreak(TRUE, PDF_MARGIN_BOTTOM);
+            $pdf->SetAutoPageBreak(TRUE, 15);
 
             // set image scale factor
             $pdf->setImageScale(PDF_IMAGE_SCALE_RATIO);
 
+            $workFunction = $this->workFunctionsHandler->getWorkFunction($request->input('workFunctionId'));
+            $documents =  $this->documentsHandler->getDocumentsFromWorkFunction($workFunction);
+
+            usort($documents, array($this, 'sortByOrder'));
+
+            foreach ($documents as $document) {
+                $html = '';
+                // Add a page
+                $pdf->AddPage();
+
+                $html .= '<h1>' . $document->getTitle() . '</h1>' . $this->getAlteredContent($document) . '<br><br>';
+
+                $subDocuments = $document->getSubDocuments();
+                usort($subDocuments, array($this, 'sortByOrder'));
+
+                foreach ($subDocuments as $subDocument) {
+                    $html .= '<h3 style="color: #80b8ff">' . $subDocument->getTitle() . '</h3>' . $this->getAlteredContent($subDocument);
+                }
+                // Print text using writeHTMLCell()
+                $pdf->writeHTML($html);
+            }
 
             // set default font subsetting mode
             $pdf->setFontSubsetting(true);
 
             // Set font
-            // dejavusans is a UTF-8 Unicode font, if you only need to
-            // print standard ASCII chars, you can use core fonts like
             // helvetica or times to reduce file size.
             $pdf->SetFont('helvetica', '', 11, '', true);
-
-            // Add a page
-            // This method has several options, check the source code documentation for more information.
-            $pdf->AddPage();
 
             // set text shadow effect
             $pdf->setTextShadow(array('enabled'=>true, 'depth_w'=>0.2, 'depth_h'=>0.2, 'color'=>array(196,196,196), 'opacity'=>1, 'blend_mode'=>'Normal'));
 
-
-            // Print text using writeHTMLCell()
-            $pdf->writeHTML($html);
-
             // set display mode. Fixes vertical scrolling
             $pdf->SetDisplayMode('default','OneColumn');
-            $pdf->AddPage();
 
             // Close and output PDF document
             // This method has several options, check the source code documentation for more information.
-            $pdf->Output('example_001.pdf', 'I');
-
-
+            $pdf->Output('BIM uitvoeringsplan.pdf', 'I');
         } catch (Exception $e) {
             return response($e->getMessage(), 500);
         }
@@ -271,6 +264,34 @@ class DocumentsController extends ApiController
             return response($e->getMessage(), 500);
         }
         return json_encode('Link has been made');
+    }
+
+    /**
+     * @param Document $document
+     * @return string | null
+     */
+    private function getAlteredContent($document) {
+        $matches = [];
+        $content = $document->getContent();
+        $match = preg_match_all( '/(?<=src=")(.*?)(?=")/' , $content, $matches);
+        $content = $match ? $this->getImagesFromContent($matches, $content) : $content;
+        return $content;
+    }
+
+    private function getImagesFromContent(array $matches, $content):string {
+        foreach ($matches[0] as $imgBase64) {
+            $imageContent = file_get_contents($imgBase64);
+            $tempPath = tempnam(sys_get_temp_dir(), 'prefix');
+            file_put_contents ($tempPath, $imageContent);
+
+            // replace the image with a temp path for the pdf
+            $content = str_replace($imgBase64, $tempPath, $content);
+
+            // remove the styling width 100% for the pdf because the pdf breaks the images.
+            // Now we get the full width/height from the picture.
+            $content = str_replace('width:100%', '', $content);
+        }
+        return $content;
     }
 
     static function sortByOrder($a, $b){
