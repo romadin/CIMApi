@@ -35,7 +35,8 @@ $router->group(['middleware' => 'auth'], function () use ($router)
     $router->get('projects/{id}', 'Projects\ProjectsController@getProject');
     $router->get('documents', 'Documents\DocumentsController@getDocuments');
 
-    $router->get('documents/pdf', 'Documents\DocumentsController@createPdf');
+    $router->get('pdf/{workFunctionId}/{organisationId}', 'Documents\PdfController@createPdf');
+    $router->get('pdf', 'Documents\PdfController@test');
 
     $router->get('documents/{id}', 'Documents\DocumentsController@getDocument');
     $router->get('roles/{id}', 'Roles\RolesController@getRole');

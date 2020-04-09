@@ -9,6 +9,7 @@
 namespace App\Models\Organisation;
 
 use App\Models\Module\Module;
+use Illuminate\Support\Facades\File;
 use JsonSerializable;
 
 class Organisation implements JsonSerializable
