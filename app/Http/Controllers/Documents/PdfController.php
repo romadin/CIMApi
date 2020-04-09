@@ -91,12 +91,10 @@ class PdfController
 
             // Close and output PDF document
             // This method has several options, check the source code documentation for more information.
-            $pdf->Output('BIM uitvoeringsplan.pdf', 'I');
+            return $pdf->Output('BIM uitvoeringsplan.pdf', 'S');
         } catch (Exception $e) {
             return response($e->getMessage(), 500);
         }
-
-        return response('Cannot create pdf', 501);
     }
     /**
      * @param Document $document

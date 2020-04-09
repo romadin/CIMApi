@@ -382,9 +382,11 @@ class DocumentsHandler
      */
     private function getOrderFromParent(Document $document, $parent): int
     {
+        $linkIdName = 'documentId';
         if ($parent instanceof Document) {
             $parentIdName = 'documentId';
             $table = self::DOCUMENT_LINK_DOCUMENT_TABLE;
+            $linkIdName = 'subDocumentId';
         } else {
             $parentIdName = 'workFunctionId';
             $table = WorkFunctionsHandler::MAIN_HAS_DOCUMENT_TABLE;
@@ -394,7 +396,7 @@ class DocumentsHandler
             $result = DB::table($table)
                 ->select('order')
                 ->where($parentIdName, $parent->getId())
-                ->where('documentId', $document->getId())
+                ->where($linkIdName, $document->getId())
                 ->first();
 
             if ($result == null) {
