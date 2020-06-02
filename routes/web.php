@@ -20,6 +20,8 @@ $router->group(['middleware' => 'appToken'], function () use ($router) {
     $router->post('organisations/{id}/site', 'Organisation\OrganisationController@updateOrganisationStrict');
     $router->get('organisations/{id}/image', 'Organisation\OrganisationController@getOrganisationImage');
 
+    $router->get('projects/users', '');
+
     $router->post('modules', 'Module\ModuleController@joinModule');
 
     $router->get('organisations/test', 'Organisation\OrganisationController@getTest');
@@ -35,8 +37,8 @@ $router->group(['middleware' => 'auth'], function () use ($router)
     $router->get('projects/{id}', 'Projects\ProjectsController@getProject');
     $router->get('documents', 'Documents\DocumentsController@getDocuments');
 
-    $router->get('pdf/{workFunctionId}/{organisationId}', 'Documents\PdfController@createPdf');
-    $router->get('pdf', 'Documents\PdfController@test');
+    $router->get('pdf/{organisationId}', 'Documents\PdfController@createPdf');
+    $router->get('pdf/{workFunctionId}/{organisationId}', 'Documents\PdfController@createPdfFromDocuments');
 
     $router->get('documents/{id}', 'Documents\DocumentsController@getDocument');
     $router->get('roles/{id}', 'Roles\RolesController@getRole');

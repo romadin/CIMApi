@@ -4,10 +4,11 @@
 namespace App\Http\Controllers\Documents;
 
 
-use App\Http\Handlers\DocumentsHandler;
-use App\Http\Handlers\OrganisationHandler;
 use App\Http\Handlers\WorkFunctionsHandler;
+use App\Http\Handlers\OrganisationHandler;
+use App\Http\Handlers\DocumentsHandler;
 use App\Models\Document\Document;
+use Illuminate\Http\Request;
 use App\Models\Tcpdf\MyPdf;
 use Exception;
 
@@ -39,12 +40,28 @@ class PdfController
         $this->organisationHandler = $organisationHandler;
     }
 
-    public function test(){
-        var_dump('yeaaa');
-        die;
+    public function createPdf($organisationId, Request $request) {
+        try {
+            $organisation = $this->organisationHandler->getOrganisationById($organisationId);
+
+            $pdf = new MyPdf(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false, false, $organisation);
+
+            $html = '';
+            // Add a page
+            $pdf->AddPage();
+
+            $pdf->writeHTML($request->input('content'));
+
+            // Close and output PDF document
+            // This method has several options, check the source code documentation for more information.
+//            return $pdf->Output($request->input('documentName') . '.pdf', 'I');
+            return $pdf->Output($request->input('documentName'), 'S');
+        } catch (Exception $e) {
+            return response($e->getMessage(), 500);
+        }
     }
 
-    public function createPdf($workFunctionId, $organisationId)
+    public function createPdfFromDocuments($workFunctionId, $organisationId)
     {
         try {
             $organisation = $this->organisationHandler->getOrganisationById($organisationId);
@@ -96,7 +113,9 @@ class PdfController
             return response($e->getMessage(), 500);
         }
     }
+
     /**
+     * Alter the image's string in the content string.
      * @param Document $document
      * @return string | null
      */
