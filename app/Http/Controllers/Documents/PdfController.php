@@ -4,6 +4,7 @@
 namespace App\Http\Controllers\Documents;
 
 
+use App\Http\Handlers\CompaniesHandler;
 use App\Http\Handlers\WorkFunctionsHandler;
 use App\Http\Handlers\OrganisationHandler;
 use App\Http\Handlers\DocumentsHandler;
@@ -24,6 +25,10 @@ class PdfController
      */
     private $workFunctionsHandler;
 
+    /**
+     * @var CompaniesHandler
+     */
+    private $companiesHandler;
 
     /**
      * @var OrganisationHandler
@@ -33,10 +38,12 @@ class PdfController
     public function __construct(
         DocumentsHandler $documentsHandler,
         WorkFunctionsHandler $workFunctionsHandler,
+        CompaniesHandler $companiesHandler,
         OrganisationHandler $organisationHandler)
     {
         $this->documentsHandler = $documentsHandler;
         $this->workFunctionsHandler = $workFunctionsHandler;
+        $this->companiesHandler = $companiesHandler;
         $this->organisationHandler = $organisationHandler;
     }
 
@@ -53,23 +60,26 @@ class PdfController
             $pdf->writeHTML($request->input('content'));
 
             // Close and output PDF document
-            // This method has several options, check the source code documentation for more information.
-//            return $pdf->Output($request->input('documentName') . '.pdf', 'I');
             return $pdf->Output($request->input('documentName'), 'S');
         } catch (Exception $e) {
             return response($e->getMessage(), 500);
         }
     }
 
-    public function createPdfFromDocuments($workFunctionId, $organisationId)
+    public function createPdfParent($workFunctionId, $organisationId, $companyId = null)
     {
         try {
             $organisation = $this->organisationHandler->getOrganisationById($organisationId);
+            $workFunction = $this->workFunctionsHandler->getWorkFunction($workFunctionId);
 
             $pdf = new MyPdf(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false, false, $organisation);
 
-            $workFunction = $this->workFunctionsHandler->getWorkFunction($workFunctionId);
-            $documents =  $this->documentsHandler->getDocumentsFromWorkFunction($workFunction);
+            if ($companyId) {
+                $company = $this->companiesHandler->getCompanyById($companyId);
+                $documents = $this->documentsHandler->getDocumentsFromCompany($company, $workFunction);
+            } else {
+                $documents =  $this->documentsHandler->getDocumentsFromWorkFunction($workFunction);
+            }
 
             usort($documents, array($this, 'sortByOrder'));
 
